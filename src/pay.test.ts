@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { periodOf, prevPeriod } from "./pay";
+import { nextPeriod, periodOf, prevPeriod } from "./pay";
 
 describe("pay period", () => {
   test("27 Oct is the last day of Oct pay (28 Sep – 27 Oct)", () => {
@@ -45,5 +45,12 @@ describe("moving between pay periods", () => {
 
   test("nothing comes before the first pay period", () => {
     expect(prevPeriod({ start: "2026-09-14", end: "2026-09-27" })).toBeNull();
+  });
+
+  test("after Dec pay comes Jan pay 2027", () => {
+    expect(nextPeriod({ start: "2026-11-28", end: "2026-12-27" })).toEqual({
+      start: "2026-12-28",
+      end: "2027-01-27",
+    });
   });
 });
