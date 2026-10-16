@@ -1,0 +1,2587 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Lola Final Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+  />
+  <style>
+    /* Layout: blueprint page. Sections grouped by who sees the screen; inside each, 390px phone frames wrap in a row and stack on a phone.
+   The app is light-only (agreed), so this page deliberately commits to one light look: Option A "Sky & Cream". */
+    :root {
+      /* page */
+      --page: #eaf2f8;
+      --page-ink: #24384a;
+      --page-muted: #5e7182;
+      /* app tokens (Option A) */
+      --bg: #fffbf3;
+      --surface: #ffffff;
+      --ink: #24384a;
+      --muted: #6f7f8c;
+      --line: #dce6ee;
+      --frame: #24384a;
+      --accent: #4e9bd1;
+      --accent-on: #ffffff;
+      --accent-ink: #2d6e9e;
+      --accent-soft: #ddeefa;
+      --t-bg: #cfe6f7;
+      --t-ink: #1f3b52;
+      --t-line: #a9cde6;
+      --t-bal: #ffffff;
+      --day: #ffffff;
+      --wkd: #f3eee4;
+      --ot: #bfe0f5;
+      --ot-ink: #1c5a86;
+      --lv: #fce3c9;
+      --lv-ink: #b8692a;
+      --hol: #ffe9a8;
+      --hol-ink: #8a6a00;
+      --ok: #e0f2e4;
+      --ok-ink: #2f6b3f;
+      --danger: #c2554a;
+      --danger-soft: #fbe4e1;
+      --scrim: #24384a55;
+      --bear: #a8744a;
+      --bear-lt: #e8c79f;
+      --bear-dk: #4a2e1f;
+      --cheek: #f2a79e;
+      --bow: #4e9bd1;
+      --r-card: 26px;
+      --r-day: 14px;
+      --r-item: 18px;
+      --r-btn: 999px;
+      --font-d: "Baloo 2", "Nunito", system-ui, sans-serif;
+      --font-b: "Nunito", system-ui, sans-serif;
+      color-scheme: light;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: var(--page);
+      color: var(--page-ink);
+      font-family: var(--font-b);
+      font-size: 15px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .wrap {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding-inline: 16px;
+      padding-block: 28px 64px;
+    }
+    .intro {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .intro svg {
+      width: 72px;
+      height: 72px;
+      flex: none;
+    }
+    .intro h1 {
+      font-family: var(--font-d);
+      font-size: 2.1rem;
+      line-height: 1.1;
+      margin: 0;
+      text-wrap: balance;
+    }
+    .intro p {
+      margin: 4px 0 0;
+      color: var(--page-muted);
+      max-width: 70ch;
+    }
+    .jump {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .jump a {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--page-ink);
+      text-decoration: none;
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 4px 12px;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .jump a:hover,
+    .jump a:focus-visible {
+      box-shadow: inset 0 0 0 1.5px var(--page-ink);
+    }
+
+    section.grp {
+      margin-bottom: 44px;
+    }
+    .grp-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      align-items: baseline;
+      margin-bottom: 18px;
+      border-bottom: 1.5px solid var(--t-line);
+      padding-bottom: 10px;
+    }
+    .grp-head h2 {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1.6rem;
+      line-height: 1.15;
+    }
+    .grp-head p {
+      margin: 0;
+      color: var(--page-muted);
+      flex: 1 1 320px;
+      min-width: 0;
+    }
+    .frames {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px 22px;
+      align-items: flex-start;
+    }
+    figure.ph {
+      margin: 0;
+      width: 390px;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    figure.ph figcaption {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--page-muted);
+      padding-left: 6px;
+    }
+    figure.ph figcaption small {
+      display: block;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    /* ---------- phone shell ---------- */
+    .phone {
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: 40px;
+      border: 7px solid var(--frame);
+      box-shadow: 0 18px 40px -22px #24384a66;
+      overflow: hidden;
+      position: relative;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 24px 2px;
+      font-size: 12px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .screen {
+      padding: 8px 16px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .top .bearsm {
+      width: 44px;
+      height: 44px;
+      flex: none;
+    }
+    .top .hi {
+      flex: 1;
+      min-width: 0;
+    }
+    .top .hi b {
+      display: block;
+      font-family: var(--font-d);
+      font-size: 1.25rem;
+      line-height: 1.15;
+    }
+    .top .hi small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .iconbtn {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 0;
+      background: var(--surface);
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      flex: none;
+      cursor: pointer;
+    }
+    .iconbtn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .pill {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+    }
+    .period {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .period div {
+      text-align: center;
+      line-height: 1.15;
+    }
+    .period b {
+      display: block;
+      font-family: var(--font-d);
+      font-size: 1.15rem;
+    }
+    .period small {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.78rem;
+    }
+    .period button {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 0;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 1.15rem;
+      line-height: 1;
+      cursor: pointer;
+      flex: none;
+    }
+
+    /* totals card + peeking bear */
+    .totals {
+      border-radius: var(--r-card);
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      background: var(--t-bg);
+      color: var(--t-ink);
+      margin-top: 14px;
+    }
+    .totals .peek {
+      position: absolute;
+      right: 12px;
+      top: -30px;
+      width: 70px;
+      height: 70px;
+    }
+    .totals .lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 800;
+      opacity: 0.75;
+    }
+    .totals .big {
+      font-family: var(--font-d);
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .totals .big small {
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0.75;
+      margin-left: 4px;
+    }
+    .rows {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 5px 12px;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    .rows dt {
+      opacity: 0.8;
+    }
+    .rows dd {
+      margin: 0;
+      text-align: right;
+      font-weight: 800;
+    }
+    .rows .sep {
+      grid-column: 1/-1;
+      height: 1px;
+      background: var(--t-line);
+      margin: 3px 0;
+    }
+    .bal {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 20px;
+      padding: 9px 12px;
+      background: var(--t-bal);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .bal span:last-child {
+      font-family: var(--font-d);
+      font-size: 1.15rem;
+    }
+    .bal.paid {
+      background: var(--ok);
+      color: var(--ok-ink);
+    }
+
+    /* calendar */
+    .card {
+      background: var(--surface);
+      border-radius: var(--r-card);
+      padding: 14px;
+      box-shadow: 0 1px 0 var(--line);
+    }
+    .dow,
+    .cal {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    .dow span {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      padding-bottom: 4px;
+    }
+    .d {
+      aspect-ratio: 1/1.08;
+      max-width: 100%;
+      border-radius: var(--r-day);
+      background: var(--day);
+      box-shadow: inset 0 0 0 1px var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+    }
+    .d .n {
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+    .d .t {
+      font-size: 0.58rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .d .m {
+      position: absolute;
+      top: 3px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.5rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.7;
+    }
+    .d.e {
+      background: transparent;
+      box-shadow: none;
+    }
+    .d.wkd {
+      background: var(--wkd);
+      color: var(--muted);
+      box-shadow: none;
+    }
+    .d.ot {
+      background: var(--ot);
+      color: var(--ot-ink);
+      box-shadow: none;
+    }
+    .d.lv {
+      background: var(--lv);
+      color: var(--lv-ink);
+      box-shadow: none;
+    }
+    .d.hol {
+      background: var(--hol);
+      color: var(--hol-ink);
+      box-shadow: none;
+    }
+    .d.today {
+      box-shadow: inset 0 0 0 2px var(--ink);
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      margin-top: 12px;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .legend i {
+      width: 11px;
+      height: 11px;
+      border-radius: 4px;
+      display: block;
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .hint svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* lists */
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .list h3 {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .list h3 small {
+      font-family: var(--font-b);
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+    }
+    .chip {
+      width: 42px;
+      flex: none;
+      text-align: center;
+      border-radius: 12px;
+      padding: 4px 0;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip small {
+      display: block;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 800;
+    }
+    .chip b {
+      font-size: 1.05rem;
+      font-family: var(--font-d);
+    }
+    .chip.ot {
+      background: var(--ot);
+      color: var(--ot-ink);
+    }
+    .chip.lv {
+      background: var(--lv);
+      color: var(--lv-ink);
+    }
+    .chip.hol {
+      background: var(--hol);
+      color: var(--hol-ink);
+    }
+    .chip.pay {
+      background: var(--ok);
+      color: var(--ok-ink);
+    }
+    .item .what {
+      flex: 1;
+      min-width: 0;
+    }
+    .item .what b {
+      display: block;
+      font-size: 0.88rem;
+    }
+    .item .what small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    .item .amt {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: 0.88rem;
+    }
+    .item .amt small {
+      display: block;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.72rem;
+    }
+    .pen {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 0;
+      background: var(--bg);
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      flex: none;
+      cursor: pointer;
+    }
+    .pen svg {
+      width: 15px;
+      height: 15px;
+    }
+    .empty {
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 12px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .empty b {
+      display: block;
+      color: var(--ink);
+    }
+
+    /* payments + receipts */
+    .pay {
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pay .item {
+      padding: 0;
+    }
+    .rcs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .rcw {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      width: 66px;
+    }
+    .rcw span {
+      font-size: 0.62rem;
+      color: var(--muted);
+      font-weight: 700;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rc {
+      width: 66px;
+      height: 84px;
+      border-radius: 12px;
+      background: var(--bg);
+      box-shadow: inset 0 0 0 1.5px var(--line);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 10px 9px;
+    }
+    .rc i {
+      display: block;
+      height: 4px;
+      border-radius: 3px;
+      background: var(--line);
+    }
+    .rc i:nth-child(1) {
+      width: 60%;
+      background: var(--ok-ink);
+      opacity: 0.5;
+    }
+    .rc i:nth-child(3) {
+      width: 70%;
+    }
+    .rc i:nth-child(4) {
+      width: 45%;
+      height: 7px;
+      background: var(--accent);
+      opacity: 0.5;
+      margin-top: 4px;
+    }
+    .rc .tag {
+      position: absolute;
+      left: 7px;
+      bottom: 7px;
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: var(--danger);
+      background: var(--danger-soft);
+      border-radius: 5px;
+      padding: 1px 4px;
+    }
+    .rc .dl,
+    .rc .x {
+      position: absolute;
+      right: -6px;
+      bottom: -6px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--surface);
+      background: var(--accent);
+      color: var(--accent-on);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    .rc .x {
+      top: -6px;
+      bottom: auto;
+      background: var(--ink);
+    }
+    .rc .dl svg,
+    .rc .x svg {
+      width: 13px;
+      height: 13px;
+    }
+    .rc.add {
+      background: transparent;
+      box-shadow: inset 0 0 0 1.5px var(--t-line);
+      border: 0;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-ink);
+      font: inherit;
+      font-size: 0.62rem;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+    .rc.add svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* buttons */
+    .btn {
+      font: inherit;
+      font-weight: 800;
+      border: 0;
+      border-radius: var(--r-btn);
+      padding: 14px 16px;
+      font-size: 0.98rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-decoration: none;
+    }
+    .btn.pri {
+      background: var(--accent);
+      color: var(--accent-on);
+    }
+    .btn.sec {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1.5px var(--line);
+    }
+    .btn.dash {
+      background: transparent;
+      color: var(--accent-ink);
+      box-shadow: inset 0 0 0 1.5px var(--t-line);
+      border-radius: var(--r-item);
+      font-size: 0.88rem;
+      padding: 11px;
+    }
+    .btn.bad {
+      background: var(--surface);
+      color: var(--danger);
+      box-shadow: inset 0 0 0 1.5px var(--danger-soft);
+    }
+    .btn.sm {
+      width: auto;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+    }
+    .btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .btn.sm svg {
+      width: 15px;
+      height: 15px;
+    }
+    .duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .note {
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: -6px;
+    }
+    .link {
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      font-weight: 800;
+      color: var(--accent-ink);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .del {
+      background: none;
+      border: 0;
+      color: var(--danger);
+      font: inherit;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 4px;
+      cursor: pointer;
+    }
+    button:focus-visible,
+    a:focus-visible,
+    select:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* status badges */
+    .state {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .state i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--hol-ink);
+      display: block;
+    }
+    .state.ok {
+      background: var(--ok);
+      color: var(--ok-ink);
+    }
+    .state.ok i {
+      background: var(--ok-ink);
+    }
+    .flag {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: var(--lv);
+      color: #7a4214;
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+    }
+    .flag .ic {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--lv-ink);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      flex: none;
+    }
+    .flag b {
+      display: block;
+      font-size: 0.86rem;
+    }
+    .flag small {
+      font-size: 0.75rem;
+    }
+    .done {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: var(--ok);
+      color: var(--ok-ink);
+      border-radius: var(--r-btn);
+      padding: 13px 16px;
+      font-weight: 800;
+      justify-content: center;
+    }
+    .done svg {
+      width: 18px;
+      height: 18px;
+    }
+    .states {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-left: 6px;
+    }
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--bg);
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 8px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    /* forms */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+    }
+    .field > label,
+    .field > span {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .field .help {
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 600;
+    }
+    .inp,
+    textarea,
+    select {
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: var(--r-item);
+      padding: 11px 12px;
+      width: 100%;
+      min-width: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 13px) 50%;
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 32px;
+    }
+    textarea {
+      font-size: 0.9rem;
+      font-weight: 600;
+      resize: none;
+      min-height: 60px;
+    }
+    .inp:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .affix {
+      position: relative;
+    }
+    .affix .inp {
+      padding-right: 36px;
+    }
+    .affix span {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .range {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .range .arrow {
+      color: var(--muted);
+    }
+    .range .x {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 0;
+      background: var(--surface);
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .range .x svg {
+      width: 14px;
+      height: 14px;
+    }
+    .calc {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: var(--ot);
+      color: var(--ot-ink);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .calc b {
+      font-family: var(--font-d);
+      font-size: 1.1rem;
+      white-space: nowrap;
+    }
+    .quick {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .quick span {
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 11px 12px;
+    }
+    .toggle b {
+      display: block;
+      font-size: 0.9rem;
+    }
+    .toggle small {
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+    .sw-in {
+      position: relative;
+      width: 46px;
+      height: 28px;
+      flex: none;
+    }
+    .sw-in input {
+      appearance: none;
+      -webkit-appearance: none;
+      margin: 0;
+      width: 46px;
+      height: 28px;
+      border-radius: 99px;
+      background: var(--line);
+      cursor: pointer;
+    }
+    .sw-in input::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px #0003;
+    }
+    .sw-in input:checked {
+      background: var(--lv-ink);
+    }
+    .sw-in input:checked::after {
+      transform: translateX(18px);
+    }
+    .sw-in input:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .seg {
+      display: inline-flex;
+      background: var(--bg);
+      border-radius: 999px;
+      padding: 3px;
+      box-shadow: inset 0 0 0 1.5px var(--line);
+    }
+    .seg button {
+      border: 0;
+      background: none;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font: inherit;
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: var(--accent);
+      color: var(--accent-on);
+    }
+
+    /* sub-page header */
+    .bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .bar b {
+      flex: 1;
+      font-family: var(--font-d);
+      font-size: 1.3rem;
+    }
+    .sec {
+      background: var(--surface);
+      border-radius: var(--r-card);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 0 var(--line);
+    }
+    .sec h3 {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1.05rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .sec h3 small {
+      font-family: var(--font-b);
+      font-size: 0.74rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .sec .item {
+      background: var(--bg);
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .kv div {
+      background: var(--t-bg);
+      color: var(--t-ink);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+    }
+    .kv small {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.75;
+    }
+    .kv b {
+      font-family: var(--font-d);
+      font-size: 1.35rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .hist {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 4px 14px;
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+      margin: 0;
+    }
+    .hist div {
+      display: contents;
+    }
+    .hist span {
+      padding: 4px 0;
+      border-top: 1px solid var(--line);
+    }
+    .hist .h span {
+      border-top: 0;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .hist .r {
+      text-align: right;
+      font-weight: 800;
+    }
+    .navrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 13px 14px;
+      font-weight: 800;
+      box-shadow: 0 1px 0 var(--line);
+    }
+    .navrow span {
+      flex: 1;
+    }
+    .navrow i {
+      font-style: normal;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    .count {
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: var(--lv);
+      color: var(--lv-ink);
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .av {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-family: var(--font-d);
+      font-weight: 800;
+      font-size: 1.05rem;
+      flex: none;
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+    }
+    .av.w {
+      background: var(--lv);
+      color: var(--lv-ink);
+    }
+    .prow {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--bg);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+    }
+    .prow .item {
+      padding: 0;
+      background: none;
+    }
+    .prow .acts {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .log {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .log h4 {
+      margin: 6px 0 0;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .lg {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 2px 10px;
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+      font-size: 0.84rem;
+    }
+    .lg time {
+      font-weight: 800;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.78rem;
+      padding-top: 1px;
+    }
+    .lg small {
+      grid-column: 2;
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+    .op {
+      font-size: 0.62rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-radius: 6px;
+      padding: 1px 6px;
+      margin-right: 4px;
+    }
+    .op.add {
+      background: var(--ok);
+      color: var(--ok-ink);
+    }
+    .op.edit {
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+    }
+    .op.del {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    /* sheets */
+    .behind {
+      padding: 8px 16px 0;
+      opacity: 0.35;
+      filter: saturate(0.7);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .scrim {
+      position: absolute;
+      inset: 0;
+      background: var(--scrim);
+    }
+    .sheet {
+      position: relative;
+      margin-top: -180px;
+      background: var(--bg);
+      border-radius: 28px 28px 0 0;
+      padding: 10px 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 -10px 30px -12px #0003;
+    }
+    .grab {
+      width: 40px;
+      height: 5px;
+      border-radius: 9px;
+      background: var(--line);
+      margin: 0 auto 2px;
+    }
+    .sheet h4 {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1.3rem;
+      line-height: 1.1;
+    }
+    .sheet .sub {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    /* login family */
+    .login {
+      min-height: 720px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 26px 24px 24px;
+      gap: 12px;
+      background: linear-gradient(180deg, #ddeefa 0%, #fffbf3 55%);
+    }
+    .login .hero {
+      width: 132px;
+      height: 132px;
+      margin-top: 14px;
+    }
+    .login .hero.lg {
+      width: 170px;
+      height: 170px;
+      margin-top: 60px;
+    }
+    .login h5 {
+      margin: 2px 0 0;
+      font-family: var(--font-d);
+      font-size: 2.3rem;
+      line-height: 1;
+    }
+    .login h5.s {
+      font-size: 1.8rem;
+    }
+    .login p {
+      margin: 0;
+      color: var(--page-muted);
+      max-width: 30ch;
+    }
+    .login form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .login .grow {
+      flex: 1;
+    }
+    .login .alt {
+      font-size: 0.85rem;
+      color: var(--page-muted);
+    }
+    .a2hs {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      text-align: left;
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 11px 12px;
+      font-size: 0.78rem;
+      color: var(--page-muted);
+      box-shadow: inset 0 0 0 1.5px var(--line);
+      width: 100%;
+    }
+    .a2hs b {
+      color: var(--ink);
+    }
+    .a2hs .ic {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+    .a2hs svg {
+      width: 17px;
+      height: 17px;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .login .hero {
+        animation: bob 3.2s ease-in-out infinite;
+      }
+    }
+    @keyframes bob {
+      50% {
+        transform: translateY(-6px) rotate(-2deg);
+      }
+    }
+
+    /* payslip (A4 portrait) */
+    .slips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px 26px;
+      align-items: flex-start;
+    }
+    figure.ps {
+      margin: 0;
+      width: 560px;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    figure.ps figcaption {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--page-muted);
+      padding-left: 6px;
+    }
+    .a4 {
+      aspect-ratio: 210/297;
+      width: 100%;
+      max-width: 100%;
+      background: #ffffff;
+      color: var(--ink);
+      border-radius: 6px;
+      box-shadow:
+        0 18px 40px -22px #24384a88,
+        0 0 0 1px var(--line);
+      padding: clamp(18px, 5%, 36px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      font-size: clamp(10px, 2.1vw, 12.5px);
+      line-height: 1.45;
+    }
+    .a4 .hd {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 2px solid var(--t-bg);
+      padding-bottom: 12px;
+    }
+    .a4 .hd svg {
+      width: 52px;
+      height: 52px;
+      flex: none;
+    }
+    .a4 .hd h6 {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1.9em;
+      line-height: 1;
+    }
+    .a4 .hd p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .a4 .who {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .a4 .who div {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 7px 10px;
+    }
+    .a4 small.k {
+      display: block;
+      font-size: 0.78em;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .a4 .who b {
+      font-size: 1.15em;
+    }
+    .a4 h6.s {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1.15em;
+    }
+    .a4 table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+    .a4 th {
+      text-align: left;
+      font-size: 0.8em;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 800;
+      padding: 3px 4px;
+      border-bottom: 1.5px solid var(--line);
+    }
+    .a4 td {
+      padding: 3px 4px;
+      border-bottom: 1px solid var(--line);
+    }
+    .a4 .r {
+      text-align: right;
+    }
+    .a4 tfoot td {
+      font-weight: 800;
+      border-bottom: 0;
+    }
+    .a4 .muted {
+      color: var(--muted);
+    }
+    .a4 .sum {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 3px 12px;
+      background: var(--t-bg);
+      color: var(--t-ink);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .a4 .sum b {
+      text-align: right;
+    }
+    .a4 .sum .big {
+      font-family: var(--font-d);
+      font-size: 1.35em;
+    }
+    .a4 .ft {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.85em;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+    .stamp {
+      position: absolute;
+      top: 34%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg);
+      font-family: var(--font-d);
+      font-weight: 800;
+      font-size: clamp(48px, 14vw, 96px);
+      letter-spacing: 0.08em;
+      color: var(--danger);
+      opacity: 0.16;
+      border: 6px solid currentColor;
+      border-radius: 18px;
+      padding: 0 22px;
+      pointer-events: none;
+      line-height: 1.2;
+    }
+    .a4 .conf {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 2px 10px;
+      background: var(--lv);
+      color: #7a4214;
+    }
+    .a4 .conf.ok {
+      background: var(--ok);
+      color: var(--ok-ink);
+    }
+
+    @media (max-width: 480px) {
+      .phone {
+        border-width: 5px;
+        border-radius: 32px;
+      }
+    }
+  </style>
+
+  <div class="wrap">
+    <header class="intro">
+      <svg viewBox="0 0 120 120" aria-hidden="true" id="introBear"></svg>
+      <div>
+        <h1>Lola final design · Sky &amp; Cream</h1>
+        <p>
+          The blueprint for building the app. Every screen uses the same sample: Oct pay period, 28
+          Sep – 27 Oct 2026. Salary 20,000, overtime 15 h × 150 = 2,250, total 22,250, paid 0,
+          balance 22,250. Leave Mon 19 Oct, holidays 13 and 23 Oct. Today is Fri 16 Oct.
+        </p>
+        <nav class="jump" aria-label="Sections">
+          <a href="#everyone">Everyone</a><a href="#lola">Lola (nanny)</a><a href="#admin">Admin</a
+          ><a href="#payslip">Payslip PDF</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="grp" id="everyone">
+      <div class="grp-head">
+        <h2>Everyone</h2>
+        <p>
+          Login, sign-up and the waiting screen work for anyone. New accounts stay locked until an
+          admin approves them. Account lives behind the person icon (Lola) or in Settings (admin).
+        </p>
+      </div>
+      <div class="frames" id="f-everyone"></div>
+    </section>
+
+    <section class="grp" id="lola">
+      <div class="grp-head">
+        <h2>Lola (nanny)</h2>
+        <p>
+          Read only. One action: confirm the period. Payslip and receipts can be downloaded for any
+          period.
+        </p>
+      </div>
+      <div class="frames" id="f-lola"></div>
+    </section>
+
+    <section class="grp" id="admin">
+      <div class="grp-head">
+        <h2>Admin</h2>
+        <p>
+          Same period view with edit controls, plus sheets for days and payments, and Settings with
+          People and the change log.
+        </p>
+      </div>
+      <div class="frames" id="f-admin"></div>
+    </section>
+
+    <section class="grp" id="payslip">
+      <div class="grp-head">
+        <h2>Payslip PDF</h2>
+        <p>
+          Generated in the browser, one per pay period. A DRAFT stamp shows while the period is not
+          over or not fully paid.
+        </p>
+      </div>
+      <div class="slips" id="f-slip"></div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      // ---------- sample data: Oct pay = 28 Sep – 27 Oct 2026 ----------
+      var RATE = 150,
+        SALARY = 20000;
+      var MON = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      var DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      var HOL = { "10-13": "King Bhumibol Memorial Day", "10-23": "Chulalongkorn Day" };
+      var LEAVE = { "10-19": "Sick day" };
+      var OT = {
+        // key: "month-day", ranges, note
+        "9-30": { r: [["18:00", "20:15"]], note: "Parents at a work dinner" },
+        "10-5": { r: [["18:00", "20:30"]], note: "" },
+        "10-7": { r: [["18:00", "19:10"]], note: "Traffic, home late" },
+        "10-10": { r: [["10:00", "14:00"]], note: "Family wedding" },
+        "10-15": { r: [["07:30", "09:00"]], note: "Early flight" },
+        "10-20": {
+          r: [
+            ["07:00", "08:00"],
+            ["18:00", "20:00"],
+          ],
+          note: "Early start and dinner out",
+        },
+      };
+      var TODAY = "10-16";
+      function mins(t) {
+        var p = t.split(":");
+        return +p[0] * 60 + +p[1];
+      }
+      function raw(o) {
+        return o.r.reduce(function (s, x) {
+          return s + mins(x[1]) - mins(x[0]);
+        }, 0);
+      }
+      function dayH(o) {
+        return (Math.ceil(raw(o) / 30) * 30) / 60;
+      } // rounding applies to the day's total
+      var otHours = 0;
+      Object.keys(OT).forEach(function (k) {
+        OT[k].h = dayH(OT[k]);
+        otHours += OT[k].h;
+      });
+      var otPay = otHours * RATE,
+        total = SALARY + otPay,
+        paid = 0,
+        balance = total - paid;
+      function fmt(n) {
+        return n.toLocaleString("en-US");
+      }
+      function hrs(h) {
+        return (h % 1 ? h.toFixed(1) : h) + " h";
+      }
+      function hm(m) {
+        return Math.floor(m / 60) + "h" + (m % 60 ? " " + (m % 60) + "m" : "");
+      }
+      function key(dt) {
+        return dt.getMonth() + 1 + "-" + dt.getDate();
+      }
+      function days(a, b) {
+        var out = [],
+          d = new Date(a);
+        while (d <= b) {
+          out.push(new Date(d));
+          d.setDate(d.getDate() + 1);
+        }
+        return out;
+      }
+      var OCT = {
+        name: "Oct pay",
+        range: "28 Sep – 27 Oct",
+        year: "2026",
+        from: new Date(2026, 8, 28),
+        to: new Date(2026, 9, 27),
+      };
+      var SEP = {
+        name: "Sep pay",
+        range: "14 Sep – 27 Sep",
+        year: "2026",
+        from: new Date(2026, 8, 14),
+        to: new Date(2026, 8, 27),
+      };
+
+      // ---------- mascot: original baby bear with bow tie ----------
+      function bear(cls) {
+        return (
+          '<svg class="' +
+          (cls || "") +
+          '" viewBox="0 0 120 120" aria-hidden="true">' +
+          '<circle cx="31" cy="35" r="16" fill="var(--bear)"/><circle cx="89" cy="35" r="16" fill="var(--bear)"/>' +
+          '<circle cx="31" cy="35" r="8.5" fill="var(--bear-lt)"/><circle cx="89" cy="35" r="8.5" fill="var(--bear-lt)"/>' +
+          '<ellipse cx="60" cy="64" rx="41" ry="37" fill="var(--bear)"/>' +
+          '<path d="M55 29 q5 -9 10 -2 q-4 -1 -5 4" fill="none" stroke="var(--bear-dk)" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<ellipse cx="33" cy="76" rx="7" ry="4.5" fill="var(--cheek)" opacity=".65"/><ellipse cx="87" cy="76" rx="7" ry="4.5" fill="var(--cheek)" opacity=".65"/>' +
+          '<ellipse cx="60" cy="79" rx="18" ry="13.5" fill="var(--bear-lt)"/>' +
+          '<circle cx="44" cy="61" r="4.8" fill="var(--bear-dk)"/><circle cx="76" cy="61" r="4.8" fill="var(--bear-dk)"/>' +
+          '<circle cx="45.6" cy="59.4" r="1.6" fill="#fff"/><circle cx="77.6" cy="59.4" r="1.6" fill="#fff"/>' +
+          '<ellipse cx="60" cy="73" rx="6.5" ry="4.6" fill="var(--bear-dk)"/>' +
+          '<path d="M60 77.5 v4 M60 81.5 q-4.5 3.5 -8 0 M60 81.5 q4.5 3.5 8 0" fill="none" stroke="var(--bear-dk)" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path d="M60 104 L45 96 L45 112 Z M60 104 L75 96 L75 112 Z" fill="var(--bow)" stroke="var(--bow)" stroke-width="3" stroke-linejoin="round"/><circle cx="60" cy="104" r="4.5" fill="var(--bow)"/><circle cx="60" cy="104" r="2" fill="#ffffff" opacity=".5"/>' +
+          "</svg>"
+        );
+      }
+      document.getElementById("introBear").outerHTML = bear("").replace(
+        "<svg ",
+        '<svg style="width:72px;height:72px;flex:none" ',
+      );
+
+      function svg(p, w) {
+        return (
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' +
+          (w || 2.2) +
+          '" stroke-linecap="round" stroke-linejoin="round">' +
+          p +
+          "</svg>"
+        );
+      }
+      var I = {
+        pen: svg('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
+        gear: svg(
+          '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+          2,
+        ),
+        copy: svg(
+          '<rect x="8" y="8" width="12" height="12" rx="3"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+        ),
+        plus: svg('<path d="M12 5v14M5 12h14"/>', 2.6),
+        check: svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 2.8),
+        tap: svg('<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" opacity=".5"/>', 2),
+        dl: svg('<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>', 2.4),
+        x: svg('<path d="M6 6l12 12M18 6L6 18"/>', 2.6),
+        user: svg(
+          '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.8 4-5.6 7.5-5.6s6.3 1.8 7.5 5.6"/>',
+          2.2,
+        ),
+        share: svg('<path d="M12 3v12M7.5 7.5L12 3l4.5 4.5"/><path d="M6 11H5v9h14v-9h-1"/>', 2.2),
+        back: svg('<path d="M15 5l-7 7 7 7"/>', 2.6),
+        doc: svg('<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>', 2),
+      };
+      var status = '<div class="status"><span>9:41</span><span>●●● 5G ▮</span></div>';
+      function phone(inner, style) {
+        return (
+          '<div class="phone"' +
+          (style ? ' style="' + style + '"' : "") +
+          ">" +
+          status +
+          inner +
+          "</div>"
+        );
+      }
+      function bar(title, right) {
+        return (
+          '<div class="bar"><button class="iconbtn" aria-label="Back">' +
+          I.back +
+          "</button><b>" +
+          title +
+          "</b>" +
+          (right || "") +
+          "</div>"
+        );
+      }
+
+      // ---------- shared period pieces ----------
+      function periodNav(p) {
+        return (
+          '<div class="period"><button aria-label="Previous pay period">‹</button><div><b>' +
+          p.name +
+          " · " +
+          p.range +
+          "</b><small>" +
+          (p === OCT ? "Pay day Wed 28 Oct" : "Paid Mon 28 Sep") +
+          '</small></div><button aria-label="Next pay period">›</button></div>'
+        );
+      }
+
+      function totals(p) {
+        if (p === SEP) {
+          return (
+            '<div class="totals">' +
+            bear("peek") +
+            '<div><div class="lbl">Sep pay total</div><div class="big">11,000<small>THB</small></div></div>' +
+            '<dl class="rows"><dt>Salary (first part-month, agreed)</dt><dd>11,000</dd><dt>Overtime 0 h</dt><dd>0</dd><div class="sep"></div><dt>Total</dt><dd>11,000</dd><dt>Paid</dt><dd>11,000</dd></dl>' +
+            '<div class="bal paid"><span>Fully paid</span><span>0 ฿</span></div></div>'
+          );
+        }
+        return (
+          '<div class="totals">' +
+          bear("peek") +
+          '<div><div class="lbl">Oct pay total</div><div class="big">' +
+          fmt(total) +
+          "<small>THB</small></div></div>" +
+          '<dl class="rows"><dt>Salary</dt><dd>' +
+          fmt(SALARY) +
+          "</dd><dt>Overtime " +
+          hrs(otHours) +
+          " × " +
+          RATE +
+          "</dt><dd>" +
+          fmt(otPay) +
+          "</dd>" +
+          '<div class="sep"></div><dt>Total</dt><dd>' +
+          fmt(total) +
+          "</dd><dt>Paid</dt><dd>" +
+          fmt(paid) +
+          "</dd></dl>" +
+          '<div class="bal"><span>Balance to pay</span><span>' +
+          fmt(balance) +
+          " ฿</span></div></div>"
+        );
+      }
+
+      function calendar(p, admin) {
+        var list = days(p.from, p.to);
+        var h =
+          '<div class="card"><div class="dow">' +
+          ["M", "T", "W", "T", "F", "S", "S"]
+            .map(function (x) {
+              return "<span>" + x + "</span>";
+            })
+            .join("") +
+          '</div><div class="cal">';
+        var lead = (list[0].getDay() + 6) % 7;
+        for (var i = 0; i < lead; i++) h += '<div class="d e"></div>';
+        list.forEach(function (dt, i) {
+          var k = key(dt),
+            w = dt.getDay(),
+            c = "d",
+            t = "";
+          if (OT[k] && p === OCT) {
+            c += " ot";
+            t = hrs(OT[k].h).replace(" ", "");
+          } else if (LEAVE[k]) {
+            c += " lv";
+            t = "leave";
+          } else if (HOL[k]) {
+            c += " hol";
+            t = "holiday";
+          } else if (w === 0 || w === 6) {
+            c += " wkd";
+          }
+          if (k === TODAY && p === OCT) c += " today";
+          var m =
+            i === 0 || dt.getDate() === 1
+              ? '<span class="m">' + MON[dt.getMonth()] + "</span>"
+              : "";
+          h +=
+            '<div class="' +
+            c +
+            '" aria-label="' +
+            DOW[w] +
+            " " +
+            dt.getDate() +
+            " " +
+            MON[dt.getMonth()] +
+            '">' +
+            m +
+            '<span class="n">' +
+            dt.getDate() +
+            "</span>" +
+            (t ? '<span class="t">' + t + "</span>" : "") +
+            "</div>";
+        });
+        h +=
+          '</div><div class="legend"><span><i style="background:var(--day);box-shadow:inset 0 0 0 1px var(--line)"></i>Normal</span><span><i style="background:var(--ot)"></i>Overtime</span><span><i style="background:var(--lv)"></i>Leave</span><span><i style="background:var(--hol)"></i>Holiday</span><span><i style="background:var(--wkd)"></i>Weekend</span></div>';
+        if (admin) h += '<div class="hint">' + I.tap + "Tap any day to add overtime or leave</div>";
+        return h + "</div>";
+      }
+
+      function why(k, o) {
+        var dt = new Date(2026, +k.split("-")[0] - 1, +k.split("-")[1]),
+          w = dt.getDay();
+        if (w === 0 || w === 6) return DOW[w] === "Sat" ? "Saturday" : "Sunday";
+        if (HOL[k]) return "Holiday";
+        return o.r
+          .map(function (x) {
+            return mins(x[0]) < 540 ? "Before 09:00" : "After 18:00";
+          })
+          .join(" + ");
+      }
+      function chipFor(k, cls) {
+        var dt = new Date(2026, +k.split("-")[0] - 1, +k.split("-")[1]);
+        return (
+          '<div class="chip ' +
+          cls +
+          '"><small>' +
+          DOW[dt.getDay()] +
+          "</small><b>" +
+          dt.getDate() +
+          "</b></div>"
+        );
+      }
+      function otList(admin) {
+        var keys = Object.keys(OT)
+          .concat(Object.keys(LEAVE))
+          .sort(function (a, b) {
+            var A = a.split("-"),
+              B = b.split("-");
+            return A[0] - B[0] || A[1] - B[1];
+          });
+        var h =
+          '<div class="list"><h3>Overtime &amp; leave<small>' +
+          hrs(otHours) +
+          " · 1 leave day</small></h3>";
+        keys.forEach(function (k) {
+          var dt = new Date(2026, +k.split("-")[0] - 1, +k.split("-")[1]),
+            lab = DOW[dt.getDay()] + " " + dt.getDate() + " " + MON[dt.getMonth()];
+          var pen = admin
+            ? '<button class="pen" aria-label="Edit ' + lab + '">' + I.pen + "</button>"
+            : "";
+          if (OT[k]) {
+            var o = OT[k],
+              r = raw(o);
+            h +=
+              '<div class="item">' +
+              chipFor(k, "ot") +
+              '<div class="what"><b class="num">' +
+              o.r
+                .map(function (x) {
+                  return x[0] + "–" + x[1];
+                })
+                .join(" · ") +
+              "</b><small>" +
+              why(k, o) +
+              (r % 30 ? " · rounded up from " + hm(r) : "") +
+              (o.note ? " · " + o.note : "") +
+              '</small></div><div class="amt">' +
+              fmt(o.h * RATE) +
+              "<small>" +
+              hrs(o.h) +
+              "</small></div>" +
+              pen +
+              "</div>";
+          } else {
+            h +=
+              '<div class="item">' +
+              chipFor(k, "lv") +
+              '<div class="what"><b>Leave</b><small>' +
+              LEAVE[k] +
+              ' · no deduction</small></div><div class="amt">0<small>no change</small></div>' +
+              pen +
+              "</div>";
+          }
+        });
+        return h + "</div>";
+      }
+
+      function receipt(name, pdf, ctl) {
+        return (
+          '<div class="rcw"><div class="rc"><i></i><i></i><i></i><i></i>' +
+          (pdf ? '<span class="tag">PDF</span>' : "") +
+          (ctl === "dl"
+            ? '<button class="dl" aria-label="Download ' + name + '">' + I.dl + "</button>"
+            : '<button class="x" aria-label="Remove ' + name + '">' + I.x + "</button>") +
+          "</div><span>" +
+          name +
+          "</span></div>"
+        );
+      }
+      function payments(p, admin) {
+        var h =
+          '<div class="list"><h3>Payments<small>' +
+          (p === SEP ? "11,000 paid" : "0 paid") +
+          "</small></h3>";
+        if (p === SEP) {
+          h +=
+            '<div class="pay"><div class="item"><div class="chip pay"><small>Mon</small><b>28</b></div><div class="what"><b>Bank transfer</b><small>Paid 28 Sep · 2 receipts</small></div><div class="amt">11,000<small>THB</small></div></div>' +
+            '<div class="rcs">' +
+            receipt("slip-28sep.jpg", false, "dl") +
+            receipt("kbank-28sep.pdf", true, "dl") +
+            "</div></div>";
+        } else {
+          h +=
+            '<div class="empty"><b>No payments for Oct pay yet</b>Receipts appear here once a payment is recorded.</div>';
+          if (admin) h += '<button class="btn dash">' + I.plus + "Add payment</button>";
+        }
+        return h + "</div>";
+      }
+
+      // ---------- Everyone ----------
+      function loginView() {
+        return phone(
+          '<div class="login">' +
+            bear("hero") +
+            "<h5>Lola</h5><p>Pooh's hours and pay, kept simple for Lola and the family.</p>" +
+            '<form onsubmit="return false"><div class="field"><label for="li-u">Username</label><input class="inp" id="li-u" autocomplete="username" value="lola"></div>' +
+            '<div class="field"><label for="li-p">Password</label><input class="inp" id="li-p" type="password" autocomplete="current-password" value="••••••••••••"></div>' +
+            '<button class="btn pri" type="submit">Log in</button></form>' +
+            '<div class="alt">New here? <button class="link">Create account</button></div><div class="grow"></div>' +
+            '<div class="a2hs"><span class="ic">' +
+            I.share +
+            '</span><span><b>Add Lola to your Home Screen.</b> In Safari tap Share, then "Add to Home Screen". Otherwise iPhone may log you out after about 7 days.</span></div></div>',
+        );
+      }
+      function signupView() {
+        return phone(
+          '<div class="login">' +
+            bear("hero") +
+            '<h5 class="s">Create account</h5><p>An admin approves new accounts before you can see anything.</p>' +
+            '<form onsubmit="return false"><div class="field"><label for="su-u">Username</label><input class="inp" id="su-u" autocomplete="username" value="newbie"><span class="help">3–20 characters: a–z, 0–9 and -</span></div>' +
+            '<div class="field"><label for="su-p">Password</label><input class="inp" id="su-p" type="password" autocomplete="new-password" value="••••••••••••"><span class="help">At least 10 characters. Save it in your password manager.</span></div>' +
+            '<div class="field"><label for="su-c">Repeat password</label><input class="inp" id="su-c" type="password" autocomplete="new-password" value="••••••••••••"></div>' +
+            '<button class="btn pri" type="submit">Create account</button></form>' +
+            '<div class="alt">Already have an account? <button class="link">Log in</button></div></div>',
+        );
+      }
+      function waitingView() {
+        return phone(
+          '<div class="login">' +
+            bear("hero lg") +
+            '<h5 class="s">Almost there, newbie</h5><p>Your account is waiting for approval. Ask chini-lucky to approve it, then check again.</p>' +
+            '<span class="state"><i></i>Waiting for approval</span><div class="grow"></div>' +
+            '<button class="btn pri">Check again</button><button class="link">Log out</button></div>',
+        );
+      }
+      function accountView() {
+        return phone(
+          '<div class="screen">' +
+            bar("Account") +
+            '<div class="sec"><div class="item"><span class="av">L</span><div class="what"><b>lola</b><small>Nanny · logged in on this phone until you log out</small></div></div></div>' +
+            '<div class="sec"><h3>Change password</h3>' +
+            '<div class="field"><label for="ac-o">Current password</label><input class="inp" id="ac-o" type="password" autocomplete="current-password" value="••••••••••••"></div>' +
+            '<div class="field"><label for="ac-n">New password</label><input class="inp" id="ac-n" type="password" autocomplete="new-password" value="•••••••••••••"><span class="help">At least 10 characters</span></div>' +
+            '<div class="field"><label for="ac-c">Repeat new password</label><input class="inp" id="ac-c" type="password" autocomplete="new-password" value="•••••••••••••"></div>' +
+            '<button class="btn pri">Change password</button></div>' +
+            '<button class="btn bad">Log out</button>' +
+            '<div class="note" style="margin-top:0">Forgot your password? Ask chini-lucky to remove your account, then sign up again.</div></div>',
+        );
+      }
+
+      // ---------- Lola ----------
+      function lolaTop() {
+        return (
+          '<div class="top">' +
+          bear("bearsm") +
+          '<div class="hi"><b>Hi Lola 👋</b><small>Pooh\'s pay period so far</small></div><button class="iconbtn" aria-label="Account">' +
+          I.user +
+          "</button></div>"
+        );
+      }
+      function lolaView() {
+        return phone(
+          '<div class="screen">' +
+            lolaTop() +
+            periodNav(OCT) +
+            totals(OCT) +
+            calendar(OCT, false) +
+            otList(false) +
+            payments(OCT, false) +
+            '<button class="btn sec">' +
+            I.dl +
+            "Download payslip</button>" +
+            '<button class="btn pri">This looks right ' +
+            I.check +
+            '</button><div class="note">You checked 20,975 on 9 Oct. The numbers changed since then.</div></div>',
+        );
+      }
+      function lolaConfirmed() {
+        return phone(
+          '<div class="screen">' +
+            lolaTop() +
+            periodNav(SEP) +
+            totals(SEP) +
+            calendar(SEP, false) +
+            '<div class="list"><h3>Overtime &amp; leave</h3><div class="empty"><b>No overtime or leave</b>Every day was a normal day.</div></div>' +
+            payments(SEP, false) +
+            '<button class="btn sec">' +
+            I.dl +
+            "Download payslip</button>" +
+            '<div class="done">' +
+            I.check +
+            "You confirmed this on 28 Sep</div></div>",
+        );
+      }
+
+      // ---------- Admin ----------
+      function adminTop() {
+        return (
+          '<div class="top"><div class="hi"><b>Lola\'s pay</b><small>Signed in as chini-lucky</small></div><span class="pill">Admin</span><button class="iconbtn" aria-label="Settings">' +
+          I.gear +
+          "</button></div>"
+        );
+      }
+      function adminView() {
+        return phone(
+          '<div class="screen">' +
+            adminTop() +
+            periodNav(OCT) +
+            totals(OCT) +
+            '<div class="flag"><span class="ic">!</span><span><b>Changed since Lola confirmed</b><small>She checked 20,975 on 9 Oct. Now 22,250.</small></span></div>' +
+            '<div class="duo"><button class="btn sec" data-copy>' +
+            I.copy +
+            'Copy summary</button><button class="btn pri">' +
+            I.plus +
+            "Add payment</button></div>" +
+            calendar(OCT, true) +
+            otList(true) +
+            payments(OCT, true) +
+            '<button class="btn sec">' +
+            I.dl +
+            "Download payslip</button></div>",
+        );
+      }
+      function behind() {
+        return (
+          '<div class="behind">' +
+          periodNav(OCT) +
+          '<div style="height:150px;border-radius:var(--r-card);background:var(--t-bg)"></div>' +
+          calendar(OCT, true) +
+          '</div><div class="scrim"></div>'
+        );
+      }
+      function daySheet() {
+        return phone(
+          behind() +
+            '<div class="sheet" role="dialog" aria-label="Edit Tuesday 20 October"><div class="grab"></div>' +
+            '<div><h4>Tue 20 Oct</h4><div class="sub">Normal day 09:00–18:00 · add anything extra</div></div>' +
+            '<div class="field"><span>Overtime</span>' +
+            '<div class="range"><input class="inp" type="time" id="ds-f1" aria-label="Range 1 from" value="07:00"><span class="arrow">→</span><input class="inp" type="time" id="ds-t1" aria-label="Range 1 to" value="08:00"><button class="x" aria-label="Remove range 1">' +
+            I.x +
+            "</button></div>" +
+            '<div class="range"><input class="inp" type="time" id="ds-f2" aria-label="Range 2 from" value="18:00"><span class="arrow">→</span><input class="inp" type="time" id="ds-t2" aria-label="Range 2 to" value="20:00"><button class="x" aria-label="Remove range 2">' +
+            I.x +
+            "</button></div>" +
+            '<button class="btn dash">' +
+            I.plus +
+            "Add another time</button></div>" +
+            '<div class="calc"><span>1 h + 2 h = 3 h × ' +
+            RATE +
+            " ฿<br><small>Day total rounded up to 30 min</small></span><b>450 ฿</b></div>" +
+            '<label class="toggle" for="ds-leave"><span><b>Leave / day off</b><small>Shown to Lola, no pay deduction</small></span><span class="sw-in"><input type="checkbox" id="ds-leave" role="switch"></span></label>' +
+            '<div class="field"><label for="ds-note">Note</label><textarea id="ds-note">Early start and dinner out</textarea></div>' +
+            '<button class="btn pri">Save day</button><button class="del">Clear this day</button></div>',
+          "min-height:880px",
+        );
+      }
+      function paySheet() {
+        return phone(
+          behind() +
+            '<div class="sheet" role="dialog" aria-label="Add payment"><div class="grab"></div>' +
+            '<div><h4>Add payment</h4><div class="sub">Record money already sent to Lola</div></div>' +
+            '<div class="two"><div class="field"><label for="ps-d">Date paid</label><input class="inp" type="date" id="ps-d" value="2026-10-16"></div>' +
+            '<div class="field"><label for="ps-a">Amount</label><div class="affix"><input class="inp" id="ps-a" inputmode="numeric" value="22,250"><span>฿</span></div></div></div>' +
+            '<div class="quick"><span>Balance 22,250</span><span>Half 11,125</span></div>' +
+            '<div class="field"><label for="ps-p">Pay period</label><select id="ps-p"><option>Sep pay · 14 Sep – 27 Sep</option><option selected>Oct pay · 28 Sep – 27 Oct</option><option>Nov pay · 28 Oct – 27 Nov</option></select></div>' +
+            '<div class="field"><label for="ps-n">Note</label><input class="inp" id="ps-n" value="Bank transfer"></div>' +
+            '<div class="field"><span>Receipts</span><div class="rcs">' +
+            receipt("slip-16oct.jpg", false, "x") +
+            receipt("kbank.pdf", true, "x") +
+            '<div class="rcw"><button class="rc add">' +
+            I.plus +
+            "Add</button><span>JPG PNG HEIC PDF</span></div></div></div>" +
+            '<button class="btn pri">Save payment</button></div>',
+          "min-height:880px",
+        );
+      }
+      function settingsView() {
+        var hol = [
+          ["10-13", "Tue", "13", "Oct", "King Bhumibol Memorial Day"],
+          ["10-23", "Fri", "23", "Oct", "Chulalongkorn Day"],
+          ["12-5", "Sat", "5", "Dec", "Father\'s Day"],
+          ["12-10", "Thu", "10", "Dec", "Constitution Day"],
+          ["12-31", "Thu", "31", "Dec", "New Year\'s Eve"],
+        ];
+        return phone(
+          '<div class="screen">' +
+            bar("Settings") +
+            '<div class="navrow">' +
+            I.user.replace("<svg", '<svg width="20" height="20"') +
+            '<span>People</span><b class="count">1 waiting</b><i>›</i></div>' +
+            '<div class="sec"><h3>Pay rates<small>from Sep pay</small></h3><div class="kv"><div><small>Salary / month</small><b>20,000</b></div><div><small>OT / hour</small><b>150</b></div></div>' +
+            '<dl class="hist"><div class="h"><span>From period</span><span class="r">Salary</span><span class="r">OT</span></div>' +
+            '<div><span>Sep pay (14 Sep 2026)</span><span class="r">20,000</span><span class="r">150</span></div>' +
+            '<div><span class="muted">Sep pay fixed at 11,000 (agreed)</span><span class="r">11,000</span><span class="r">–</span></div></dl>' +
+            '<div class="two"><div class="field"><label for="st-s">New salary</label><input class="inp" id="st-s" inputmode="numeric" value="20,000"></div><div class="field"><label for="st-o">New OT rate</label><input class="inp" id="st-o" inputmode="numeric" value="150"></div></div>' +
+            '<div class="field"><label for="st-f">Starts from</label><select id="st-f"><option>Nov pay · 28 Oct – 27 Nov</option><option>Dec pay · 28 Nov – 27 Dec</option></select></div>' +
+            '<button class="btn sec">Save new rate</button></div>' +
+            '<div class="sec"><h3>Holidays<small>2026 · Thai public holidays</small></h3>' +
+            hol
+              .map(function (x) {
+                return (
+                  '<div class="item"><div class="chip hol"><small>' +
+                  x[1] +
+                  "</small><b>" +
+                  x[2] +
+                  '</b></div><div class="what"><b>' +
+                  x[4] +
+                  "</b><small>" +
+                  x[2] +
+                  " " +
+                  x[3] +
+                  ' 2026</small></div><button class="pen" aria-label="Remove ' +
+                  x[4] +
+                  '">' +
+                  I.x +
+                  "</button></div>"
+                );
+              })
+              .join("") +
+            '<button class="btn dash">' +
+            I.plus +
+            "Add holiday</button></div>" +
+            '<div class="sec"><h3>Export CSV</h3><div class="two"><div class="field"><label for="st-a">From</label><select id="st-a"><option>Sep pay</option><option>Oct pay</option></select></div><div class="field"><label for="st-b">To</label><select id="st-b"><option>Sep pay</option><option selected>Oct pay</option></select></div></div>' +
+            '<button class="btn pri">' +
+            I.dl +
+            'Download CSV</button><div class="note" style="margin-top:0">One file, one row per day: date, weekday, type, OT times, OT hours, OT pay, note, payment, receipt names.</div></div>' +
+            '<div class="navrow">' +
+            I.doc.replace("<svg", '<svg width="20" height="20"') +
+            "<span>Change log</span><i>›</i></div>" +
+            '<div class="navrow">' +
+            I.user.replace("<svg", '<svg width="20" height="20"') +
+            "<span>Account</span><i>›</i></div></div>",
+        );
+      }
+      function peopleView() {
+        return phone(
+          '<div class="screen">' +
+            bar("People") +
+            '<div class="sec"><h3>Waiting for approval<small>1</small></h3>' +
+            '<div class="prow"><div class="item"><span class="av w">N</span><div class="what"><b>newbie</b><small>Signed up 16 Oct, 08:41</small></div></div>' +
+            '<div class="duo"><button class="btn bad sm" style="width:100%">Reject</button><button class="btn pri sm" style="width:100%">' +
+            I.check +
+            "Approve</button></div></div>" +
+            '<div class="note" style="margin-top:0">Approved people start as nanny. Reject deletes the sign-up.</div></div>' +
+            '<div class="sec"><h3>Approved<small>2</small></h3>' +
+            '<div class="prow"><div class="item"><span class="av">C</span><div class="what"><b>chini-lucky</b><small>You · admin</small></div><span class="pill">Admin</span></div></div>' +
+            '<div class="prow"><div class="item"><span class="av">L</span><div class="what"><b>lola</b><small>Approved 28 Sep</small></div></div>' +
+            '<div class="acts"><div class="seg" role="group" aria-label="Role for lola"><button aria-pressed="true">Nanny</button><button aria-pressed="false">Admin</button></div><button class="del">Remove</button></div></div>' +
+            '<div class="note" style="margin-top:0">Forgotten password: remove the account, they sign up again, you approve.</div></div></div>',
+        );
+      }
+      function logView() {
+        var g = [
+          [
+            "Today, 16 Oct",
+            [
+              ["09:12", "add", "Overtime Tue 20 Oct 18:00–20:00", "chini-lucky"],
+              ["09:10", "add", "Overtime Tue 20 Oct 07:00–08:00", "chini-lucky"],
+              ["08:41", "add", "Sign-up: newbie (waiting)", "newbie"],
+            ],
+          ],
+          ["15 Oct", [["21:05", "add", "Overtime Thu 15 Oct 07:30–09:00", "chini-lucky"]]],
+          [
+            "12 Oct",
+            [
+              ["19:30", "add", "Overtime Sat 10 Oct 10:00–14:00", "chini-lucky"],
+              ["19:28", "del", "Holiday 12 Oct (duplicate)", "chini-lucky"],
+            ],
+          ],
+          [
+            "9 Oct",
+            [
+              ["20:30", "add", "Lola confirmed Oct pay at 20,975", "lola"],
+              ["20:02", "edit", "Overtime Wed 7 Oct: 18:00–19:00 → 18:00–19:10", "chini-lucky"],
+            ],
+          ],
+          [
+            "28 Sep",
+            [
+              ["18:15", "add", "Payment 11,000 for Sep pay · 2 receipts", "chini-lucky"],
+              ["18:16", "edit", "lola approved as nanny", "chini-lucky"],
+            ],
+          ],
+        ];
+        var lab = { add: "Added", edit: "Changed", del: "Removed" };
+        return phone(
+          '<div class="screen">' +
+            bar("Change log") +
+            '<div class="log">' +
+            g
+              .map(function (d) {
+                return (
+                  "<h4>" +
+                  d[0] +
+                  "</h4>" +
+                  d[1]
+                    .map(function (e) {
+                      return (
+                        '<div class="lg"><time>' +
+                        e[0] +
+                        '</time><span><span class="op ' +
+                        e[1] +
+                        '">' +
+                        lab[e[1]] +
+                        "</span>" +
+                        e[2] +
+                        "</span><small>by " +
+                        e[3] +
+                        "</small></div>"
+                      );
+                    })
+                    .join("")
+                );
+              })
+              .join("") +
+            '</div><div class="note" style="margin-top:0">Admins only. Every add, change and removal is kept.</div></div>',
+        );
+      }
+
+      // ---------- Payslip ----------
+      function payslip(p, draft) {
+        var oct = p === OCT;
+        var otRows = oct
+          ? Object.keys(OT)
+              .map(function (k) {
+                var o = OT[k],
+                  dt = new Date(2026, +k.split("-")[0] - 1, +k.split("-")[1]);
+                return (
+                  "<tr><td>" +
+                  DOW[dt.getDay()] +
+                  " " +
+                  dt.getDate() +
+                  " " +
+                  MON[dt.getMonth()] +
+                  "</td><td>" +
+                  o.r
+                    .map(function (x) {
+                      return x[0] + "–" + x[1];
+                    })
+                    .join(", ") +
+                  '</td><td class="r">' +
+                  hrs(o.h) +
+                  '</td><td class="r">' +
+                  fmt(o.h * RATE) +
+                  "</td></tr>"
+                );
+              })
+              .join("")
+          : '<tr><td colspan="4" class="muted">No overtime this period</td></tr>';
+        var t = oct ? total : 11000,
+          pd = oct ? 0 : 11000;
+        return (
+          '<article class="a4" aria-label="Payslip ' +
+          p.name +
+          '">' +
+          (draft ? '<div class="stamp" aria-label="Draft">DRAFT</div>' : "") +
+          '<div class="hd">' +
+          bear("") +
+          "<div><h6>Payslip</h6><p>" +
+          p.name +
+          " (" +
+          p.range +
+          " " +
+          p.year +
+          ")</p></div></div>" +
+          '<div class="who"><div><small class="k">Employee</small><b>Lola</b></div><div><small class="k">Employer</small><b>Chini Lucky</b></div></div>' +
+          '<div><h6 class="s">Salary</h6><table><tr><td>' +
+          (oct ? "Monthly salary (Mon–Fri 09:00–18:00)" : "First part-month, agreed amount") +
+          '</td><td class="r"><b>' +
+          fmt(oct ? SALARY : 11000) +
+          "</b></td></tr></table></div>" +
+          '<div><h6 class="s">Overtime at ' +
+          RATE +
+          ' THB / hour</h6><table><thead><tr><th>Day</th><th>Times</th><th class="r">Hours</th><th class="r">Pay</th></tr></thead><tbody>' +
+          otRows +
+          "</tbody>" +
+          '<tfoot><tr><td colspan="2">Total overtime</td><td class="r">' +
+          (oct ? hrs(otHours) : "0 h") +
+          '</td><td class="r">' +
+          (oct ? fmt(otPay) : "0") +
+          "</td></tr></tfoot></table></div>" +
+          '<div><h6 class="s">Leave and holidays (no deduction)</h6><table>' +
+          (oct
+            ? "<tr><td>Mon 19 Oct</td><td>Leave · sick day</td></tr><tr><td>Tue 13 Oct</td><td>Holiday · King Bhumibol Memorial Day</td></tr><tr><td>Fri 23 Oct</td><td>Holiday · Chulalongkorn Day</td></tr>"
+            : '<tr><td class="muted">None this period</td></tr>') +
+          "</table></div>" +
+          '<div><h6 class="s">Payments</h6><table>' +
+          (oct
+            ? '<tr><td class="muted">No payments yet</td><td class="r">0</td></tr>'
+            : '<tr><td>Mon 28 Sep 2026 · bank transfer</td><td class="r">11,000</td></tr>') +
+          "</table></div>" +
+          '<div class="sum"><span>Total due</span><b>' +
+          fmt(t) +
+          "</b><span>Paid</span><b>" +
+          fmt(pd) +
+          '</b><span class="big">Balance</span><b class="big">' +
+          fmt(t - pd) +
+          " THB</b></div>" +
+          '<div class="ft"><span>' +
+          (oct
+            ? '<span class="conf">Changed since Lola confirmed (20,975 on 9 Oct)</span>'
+            : '<span class="conf ok">Confirmed by Lola on 28 Sep 2026</span>') +
+          "</span><span>Generated 16 Oct 2026 · chini-lucky.github.io/lola</span></div>" +
+          "</article>"
+        );
+      }
+
+      // ---------- render ----------
+      function fig(cap, sub, html) {
+        return (
+          '<figure class="ph"><figcaption>' +
+          cap +
+          (sub ? "<small>" + sub + "</small>" : "") +
+          "</figcaption>" +
+          html +
+          "</figure>"
+        );
+      }
+      document.getElementById("f-everyone").innerHTML =
+        fig("1 · Login", "Username + password, link to sign up, Home Screen hint", loginView()) +
+        fig("2 · Sign up", "Rules shown under each field", signupView()) +
+        fig("3 · Waiting for approval", "Locked out until an admin approves", waitingView()) +
+        fig("4 · Account", "Change password, log out", accountView());
+      document.getElementById("f-lola").innerHTML =
+        fig(
+          "5 · Period view",
+          "Oct pay, not confirmed (numbers changed since her last check)",
+          lolaView(),
+        ) +
+        fig(
+          "6 · Confirmed past period",
+          "‹ to Sep pay: fully paid, receipts to download",
+          lolaConfirmed(),
+        );
+      document.getElementById("f-admin").innerHTML =
+        fig(
+          "7 · Period view",
+          "Edit pens, Copy summary, stale-confirmation badge",
+          adminView() +
+            '<div class="states" aria-label="Confirmation badge states"><span class="state"><i></i>Waiting for Lola\'s ✓</span><span class="state ok"><i></i>Lola confirmed 16 Oct</span><span class="state" style="background:var(--lv);color:#7A4214"><i style="background:var(--lv-ink)"></i>Changed since Lola confirmed</span></div>',
+        ) +
+        fig("8 · Day sheet", "Several OT ranges, leave, note", daySheet()) +
+        fig("9 · Add payment sheet", "Date, amount, period, receipts", paySheet()) +
+        fig("10 · Settings", "Rates with history, holidays, CSV export", settingsView()) +
+        fig(
+          "11 · People",
+          "Approve / reject; role and remove; no controls on own row",
+          peopleView(),
+        ) +
+        fig("12 · Change log", "Admin only", logView());
+      document.getElementById("f-slip").innerHTML =
+        '<figure class="ps"><figcaption>13 · Oct pay payslip with DRAFT stamp (period not over, not paid)</figcaption>' +
+        payslip(OCT, true) +
+        "</figure>" +
+        '<figure class="ps"><figcaption>14 · Sep pay payslip, final (period over, fully paid)</figcaption>' +
+        payslip(SEP, false) +
+        "</figure>";
+
+      var summary =
+        "Lola · Oct pay (28 Sep – 27 Oct)\nSalary " +
+        fmt(SALARY) +
+        "\nOT " +
+        hrs(otHours) +
+        " = " +
+        fmt(otPay) +
+        "\nTotal " +
+        fmt(total) +
+        " · Paid " +
+        fmt(paid) +
+        "\nBalance " +
+        fmt(balance) +
+        " THB\nchini-lucky.github.io/lola";
+      document.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-copy]");
+        if (!b) return;
+        var ph = b.closest(".phone");
+        function toast(msg) {
+          var t = document.createElement("div");
+          t.className = "toast";
+          t.textContent = msg;
+          ph.appendChild(t);
+          setTimeout(function () {
+            t.remove();
+          }, 1800);
+        }
+        try {
+          navigator.clipboard.writeText(summary).then(
+            function () {
+              toast("Summary copied");
+            },
+            function () {
+              toast("Copy blocked here");
+            },
+          );
+        } catch (err) {
+          toast("Copy blocked here");
+        }
+      });
+    })();
+  </script>
+</html>
