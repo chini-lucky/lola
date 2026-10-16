@@ -139,14 +139,21 @@ const toMinutes = (time: string) => {
   return hours * 60 + minutes;
 };
 
-function rangeMinutes(range: string): number {
-  const [from = "", to = ""] = range.split("-");
-  return toMinutes(to) - toMinutes(from);
+/** Normal hours on a weekday: 09:00–18:00. */
+const DAY_START = toMinutes("09:00");
+const DAY_END = toMinutes("18:00");
+
+/** Minutes of a range ("07:00-19:00") that count as OT on a weekday: before 09:00 or after 18:00. */
+function weekdayOtMinutes(range: string): number {
+  const [from = 0, to = 0] = range.split("-").map(toMinutes);
+  const before = Math.max(0, Math.min(to, DAY_START) - from);
+  const after = Math.max(0, to - Math.max(from, DAY_END));
+  return before + after;
 }
 
 /** The day's OT, paid at the OT rate in effect that day, in whole baht. */
 export function dayOt(day: Day, rates: Rate[]): DayOt {
-  const counted = day.ot.reduce((sum, range) => sum + rangeMinutes(range), 0);
+  const counted = day.ot.reduce((sum, range) => sum + weekdayOtMinutes(range), 0);
   const minutes = Math.ceil(counted / 30) * 30;
   return { minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };
 }

@@ -155,4 +155,16 @@ describe("OT", () => {
   test("18:00–20:30 is 150 min, paid 375 THB at 150 THB/h", () => {
     expect(otOn("2026-10-05", ["18:00-20:30"])).toMatchObject({ minutes: 150, pay: 375 });
   });
+
+  test("several ranges add up before the day is rounded: 07:00–08:10 + 18:00–18:20 is 90 min", () => {
+    expect(otOn("2026-10-05", ["07:00-08:10", "18:00-18:20"]).minutes).toBe(90);
+  });
+
+  test("weekday OT counts only time before 09:00 or after 18:00: 08:00–19:00 is 120 min", () => {
+    expect(otOn("2026-10-05", ["08:00-19:00"]).minutes).toBe(120);
+  });
+
+  test("weekday OT inside 09:00–18:00 is no OT: 10:00–17:00 is 0 min", () => {
+    expect(otOn("2026-10-05", ["10:00-17:00"]).minutes).toBe(0);
+  });
 });
