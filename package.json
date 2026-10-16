@@ -1,0 +1,35 @@
+{
+  "name": "lola",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "scripts/dev.sh",
+    "build": "tsc -b && vite build",
+    "check": "tsc -b && eslint . --max-warnings 0 && prettier --check . && vitest run --passWithNoTests && supabase test db && npm run db:types:check",
+    "db:types": "supabase gen types typescript --local > src/db.types.ts",
+    "db:types:check": "supabase gen types typescript --local | diff -q - src/db.types.ts > /dev/null || (echo 'src/db.types.ts is out of date: run npm run db:types' && exit 1)",
+    "db:reset": "supabase db reset",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  }
+}
