@@ -5,6 +5,7 @@ import {
   dayKind,
   dayOt,
   nextPeriod,
+  otReason,
   payDayOf,
   periodOf,
   prevPeriod,
@@ -293,5 +294,25 @@ describe("pay period totals", () => {
       days: [otDay("2026-10-28", ["18:00-19:00"])],
     };
     expect(summarize(octPay, facts).otPay).toBe(0);
+  });
+});
+
+describe("why a day's OT counts", () => {
+  const holidays = ["2026-10-13", "2026-12-05"];
+  const reasonOn = (date: string, ot: string[]) =>
+    otReason({ date, ot, leave: false, note: null }, holidays);
+
+  test("weekday OT before 09:00 and after 18:00 says both", () => {
+    expect(reasonOn("2026-10-20", ["07:00-08:00", "18:00-20:00"])).toBe(
+      "Before 09:00 + After 18:00",
+    );
+  });
+
+  test("OT on a weekday holiday counts because it is a holiday", () => {
+    expect(reasonOn("2026-10-13", ["10:00-12:00"])).toBe("Holiday");
+  });
+
+  test("OT on a holiday that falls on a Saturday says Saturday", () => {
+    expect(reasonOn("2026-12-05", ["10:00-12:00"])).toBe("Saturday");
   });
 });

@@ -153,13 +153,19 @@ const toMinutes = (time: string) => {
 const DAY_START = toMinutes("09:00");
 const DAY_END = toMinutes("18:00");
 
+/** A range "07:00-19:00" as minutes since midnight. */
+function rangeOf(range: string): [number, number] {
+  const [from = 0, to = 0] = range.split("-").map(toMinutes);
+  return [from, to];
+}
+
 /**
- * Minutes of a range ("07:00-19:00") that count as OT: all of it on an off day,
+ * Minutes of a range that count as OT: all of it on a weekend or holiday,
  * else only before 09:00 or after 18:00.
  */
-function otMinutesOf(range: string, offDay: boolean): number {
-  const [from = 0, to = 0] = range.split("-").map(toMinutes);
-  if (offDay) return to - from;
+function otMinutesOf(range: string, weekendOrHoliday: boolean): number {
+  const [from, to] = rangeOf(range);
+  if (weekendOrHoliday) return to - from;
   const before = Math.max(0, Math.min(to, DAY_START) - from);
   const after = Math.max(0, to - Math.max(from, DAY_END));
   return before + after;
@@ -167,14 +173,36 @@ function otMinutesOf(range: string, offDay: boolean): number {
 
 /** The day's OT, paid at the OT rate in effect that day, in whole baht. */
 export function dayOt(day: Day, rates: Rate[], holidays: string[]): DayOt {
-  const offDay = isWeekend(day.date) || holidays.includes(day.date);
-  const countedMinutes = day.ot.reduce((sum, range) => sum + otMinutesOf(range, offDay), 0);
+  const weekendOrHoliday = isWeekend(day.date) || holidays.includes(day.date);
+  const countedMinutes = day.ot.reduce(
+    (sum, range) => sum + otMinutesOf(range, weekendOrHoliday),
+    0,
+  );
   const paidMinutes = Math.ceil(countedMinutes / 30) * 30;
   return {
     countedMinutes,
     paidMinutes,
     pay: Math.round((paidMinutes * rateOn(day.date, rates).ot_rate) / 60),
   };
+}
+
+/** Why a day's OT counts: "Saturday", "Sunday", "Holiday", or "Before 09:00 + After 18:00". */
+export function otReason(day: Day, holidays: string[]): string {
+  const weekday = weekdayOf(day.date);
+  if (weekday === 6) return "Saturday";
+  if (weekday === 0) return "Sunday";
+  if (holidays.includes(day.date)) return "Holiday";
+  const ranges = day.ot.map(rangeOf);
+  const reasons = [
+    ranges.some(([from]) => from < DAY_START) ? "Before 09:00" : null,
+    ranges.some(([, to]) => to > DAY_END) ? "After 18:00" : null,
+  ];
+  return reasons.filter((reason) => reason !== null).join(" + ");
+}
+
+/** The exception days that fall in the pay period. */
+export function daysIn(period: Period, days: Day[]): Day[] {
+  return days.filter((day) => day.date >= period.start && day.date <= period.end);
 }
 
 /** Everything the pay maths needs, as stored: rates, agreed overrides, holiday dates, exception days. */
@@ -197,8 +225,7 @@ export function summarize(period: Period, facts: PayFacts): Summary {
   const salary = salaryOf(period, facts.rates, facts.overrides);
   let otMinutes = 0;
   let otPay = 0;
-  for (const day of facts.days) {
-    if (day.date < period.start || day.date > period.end) continue;
+  for (const day of daysIn(period, facts.days)) {
     const ot = dayOt(day, facts.rates, facts.holidays);
     otMinutes += ot.paidMinutes;
     otPay += ot.pay;

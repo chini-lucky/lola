@@ -2,6 +2,8 @@ import {
   datesIn,
   dayKind,
   dayOt,
+  daysIn,
+  otReason,
   overrideOf,
   summarize,
   weekdayOf,
@@ -108,6 +110,8 @@ export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${mont
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** OT minutes as hours: "2.5 h". */
 const hours = (minutes: number) => `${(minutes / 60).toString()} h`;
+/** OT minutes as hours in a calendar cell: "2.5h". */
+const hoursShort = (minutes: number) => `${(minutes / 60).toString()}h`;
 /** Minutes as "1h 10m". */
 function hoursMinutes(minutes: number): string {
   const rest = minutes % 60;
@@ -153,7 +157,7 @@ const KINDS: Record<DayKind, { className: string; name: string }> = {
 /** What a calendar cell says under the date: OT hours, "leave" or "holiday". */
 function cellText(kind: DayKind, day: Day | undefined, facts: PayFacts): string | null {
   if (kind === "ot" && day !== undefined) {
-    return hours(dayOt(day, facts.rates, facts.holidays).paidMinutes).replace(" ", "");
+    return hoursShort(dayOt(day, facts.rates, facts.holidays).paidMinutes);
   }
   if (kind === "leave" || kind === "holiday") return kind;
   return null;
@@ -222,15 +226,6 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
   );
 }
 
-/** Why a day's OT counts: the weekend day or holiday; on a weekday the times say it. */
-function offDayName(date: string, holidays: string[]): string | null {
-  if (holidays.includes(date)) return "Holiday";
-  const weekday = weekdayOf(date);
-  if (weekday === 6) return "Saturday";
-  if (weekday === 0) return "Sunday";
-  return null;
-}
-
 /** A day's date as a chip: "WED / 30", coloured like its calendar cell. */
 function DateChip({ date, className }: { date: string; className: string }) {
   return (
@@ -244,13 +239,13 @@ function DateChip({ date, className }: { date: string; className: string }) {
 function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
   const ot = dayOt(day, facts.rates, facts.holidays);
   const details = [
-    offDayName(day.date, facts.holidays),
+    otReason(day, facts.holidays),
     day.leave ? "Leave" : null,
     ot.countedMinutes === ot.paidMinutes
       ? null
       : `rounded up from ${hoursMinutes(ot.countedMinutes)}`,
     day.note,
-  ].filter((detail) => detail !== null);
+  ].filter((detail) => detail !== null && detail !== "");
   return (
     <li className="item">
       <DateChip date={day.date} className="ot" />
@@ -283,9 +278,7 @@ function LeaveItem({ day }: { day: Day }) {
 
 /** The pay period's OT and leave days, one per row, below the calendar. */
 export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts }) {
-  const days = facts.days.filter(
-    (day) => day.date >= period.start && day.date <= period.end && (day.ot.length > 0 || day.leave),
-  );
+  const days = daysIn(period, facts.days).filter((day) => day.ot.length > 0 || day.leave);
   const leaveDays = days.filter((day) => day.leave).length;
   const { otMinutes } = summarize(period, facts);
   return (
