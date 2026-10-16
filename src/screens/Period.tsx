@@ -120,7 +120,7 @@ export function PeriodView({ person }: { person: Person }) {
               today={today}
               onDayTap={isAdmin ? setEditing : null}
             />
-            <OtLeaveList period={period} facts={facts} />
+            <OtLeaveList period={period} facts={facts} onEdit={isAdmin ? setEditing : null} />
           </>
         )}
       </section>

@@ -13,13 +13,21 @@ async function adminOn16Nov(page: Page) {
   await logIn(page, admin);
 }
 
+/** Taps a day on the calendar to open its day sheet. */
+async function tapDay(page: Page, label: string) {
+  await page
+    .getByRole("list", { name: "Days" })
+    .getByRole("button", { name: `Edit ${label}` })
+    .click();
+}
+
 const novPay = (page: Page) => page.getByRole("region", { name: "Nov pay · 28 Oct – 27 Nov" });
 
 test("an admin adds weekday OT 18:00–20:30 and the total goes up by 2.5 h = 375", async ({
   page,
 }) => {
   await adminOn16Nov(page);
-  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  await tapDay(page, "Tue 17 Nov");
   const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
   await sheet.getByRole("button", { name: "Add a time" }).click();
   await sheet.getByLabel("Range 1 from").fill("18:00");
@@ -30,7 +38,7 @@ test("an admin adds weekday OT 18:00–20:30 and the total goes up by 2.5 h = 37
 
 test("an OT range that ends before it starts is refused", async ({ page }) => {
   await adminOn16Nov(page);
-  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  await tapDay(page, "Tue 17 Nov");
   const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
   await sheet.getByRole("button", { name: "Add a time" }).click();
   await sheet.getByLabel("Range 1 from").fill("20:30");
@@ -46,7 +54,7 @@ test("an admin removes one of a day's OT ranges and edits the other: 3 h becomes
 }) => {
   await addDay({ date: "2026-11-17", ot: ["07:00-08:00", "18:00-20:00"] });
   await adminOn16Nov(page);
-  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  await tapDay(page, "Tue 17 Nov");
   const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
   await sheet.getByRole("button", { name: "Remove range 1" }).click();
   await sheet.getByLabel("Range 1 to").fill("19:00");
@@ -58,7 +66,7 @@ test("an admin marks a day as leave with a note; the list shows it with no deduc
   page,
 }) => {
   await adminOn16Nov(page);
-  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  await tapDay(page, "Tue 17 Nov");
   const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
   await sheet.getByRole("switch", { name: /Leave/ }).check();
   await sheet.getByLabel("Note").fill("Sick day");
@@ -71,7 +79,7 @@ test("an admin marks a day as leave with a note; the list shows it with no deduc
 test("clearing a day returns it to a normal day", async ({ page }) => {
   await addDay({ date: "2026-11-17", ot: ["18:00-20:30"], leave: true, note: "Dinner out" });
   await adminOn16Nov(page);
-  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  await tapDay(page, "Tue 17 Nov");
   await page
     .getByRole("dialog", { name: "Tue 17 Nov" })
     .getByRole("button", { name: "Clear this day" })
@@ -81,4 +89,14 @@ test("clearing a day returns it to a normal day", async ({ page }) => {
       .getByRole("list", { name: "Days" })
       .getByRole("listitem", { name: "Tue 17 Nov", exact: true }),
   ).toBeVisible();
+});
+
+test("an admin edits an OT day from its pen in the Overtime & leave list", async ({ page }) => {
+  await addDay({ date: "2026-11-17", ot: ["18:00-20:30"] });
+  await adminOn16Nov(page);
+  await page
+    .getByRole("list", { name: "Overtime & leave" })
+    .getByRole("button", { name: "Edit Tue 17 Nov" })
+    .click();
+  await expect(page.getByRole("dialog", { name: "Tue 17 Nov" })).toBeVisible();
 });

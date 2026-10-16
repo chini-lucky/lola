@@ -202,7 +202,7 @@ export function Calendar(props: {
   period: Period;
   facts: PayFacts;
   today: string;
-  onDayTap: ((date: string) => void) | null;
+  onDayTap: OnEditDay;
 }) {
   const { onDayTap } = props;
   const dates = datesIn(props.period);
@@ -307,7 +307,35 @@ function DateChip({ date, className }: { date: string; className: string }) {
   );
 }
 
-function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
+type OnEditDay = ((date: string) => void) | null;
+
+/** The admin's edit pen on a list row; nothing for the nanny. */
+function EditDay({ date, onEdit }: { date: string; onEdit: OnEditDay }) {
+  if (onEdit === null) return null;
+  return (
+    <button
+      className="pen"
+      type="button"
+      aria-label={`Edit ${dayLabel(date)}`}
+      onClick={() => {
+        onEdit(date);
+      }}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        aria-hidden="true"
+      >
+        <path d="M4 20h4L19 9l-4-4L4 16z" strokeLinejoin="round" />
+        <path d="M14 6l4 4" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
+
+function OtItem({ day, facts, onEdit }: { day: Day; facts: PayFacts; onEdit: OnEditDay }) {
   const ot = dayOt(day, facts.rates, facts.holidays);
   const details = [
     otReason(day, facts.holidays),
@@ -328,11 +356,12 @@ function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
         {money(ot.pay)}
         <small>{hours(ot.paidMinutes)}</small>
       </div>
+      <EditDay date={day.date} onEdit={onEdit} />
     </li>
   );
 }
 
-function LeaveItem({ day }: { day: Day }) {
+function LeaveItem({ day, onEdit }: { day: Day; onEdit: OnEditDay }) {
   return (
     <li className="item">
       <DateChip date={day.date} className="lv" />
@@ -343,12 +372,14 @@ function LeaveItem({ day }: { day: Day }) {
       <div className="amt">
         0<small>no change</small>
       </div>
+      <EditDay date={day.date} onEdit={onEdit} />
     </li>
   );
 }
 
 /** The pay period's OT and leave days, one per row, below the calendar. */
-export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts }) {
+export function OtLeaveList(props: { period: Period; facts: PayFacts; onEdit: OnEditDay }) {
+  const { period, facts, onEdit } = props;
   const days = daysIn(period, facts.days).filter((day) => day.ot.length > 0 || day.leave);
   const leaveDays = days.filter((day) => day.leave).length;
   const { otMinutes } = summarize(period, facts);
@@ -370,9 +401,9 @@ export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts
         <ul aria-label="Overtime & leave">
           {days.map((day) =>
             day.ot.length > 0 ? (
-              <OtItem key={day.date} day={day} facts={facts} />
+              <OtItem key={day.date} day={day} facts={facts} onEdit={onEdit} />
             ) : (
-              <LeaveItem key={day.date} day={day} />
+              <LeaveItem key={day.date} day={day} onEdit={onEdit} />
             ),
           )}
         </ul>
