@@ -6,6 +6,9 @@ export interface Period {
   end: string;
 }
 
+/** The nanny's first day. Nothing exists before it. */
+export const START_DATE = "2026-09-14";
+
 function iso(year: number, month: number, day: number): string {
   return new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10);
 }
@@ -19,5 +22,6 @@ function parts(date: string): [number, number, number] {
 export function periodOf(date: string): Period {
   const [year, month, day] = parts(date);
   const endMonth = day >= 28 ? month + 1 : month;
-  return { start: iso(year, endMonth - 1, 28), end: iso(year, endMonth, 27) };
+  const start = iso(year, endMonth - 1, 28);
+  return { start: start < START_DATE ? START_DATE : start, end: iso(year, endMonth, 27) };
 }

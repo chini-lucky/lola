@@ -9,4 +9,8 @@ describe("pay period", () => {
   test("28 Oct is the first day of Nov pay (28 Oct – 27 Nov)", () => {
     expect(periodOf("2026-10-28")).toEqual({ start: "2026-10-28", end: "2026-11-27" });
   });
+
+  test("the first pay period starts on the start date, 14 Sep 2026", () => {
+    expect(periodOf("2026-09-14")).toEqual({ start: "2026-09-14", end: "2026-09-27" });
+  });
 });
