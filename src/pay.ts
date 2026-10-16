@@ -263,3 +263,11 @@ export function paymentsIn(period: Period, payments: Payment[]): Payment[] {
     .filter((p) => p.period_end === period.end)
     .sort((a, b) => a.paid_on.localeCompare(b.paid_on));
 }
+
+/** The money numbers a confirmation stores: what the nanny saw when she confirmed. */
+export type Snapshot = Pick<Summary, "total" | "paid">;
+
+/** A confirmation is stale once its money numbers (total, paid) no longer match. */
+export function isStale(snapshot: Snapshot, now: Summary): boolean {
+  return snapshot.total !== now.total || snapshot.paid !== now.paid;
+}
