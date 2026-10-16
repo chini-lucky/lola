@@ -160,8 +160,8 @@ function otMinutesOf(range: string, offDay: boolean): number {
 }
 
 /** The day's OT, paid at the OT rate in effect that day, in whole baht. */
-export function dayOt(day: Day, rates: Rate[]): DayOt {
-  const offDay = isWeekend(day.date);
+export function dayOt(day: Day, rates: Rate[], holidays: string[]): DayOt {
+  const offDay = isWeekend(day.date) || holidays.includes(day.date);
   const counted = day.ot.reduce((sum, range) => sum + otMinutesOf(range, offDay), 0);
   const minutes = Math.ceil(counted / 30) * 30;
   return { minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };

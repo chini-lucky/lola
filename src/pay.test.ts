@@ -141,8 +141,9 @@ describe("day kind", () => {
 });
 
 describe("OT", () => {
+  const holidays = ["2026-10-13", "2026-12-05"];
   const otOn = (date: string, ot: string[]) =>
-    dayOt({ date, ot, leave: false, note: null }, [firstRate]);
+    dayOt({ date, ot, leave: false, note: null }, [firstRate], holidays);
 
   test("a day's OT is rounded up to the next 30 minutes: 18:00–18:01 is 30 min", () => {
     expect(otOn("2026-10-05", ["18:00-18:01"]).minutes).toBe(30);
@@ -174,5 +175,13 @@ describe("OT", () => {
 
   test("all hours on a Sunday are OT: 09:00–09:10 rounds up to 30 min", () => {
     expect(otOn("2026-10-11", ["09:00-09:10"]).minutes).toBe(30);
+  });
+
+  test("all hours on a weekday holiday are OT: 09:00–18:00 is 540 min", () => {
+    expect(otOn("2026-10-13", ["09:00-18:00"]).minutes).toBe(540);
+  });
+
+  test("a holiday on a weekend is counted once: Sat 10:00–14:00 is 240 min", () => {
+    expect(otOn("2026-12-05", ["10:00-14:00"]).minutes).toBe(240);
   });
 });
