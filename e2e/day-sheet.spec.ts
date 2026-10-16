@@ -101,7 +101,7 @@ test("an admin edits an OT day from its pen in the Overtime & leave list", async
   await expect(page.getByRole("dialog", { name: "Tue 17 Nov" })).toBeVisible();
 });
 
-test("the nanny's period view has no edit controls for days", async ({ page }) => {
+test("the nanny's pay period view has no edit controls for days", async ({ page }) => {
   await addDay({ date: "2026-11-17", ot: ["18:00-20:30"] });
   await page.clock.setFixedTime(new Date("2026-11-16T10:00:00+07:00"));
   await logIn(page, nanny);

@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { loadEnv } from "vite";
+import type { Database } from "../src/db.types";
 import { admin } from "./logins";
 
 // The same Supabase the app under test talks to (this slot's URL beats .env.development).
@@ -68,12 +69,7 @@ export async function clearDays(from: string, to: string): Promise<void> {
 }
 
 /** Records an exception day, as the admin. */
-export async function addDay(day: {
-  date: string;
-  ot?: string[];
-  leave?: boolean;
-  note?: string;
-}): Promise<void> {
+export async function addDay(day: Database["public"]["Tables"]["days"]["Insert"]): Promise<void> {
   const asAdmin = await loggedIn(admin.username, admin.password);
   const { error } = await asAdmin.from("days").insert(day);
   if (error !== null) throw error;
