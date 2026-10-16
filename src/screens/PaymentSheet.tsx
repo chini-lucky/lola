@@ -10,7 +10,7 @@ import {
 } from "../pay";
 import { RECEIPT_TYPES, receiptName, receiptPath, shrunk } from "../receipts";
 import { addPayment, deletePayment, editPayment, removeReceipts, uploadReceipt } from "../supabase";
-import { ErrorAlert, money, periodTitle, Plus, Receipt } from "../ui";
+import { ErrorAlert, money, periodTitle, Plus, Receipt, RemoveReceipt } from "../ui";
 
 /** Whole baht, commas allowed ("22,250"); null if it is not a whole number above 0. */
 function wholeBaht(text: string): number | null {
@@ -18,22 +18,6 @@ function wholeBaht(text: string): number | null {
   if (!/^\d+$/.test(digits)) return null;
   const amount = Number(digits);
   return amount > 0 ? amount : null;
-}
-
-function RemoveButton(props: { name: string; onClick: () => void }) {
-  return (
-    <button className="x" type="button" aria-label={`Remove ${props.name}`} onClick={props.onClick}>
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        aria-hidden="true"
-      >
-        <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-      </svg>
-    </button>
-  );
 }
 
 /** Admin only: a bottom sheet to record money already sent to the nanny, or edit a payment. */
@@ -80,14 +64,15 @@ export function PaymentSheet(props: {
       return;
     }
     setSaving(true);
+    const id = payment?.id ?? crypto.randomUUID();
+    const uploaded: string[] = [];
     try {
-      const id = payment?.id ?? crypto.randomUUID();
-      const uploaded = await Promise.all(
+      await Promise.all(
         added.map(async (picked) => {
           const file = await shrunk(picked);
           const path = receiptPath(periodEnd, id, file.name);
           await uploadReceipt(path, file);
-          return path;
+          uploaded.push(path);
         }),
       );
       const saved: Payment = {
@@ -99,14 +84,17 @@ export function PaymentSheet(props: {
         receipts: [...stored, ...uploaded],
       };
       await (payment === null ? addPayment(saved) : editPayment(saved));
-      const unlisted = (payment?.receipts ?? []).filter((path) => !stored.includes(path));
-      // The payment no longer lists them, so a file left behind by a failed remove is harmless.
-      await removeReceipts(unlisted).catch(() => undefined);
-      props.onSaved();
     } catch {
+      // Nothing lists the files uploaded so far: take them away again (best effort).
+      await removeReceipts(uploaded).catch(() => undefined);
       setError("Couldn’t save the payment. Check your connection and try again.");
       setSaving(false);
+      return;
     }
+    const unlisted = (payment?.receipts ?? []).filter((path) => !stored.includes(path));
+    // The payment no longer lists them, so a file left behind by a failed remove is harmless.
+    await removeReceipts(unlisted).catch(() => undefined);
+    props.onSaved();
   }
 
   async function remove(saved: Payment) {
@@ -218,24 +206,24 @@ export function PaymentSheet(props: {
             Receipts
           </span>
           <div className="rcs">
-            {stored.map((path) => (
-              <Receipt key={path} name={receiptName(path)} link={null}>
-                <RemoveButton
-                  name={receiptName(path)}
-                  onClick={() => {
-                    setStored((paths) => paths.filter((p) => p !== path));
-                  }}
-                />
-              </Receipt>
-            ))}
-            {added.map((file, i) => (
-              <Receipt key={`${i.toString()}-${file.name}`} name={file.name} link={null}>
-                <RemoveButton
-                  name={file.name}
-                  onClick={() => {
-                    setAdded((files) => files.filter((f) => f !== file));
-                  }}
-                />
+            {[
+              ...stored.map((path) => ({
+                key: path,
+                name: receiptName(path),
+                onRemove: () => {
+                  setStored((paths) => paths.filter((p) => p !== path));
+                },
+              })),
+              ...added.map((file, i) => ({
+                key: `${i.toString()}-${file.name}`,
+                name: file.name,
+                onRemove: () => {
+                  setAdded((files) => files.filter((f) => f !== file));
+                },
+              })),
+            ].map(({ key, name, onRemove }) => (
+              <Receipt key={key} name={name} link={null}>
+                <RemoveReceipt name={name} onClick={onRemove} />
               </Receipt>
             ))}
             <div className="rcw">

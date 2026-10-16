@@ -214,6 +214,23 @@ function Download() {
   );
 }
 
+function Cross() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** A receipt tile's corner button that takes it off the payment. */
+export function RemoveReceipt(props: { name: string; onClick: () => void }) {
+  return (
+    <button className="x" type="button" aria-label={`Remove ${props.name}`} onClick={props.onClick}>
+      <Cross />
+    </button>
+  );
+}
+
 /**
  * A receipt as a small tile with its name under it: the image itself when there is a link to
  * it (a PDF, or an image the browser can't show, is drawn as a sheet of paper), and the tile's
@@ -325,24 +342,23 @@ export function Payments(props: {
               </div>
               {payment.receipts.length > 0 && (
                 <div className="rcs">
-                  {payment.receipts.map((path) => (
-                    <Receipt
-                      key={path}
-                      name={receiptName(path)}
-                      link={props.links.get(path) ?? null}
-                    >
-                      <button
-                        className="dl"
-                        type="button"
-                        aria-label={`Download ${receiptName(path)}`}
-                        onClick={() => {
-                          props.onDownload(path);
-                        }}
-                      >
-                        <Download />
-                      </button>
-                    </Receipt>
-                  ))}
+                  {payment.receipts.map((path) => {
+                    const name = receiptName(path);
+                    return (
+                      <Receipt key={path} name={name} link={props.links.get(path) ?? null}>
+                        <button
+                          className="dl"
+                          type="button"
+                          aria-label={`Download ${name}`}
+                          onClick={() => {
+                            props.onDownload(path);
+                          }}
+                        >
+                          <Download />
+                        </button>
+                      </Receipt>
+                    );
+                  })}
                 </div>
               )}
             </li>

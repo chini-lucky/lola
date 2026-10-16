@@ -47,23 +47,24 @@ export function PeriodView({ person }: { person: Person }) {
   }, []);
   useEffect(load, [load]);
 
-  // Links to view the shown period's receipts, made again when its receipts change.
+  // Links to view the shown period's receipts, made again when its receipts change. The paths
+  // are joined into one string so the effect can depend on their values, not a new array.
   const [links, setLinks] = useState(new Map<string, string>());
-  const shownReceipts =
+  const shownReceiptsKey =
     facts === null
       ? ""
       : paymentsIn(period, facts.payments)
           .flatMap((p) => p.receipts)
           .join("\n");
   useEffect(() => {
-    if (shownReceipts === "") return;
-    receiptLinks(shownReceipts.split("\n")).then(setLinks, () => {
+    if (shownReceiptsKey === "") return;
+    void receiptLinks(shownReceiptsKey.split("\n")).then(setLinks, () => {
       setError("Couldn’t load the receipts. Check your connection and reload.");
     });
-  }, [shownReceipts]);
+  }, [shownReceiptsKey]);
 
   function download(path: string) {
-    receiptDownloadLink(path, receiptName(path)).then(
+    void receiptDownloadLink(path, receiptName(path)).then(
       (link) => {
         window.location.assign(link); // the link answers with a download, so the page stays
       },
