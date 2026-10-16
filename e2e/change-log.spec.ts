@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { asAdmin, newUsername, signUpNanny } from "./api";
+import { asAdmin, newUsername, signUpNanny, signUpWaiting } from "./api";
 import { logIn } from "./login";
 import { admin, nanny } from "./logins";
 
@@ -107,4 +107,14 @@ test("the change log is for admins only: a nanny opening its link sees the pay p
   await page.goto("./#/changes");
   await expect(page.getByRole("list", { name: "Days" })).toBeVisible();
   await expect(page.getByText("Change log")).toBeHidden();
+});
+
+test("a sign-up shows as added by the person who signed up", async ({ page }) => {
+  const username = newUsername("joined");
+  await signUpWaiting(username, "a-good-password");
+  await logIn(page, admin);
+  await openChangeLog(page);
+  await expect(newest(page)).toHaveAccessibleName(
+    new RegExp(`^\\d\\d:\\d\\d, Added Person ${username}: Role Waiting, by ${username}$`),
+  );
 });

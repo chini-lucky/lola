@@ -212,6 +212,12 @@ async function names(changes: Change[]): Promise<Map<string, string>> {
   return new Map([...logged, ...[...waiting, ...approved].map((p) => [p.id, p.username] as const)]);
 }
 
+/** Who made the change. A sign-up has no logged-in actor: the person signing up made it. */
+function actorOf(change: Change): string | null {
+  if (change.actor !== null) return change.actor;
+  return change.tbl === "people" && change.op === "insert" ? text(get(change.new, "id")) : null;
+}
+
 interface Log {
   changes: Change[];
   names: Map<string, string>;
@@ -234,8 +240,10 @@ export function ChangeLog() {
     });
   }, []);
 
-  const by = (actor: string | null) =>
-    actor === null ? "setup" : (log?.names.get(actor) ?? "a removed account");
+  const by = (change: Change) => {
+    const actor = actorOf(change);
+    return actor === null ? "setup" : (log?.names.get(actor) ?? "a removed account");
+  };
 
   return (
     <div className="screen">
@@ -253,7 +261,7 @@ export function ChangeLog() {
                   {changes.map((change) => {
                     const time = bangkokTime.format(new Date(change.at));
                     const what = summary(change);
-                    const who = by(change.actor);
+                    const who = by(change);
                     return (
                       <li
                         className="lg"
