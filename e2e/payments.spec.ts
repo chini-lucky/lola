@@ -21,6 +21,17 @@ async function addPayment(page: Page, amount: string, note: string) {
   await sheet.getByRole("button", { name: "Save payment" }).click();
 }
 
+/** Deletes the payment its edit pen names, e.g. "Edit payment 300 paid 16 Oct". */
+async function deletePayment(page: Page, pen: string) {
+  await page.getByRole("button", { name: pen }).click();
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page
+    .getByRole("dialog", { name: "Edit payment" })
+    .getByRole("button", { name: "Delete payment" })
+    .click();
+  await expect(page.getByRole("dialog")).toBeHidden(); // closes once the delete is saved
+}
+
 test("the first pay period shows paid 11,000 and balance 0", async ({ page }) => {
   await logInOn(page, "2026-10-16", nanny);
   await page.getByRole("button", { name: "Previous pay period" }).click();
@@ -43,6 +54,7 @@ test("admin adds a payment to Oct pay: paid and balance update", async ({ page }
   await expect(page.getByRole("region", { name: octPay })).toContainText(
     "Paid12,000Balance to pay8,000 THB",
   );
+  await deletePayment(page, "Edit payment 12,000 paid 16 Oct");
 });
 
 test("a payment the admin adds appears in the pay period's Payments list", async ({ page }) => {
@@ -51,6 +63,7 @@ test("a payment the admin adds appears in the pay period's Payments list", async
   await expect(page.getByRole("list", { name: "Payments" })).toContainText(
     "Fri16Taxi moneyPaid 16 Oct500THB",
   );
+  await deletePayment(page, "Edit payment 500 paid 16 Oct");
 });
 
 test("the nanny has no Add payment button", async ({ page }) => {
@@ -69,16 +82,12 @@ test("admin edits a payment's amount", async ({ page }) => {
   await expect(page.getByRole("list", { name: "Payments" })).toContainText(
     "Fri16SnacksPaid 16 Oct900THB",
   );
+  await deletePayment(page, "Edit payment 900 paid 16 Oct");
 });
 
 test("admin deletes a payment: it leaves the Payments list", async ({ page }) => {
   await logInOn(page, "2026-10-16", admin);
   await addPayment(page, "300", "Mistake");
-  await page.getByRole("button", { name: "Edit payment 300 paid 16 Oct" }).click();
-  page.once("dialog", (dialog) => void dialog.accept());
-  await page
-    .getByRole("dialog", { name: "Edit payment" })
-    .getByRole("button", { name: "Delete payment" })
-    .click();
+  await deletePayment(page, "Edit payment 300 paid 16 Oct");
   await expect(page.getByRole("listitem").filter({ hasText: "Mistake" })).toHaveCount(0);
 });
