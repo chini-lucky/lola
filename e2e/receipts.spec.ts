@@ -137,3 +137,24 @@ test("a receipt image is shrunk in the browser to a JPEG at most 1600 px wide", 
 
   await deletePayment(page, "Edit payment 1,300 paid 16 Oct");
 });
+
+test("a HEIC receipt the browser can't decode is uploaded as it is", async ({
+  page,
+  browser,
+  baseURL,
+}) => {
+  const heic = { name: "IMG_0042.HEIC", mimeType: "image/heic", buffer: Buffer.from("ftypheic…") };
+  await logInOn(page, admin);
+  await addPaymentWith(page, "1,400", "From the iPhone", [heic]);
+
+  const lola = await nannyPhone(browser, baseURL);
+  const download = lola.waitForEvent("download");
+  await lola
+    .getByRole("listitem")
+    .filter({ hasText: "From the iPhone" })
+    .getByRole("button", { name: "Download IMG_0042.HEIC" })
+    .click();
+  expect((await readFile(await (await download).path())).toString()).toBe("ftypheic…");
+
+  await deletePayment(page, "Edit payment 1,400 paid 16 Oct");
+});
