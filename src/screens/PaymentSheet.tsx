@@ -4,16 +4,11 @@ import {
   nextPeriod,
   periodOf,
   periodsThrough,
-  totalsOf,
+  summarize,
+  type PayFacts,
   type Payment,
 } from "../pay";
-import {
-  addPayment,
-  deletePayment,
-  editPayment,
-  type PayFacts,
-  type PaymentFields,
-} from "../supabase";
+import { addPayment, deletePayment, editPayment, type PaymentFields } from "../supabase";
 import { ErrorAlert, money, periodTitle } from "../ui";
 
 /** Whole baht, commas allowed ("22,250"); null if it is not a whole number above 0. */
@@ -53,7 +48,7 @@ export function PaymentSheet(props: {
   }, []);
 
   const period = periods.find((p) => p.end === periodEnd) ?? current;
-  const { balance } = totalsOf(period, props.facts);
+  const { balance } = summarize(period, props.facts);
 
   async function save() {
     const baht = wholeBaht(amount);

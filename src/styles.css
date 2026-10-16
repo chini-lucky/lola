@@ -29,11 +29,11 @@
   --t-ink: #1f3b52;
   --t-line: #a9cde6;
   --t-bal: #ffffff;
-  --ok: #e0f2e4;
-  --ok-ink: #2f6b3f;
   --day: #ffffff;
   --wkd: #f3eee4;
   --hol: #ffe9a8;
+  --ot: #bfe0f5;
+  --ot-ink: #1c5a86;
   --lv: #fce3c9;
   --lv-ink: #b8692a;
   --hol-ink: #8a6a00;
@@ -721,6 +721,16 @@ a:focus-visible {
   color: var(--muted);
   box-shadow: none;
 }
+.d.ot {
+  background: var(--ot);
+  color: var(--ot-ink);
+  box-shadow: none;
+}
+.d.lv {
+  background: var(--lv);
+  color: var(--lv-ink);
+  box-shadow: none;
+}
 .d.hol {
   background: var(--hol);
   color: var(--hol-ink);
@@ -749,7 +759,7 @@ a:focus-visible {
   display: block;
 }
 
-/* lists under the calendar: payments */
+/* Overtime & leave list */
 .list {
   display: flex;
   flex-direction: column;
@@ -769,7 +779,7 @@ a:focus-visible {
   color: var(--muted);
   font-weight: 700;
 }
-.items {
+.list ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -777,10 +787,13 @@ a:focus-visible {
   flex-direction: column;
   gap: 8px;
 }
-.items .item {
+.list .item {
   background: var(--surface);
   border-radius: var(--r-item);
   padding: 10px 12px;
+}
+.num {
+  font-variant-numeric: tabular-nums;
 }
 .chip {
   width: 42px;
@@ -805,6 +818,14 @@ a:focus-visible {
 .chip.pay {
   background: var(--ok);
   color: var(--ok-ink);
+}
+.chip.ot {
+  background: var(--ot);
+  color: var(--ot-ink);
+}
+.chip.lv {
+  background: var(--lv);
+  color: var(--lv-ink);
 }
 .item .amt {
   text-align: right;

@@ -52,7 +52,7 @@ test("admin adds a payment to Oct pay: paid and balance update", async ({ page }
   await logInOn(page, "2026-10-16", admin);
   await addPayment(page, "12,000", "Bank transfer");
   await expect(page.getByRole("region", { name: octPay })).toContainText(
-    "Paid12,000Balance to pay8,000 THB",
+    "Paid12,000Balance to pay10,250 THB",
   );
   await deletePayment(page, "Edit payment 12,000 paid 16 Oct");
 });

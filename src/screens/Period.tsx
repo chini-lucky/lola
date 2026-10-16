@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { PaymentSheet } from "./PaymentSheet";
-import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Payment } from "../pay";
-import { payFacts, type PayFacts, type Person } from "../supabase";
+import {
+  currentPeriod,
+  nextPeriod,
+  payDayOf,
+  prevPeriod,
+  type PayFacts,
+  type Payment,
+} from "../pay";
+import { payFacts, type Person } from "../supabase";
 import {
   Bear,
   Calendar,
   dayMonth,
   ErrorAlert,
+  OtLeaveList,
   Payments,
   periodTitle,
   Plus,
@@ -115,7 +123,8 @@ export function PeriodView({ person }: { person: Person }) {
                 Add payment
               </button>
             )}
-            <Calendar period={period} holidays={facts.holidays} today={today} />
+            <Calendar period={period} facts={facts} today={today} />
+            <OtLeaveList period={period} facts={facts} />
             <Payments
               period={period}
               facts={facts}

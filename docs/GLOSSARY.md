@@ -3,6 +3,8 @@
 Domain words used in code, tests, UI and PRs. Use these exact words.
 
 - **Pay period** — the span one month's pay covers: the 28th of the previous month to the 27th of this month. Named by its end month ("Oct pay" = 28 Sep – 27 Oct). The first pay period is 14 Sep – 27 Sep 2026. Pay day is the 28th.
+- **Start date** — the nanny's first day, 14 Sep 2026. Nothing exists before it; the first pay period starts on it.
+- **Weekend** — Saturday and Sunday. Any time worked on a weekend is OT.
 - **OT (overtime)** — time worked outside normal hours: weekdays before 09:00 or after 18:00, any time on Sat/Sun, any time on a holiday. A day's OT total is rounded up to the next 30 minutes and paid at the OT rate (150 THB/hour to start).
 - **Leave** — a day the nanny did not work. Recorded for visibility only; no deduction from salary.
 - **Holiday** — a Thai public holiday: a paid day off. Any work on it is OT. Preloaded for 2026–2027; admin can add/remove.
