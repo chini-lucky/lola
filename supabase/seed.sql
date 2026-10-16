@@ -35,3 +35,6 @@ insert into public.days (date, ot, leave, note) values
   ('2026-10-15', '{07:30-09:00}', false, 'Early flight'),
   ('2026-10-19', '{}', true, 'Sick day'),
   ('2026-10-20', '{07:00-08:00,18:00-20:00}', false, 'Early start and dinner out');
+-- The first pay period's salary, paid in full on pay day.
+insert into public.payments (period_end, paid_on, amount, note)
+values ('2026-09-27', '2026-09-28', 11000, 'Bank transfer');

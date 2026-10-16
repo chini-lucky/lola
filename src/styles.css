@@ -28,6 +28,7 @@
   --t-bg: #cfe6f7;
   --t-ink: #1f3b52;
   --t-line: #a9cde6;
+  --t-bal: #ffffff;
   --day: #ffffff;
   --wkd: #f3eee4;
   --hol: #ffe9a8;
@@ -40,6 +41,7 @@
   --ok-ink: #2f6b3f;
   --danger: #c2554a;
   --danger-soft: #fbe4e1;
+  --scrim: #24384a55;
   --bear: #a8744a;
   --bear-lt: #e8c79f;
   --bear-dk: #4a2e1f;
@@ -632,6 +634,24 @@ a:focus-visible {
   background: var(--t-line);
   margin: 3px 0;
 }
+.bal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 20px;
+  padding: 9px 12px;
+  background: var(--t-bal);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bal span:last-child {
+  font-family: var(--font-d);
+  font-size: 1.15rem;
+}
+.bal.paid {
+  background: var(--ok);
+  color: var(--ok-ink);
+}
 .card {
   background: var(--surface);
   border-radius: var(--r-card);
@@ -795,6 +815,10 @@ a:focus-visible {
   font-size: 1.05rem;
   font-family: var(--font-d);
 }
+.chip.pay {
+  background: var(--ok);
+  color: var(--ok-ink);
+}
 .chip.ot {
   background: var(--ot);
   color: var(--ot-ink);
@@ -814,4 +838,117 @@ a:focus-visible {
   color: var(--muted);
   font-weight: 600;
   font-size: 0.72rem;
+}
+
+/* bottom sheets (native modal dialog) */
+.sheet {
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92dvh;
+  border: 0;
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 28px 28px 0 0;
+  padding: 10px 18px 22px;
+  box-shadow: 0 -10px 30px -12px #0003;
+}
+.sheet::backdrop {
+  background: var(--scrim);
+}
+.sheet form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.grab {
+  width: 40px;
+  height: 5px;
+  border-radius: 9px;
+  background: var(--line);
+  margin: 0 auto 2px;
+}
+.sheet h4 {
+  margin: 0;
+  font-family: var(--font-d);
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+.sheet .sub {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.affix {
+  position: relative;
+}
+.affix .inp {
+  padding-right: 48px;
+}
+.affix span {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-weight: 800;
+}
+select.inp {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px;
+}
+.quick {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.quick button {
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-btn);
+  padding: 5px 10px;
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+.pen {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--bg);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  flex: none;
+  cursor: pointer;
+}
+.pen svg {
+  width: 15px;
+  height: 15px;
+}
+.del {
+  background: none;
+  border: 0;
+  color: var(--danger);
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 4px;
+  cursor: pointer;
 }
