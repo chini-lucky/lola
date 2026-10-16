@@ -79,3 +79,9 @@ export async function approve(id: string): Promise<void> {
   const { error } = await supabase.rpc("set_role", { target: id, new_role: "nanny" });
   if (error !== null) throw error;
 }
+
+/** Admin only: Reject a waiting sign-up or Remove an approved person (deletes the account). */
+export async function removePerson(id: string): Promise<void> {
+  const result = await supabase.functions.invoke("remove-user", { body: { userId: id } });
+  if (result.error !== null) throw result.error as Error; // typed any by supabase-js
+}
