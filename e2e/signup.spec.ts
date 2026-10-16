@@ -41,6 +41,7 @@ test("a new sign-up waits until an admin approves them, then sees the home scree
   await adminPage.getByLabel("Username").fill(admin.username);
   await adminPage.getByLabel("Password").fill(admin.password);
   await adminPage.getByRole("button", { name: "Log in" }).click();
+  await adminPage.getByRole("link", { name: "Settings" }).click();
   await adminPage.getByRole("link", { name: "People" }).click();
   await adminPage.getByRole("button", { name: `Approve ${username}` }).click();
   await expect(adminPage.getByRole("button", { name: `Approve ${username}` })).toBeHidden();
