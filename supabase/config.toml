@@ -147,7 +147,7 @@ max_catalogs = 2
 
 # Store vector embeddings in S3 for large and durable datasets
 [storage.vector]
-enabled = true
+enabled = false # paid tier only; config push fails on free plan
 max_buckets = 10
 max_indexes = 5
 
