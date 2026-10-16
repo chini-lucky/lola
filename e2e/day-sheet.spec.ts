@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { addDay, clearDays } from "./api";
 import { logIn } from "./login";
-import { admin } from "./logins";
+import { admin, nanny } from "./logins";
 
 // Nov pay (28 Oct – 27 Nov 2026) has no seeded days; each test starts it empty.
 test.beforeEach(async () => {
@@ -99,4 +99,12 @@ test("an admin edits an OT day from its pen in the Overtime & leave list", async
     .getByRole("button", { name: "Edit Tue 17 Nov" })
     .click();
   await expect(page.getByRole("dialog", { name: "Tue 17 Nov" })).toBeVisible();
+});
+
+test("the nanny's period view has no edit controls for days", async ({ page }) => {
+  await addDay({ date: "2026-11-17", ot: ["18:00-20:30"] });
+  await page.clock.setFixedTime(new Date("2026-11-16T10:00:00+07:00"));
+  await logIn(page, nanny);
+  await expect(page.getByRole("list", { name: "Overtime & leave" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Edit / })).toHaveCount(0);
 });
