@@ -1,5 +1,6 @@
 -- Receipt files: a private bucket. Admin uploads, replaces and removes; the nanny only reads
 -- (signed URLs need read). Waiting and anonymous users get nothing.
+-- allowed_mime_types: keep in step with RECEIPT_TYPES in src/receipts.ts.
 -- Object path: {period_end}/{payment_id}/{file}; payments.receipts lists a payment's paths.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('receipts', 'receipts', false, 10485760,

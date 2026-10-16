@@ -1,7 +1,24 @@
 // Receipt files as the admin attaches them: shrunk in the browser, stored under their payment.
 
-/** File types the receipts bucket accepts (the file picker offers only these). */
+/**
+ * File types the receipts bucket accepts (the file picker offers only these). Keep in step with
+ * allowed_mime_types in supabase/migrations/0006_receipts_storage.sql.
+ */
 export const RECEIPT_TYPES = "image/jpeg,image/png,image/heic,application/pdf,.heic";
+
+const TYPES_BY_EXTENSION: Partial<Record<string, string>> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  heic: "image/heic",
+  pdf: "application/pdf",
+};
+
+/** A file's type; from its name when the browser gives none (HEIC on Chrome for Android). */
+export function receiptType(file: File): string {
+  const extension = file.name.slice(file.name.lastIndexOf(".") + 1).toLowerCase();
+  return file.type !== "" ? file.type : (TYPES_BY_EXTENSION[extension] ?? "");
+}
 
 /**
  * Where a receipt is stored: {period_end}/{payment_id}/{random}-{file name}. The random part

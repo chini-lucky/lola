@@ -1,6 +1,7 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database } from "./db.types";
 import type { PayFacts, Payment } from "./pay";
+import { receiptType } from "./receipts";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
@@ -163,8 +164,9 @@ export async function deletePayment(payment: Payment): Promise<void> {
 const receipts = () => supabase.storage.from("receipts");
 
 /** Admin only (storage policy). Stores a receipt file at the given path. */
-export async function uploadReceipt(path: string, file: Blob): Promise<void> {
-  const { error } = await receipts().upload(path, file, { contentType: file.type, upsert: false });
+export async function uploadReceipt(path: string, file: File): Promise<void> {
+  const contentType = receiptType(file);
+  const { error } = await receipts().upload(path, file, { contentType, upsert: false });
   if (error !== null) throw error;
 }
 
