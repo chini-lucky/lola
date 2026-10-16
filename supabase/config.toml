@@ -415,6 +415,10 @@ enabled = true
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
 
+# Reject / Remove (supabase/functions/remove-user). The gateway rejects calls without a valid JWT.
+[functions.remove-user]
+verify_jwt = true
+
 # Production (applied when the linked project ref matches). Without this, `config push` would send
 # the local site_url above to production.
 [remotes.production]

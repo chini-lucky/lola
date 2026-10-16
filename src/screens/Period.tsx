@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { PaymentSheet } from "./PaymentSheet";
 import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Payment } from "../pay";
-import { logOut, payFacts, type PayFacts, type Person } from "../supabase";
+import { payFacts, type PayFacts, type Person } from "../supabase";
 import {
   Bear,
   Calendar,
@@ -62,6 +62,12 @@ export function PeriodView({ person }: { person: Person }) {
             </h1>
             <small>Pooh’s pay period so far</small>
           </div>
+          <a className="iconbtn" href="#/account" aria-label="Account">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+              <circle cx="12" cy="8.5" r="3.8" />
+              <path d="M4.5 20c1.2-3.8 4-5.6 7.5-5.6s6.3 1.8 7.5 5.6" strokeLinecap="round" />
+            </svg>
+          </a>
         </div>
       )}
       <section className="periodview" aria-label={periodTitle(period)}>
@@ -139,14 +145,17 @@ export function PeriodView({ person }: { person: Person }) {
         />
       )}
       {isAdmin && (
-        <a className="navrow" href="#/people">
-          <span>People</span>
-          <i>›</i>
-        </a>
+        <>
+          <a className="navrow" href="#/people">
+            <span>People</span>
+            <i>›</i>
+          </a>
+          <a className="navrow" href="#/account">
+            <span>Account</span>
+            <i>›</i>
+          </a>
+        </>
       )}
-      <button className="link" type="button" onClick={() => void logOut()}>
-        Log out
-      </button>
     </div>
   );
 }

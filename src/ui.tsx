@@ -9,7 +9,7 @@ import {
   type Payment,
   type Period,
 } from "./pay";
-import type { PayFacts } from "./supabase";
+import type { PayFacts, Role } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
@@ -93,6 +93,20 @@ export function Plus() {
   );
 }
 
+/** Sub-page header: Back to home, then the page title. */
+export function BackBar({ title }: { title: string }) {
+  return (
+    <div className="bar">
+      <a className="iconbtn" href="#/" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+          <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </a>
+      <b>{title}</b>
+    </div>
+  );
+}
+
 export function ErrorAlert({ message }: { message: string | null }) {
   if (message === null) return null;
   return (
@@ -100,6 +114,21 @@ export function ErrorAlert({ message }: { message: string | null }) {
       {message}
     </p>
   );
+}
+
+export function roleLabel(role: Role): string {
+  switch (role) {
+    case "admin":
+      return "Admin";
+    case "nanny":
+      return "Nanny";
+    case "waiting":
+      return "Waiting";
+    default: {
+      const unreachable: never = role;
+      return unreachable;
+    }
+  }
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
