@@ -25,3 +25,13 @@ from users;
 
 update public.people set role = 'admin' where username = 'chini-lucky';
 update public.people set role = 'nanny' where username = 'lola';
+
+-- Oct pay sample (design frames): 6 OT days = 15 h, leave on 19 Oct.
+insert into public.days (date, ot, leave, note) values
+  ('2026-09-30', '{18:00-20:15}', false, 'Parents at a work dinner'),
+  ('2026-10-05', '{18:00-20:30}', false, null),
+  ('2026-10-07', '{18:00-19:10}', false, 'Traffic, home late'),
+  ('2026-10-10', '{10:00-14:00}', false, 'Family wedding'),
+  ('2026-10-15', '{07:30-09:00}', false, 'Early flight'),
+  ('2026-10-19', '{}', true, 'Sick day'),
+  ('2026-10-20', '{07:00-08:00,18:00-20:00}', false, 'Early start and dinner out');

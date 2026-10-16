@@ -1,13 +1,15 @@
 import {
   datesIn,
   dayKind,
+  dayOt,
   overrideOf,
-  salaryOf,
+  summarize,
   weekdayOf,
+  type Day,
   type DayKind,
+  type PayFacts,
   type Period,
 } from "./pay";
-import type { PayFacts } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
@@ -104,10 +106,17 @@ const dayOfMonth = (date: string) => Number(date.slice(8, 10));
 export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
+/** OT minutes as hours: "2.5 h". */
+const hours = (minutes: number) => `${(minutes / 60).toString()} h`;
+/** Minutes as "1h 10m". */
+function hoursMinutes(minutes: number): string {
+  const rest = minutes % 60;
+  return `${Math.floor(minutes / 60).toString()}h${rest === 0 ? "" : ` ${rest.toString()}m`}`;
+}
 
 /** The pay period's totals card, with the bear peeking over it. */
 export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
-  const salary = salaryOf(period, facts.rates, facts.overrides);
+  const { salary, otMinutes, otPay, total } = summarize(period, facts);
   const agreed = overrideOf(period, facts.overrides)?.note ?? null;
   return (
     <div className="totals">
@@ -115,44 +124,47 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
       <div>
         <div className="lbl">{monthName(period.end)} pay total</div>
         <div className="big">
-          {money(salary)}
+          {money(total)}
           <small>THB</small>
         </div>
       </div>
       <dl className="rows">
         <dt>{agreed === null ? "Salary" : `Salary (${agreed})`}</dt>
         <dd>{money(salary)}</dd>
+        <dt>Overtime {hours(otMinutes)}</dt>
+        <dd>{money(otPay)}</dd>
         <div className="sep" />
         <dt>Total</dt>
-        <dd>{money(salary)}</dd>
+        <dd>{money(total)}</dd>
       </dl>
     </div>
   );
 }
 
-/** CSS class of a calendar day cell for its kind. */
-function dayClass(kind: DayKind): string {
-  switch (kind) {
-    case "ot":
-      return "d ot";
-    case "leave":
-      return "d lv";
-    case "holiday":
-      return "d hol";
-    case "weekend":
-      return "d wkd";
-    case "normal":
-      return "d";
-    default: {
-      const unreachable: never = kind;
-      return unreachable;
-    }
+/** CSS class and spoken name of each day kind. */
+const KINDS: Record<DayKind, { className: string; name: string }> = {
+  ot: { className: "d ot", name: "overtime" },
+  leave: { className: "d lv", name: "leave" },
+  holiday: { className: "d hol", name: "holiday" },
+  weekend: { className: "d wkd", name: "weekend" },
+  normal: { className: "d", name: "normal" },
+};
+
+/** What a calendar cell says under the date: OT hours, "leave" or "holiday". */
+function cellText(kind: DayKind, day: Day | undefined, facts: PayFacts): string | null {
+  if (kind === "ot" && day !== undefined) {
+    return hours(dayOt(day, facts.rates, facts.holidays).minutes).replace(" ", "");
   }
+  if (kind === "leave" || kind === "holiday") return kind;
+  return null;
 }
 
+const daysByDate = (days: Day[]) => new Map(days.map((day) => [day.date, day]));
+
 /** The pay period's days in Monday-first weeks, coloured by kind. */
-export function Calendar(props: { period: Period; holidays: string[]; today: string }) {
+export function Calendar(props: { period: Period; facts: PayFacts; today: string }) {
   const dates = datesIn(props.period);
+  const days = daysByDate(props.facts.days);
   const blanksBeforeFirstDay = (weekdayOf(props.period.start) + 6) % 7;
   return (
     <div className="card">
@@ -166,17 +178,20 @@ export function Calendar(props: { period: Period; holidays: string[]; today: str
           <li className="d e" key={`blank-${i.toString()}`} aria-hidden="true" />
         ))}
         {dates.map((date, i) => {
-          const kind = dayKind(date, props.holidays);
+          const day = days.get(date);
+          const kind = dayKind(date, props.facts.holidays, day);
+          const { className, name } = KINDS[kind];
           const label = `${weekdayName(date)} ${dayMonth(date)}`;
+          const text = cellText(kind, day, props.facts);
           return (
             <li
               key={date}
-              className={date === props.today ? `${dayClass(kind)} today` : dayClass(kind)}
-              aria-label={kind === "normal" ? label : `${label}, ${kind}`}
+              className={date === props.today ? `${className} today` : className}
+              aria-label={kind === "normal" ? label : `${label}, ${name}`}
             >
               {(i === 0 || dayOfMonth(date) === 1) && <span className="m">{monthName(date)}</span>}
               <span className="n">{dayOfMonth(date)}</span>
-              {kind === "holiday" && <span className="t">holiday</span>}
+              {text !== null && <span className="t">{text}</span>}
             </li>
           );
         })}
@@ -185,6 +200,14 @@ export function Calendar(props: { period: Period; holidays: string[]; today: str
         <span>
           <i style={{ background: "var(--day)", boxShadow: "inset 0 0 0 1px var(--line)" }} />
           Normal
+        </span>
+        <span>
+          <i style={{ background: "var(--ot)" }} />
+          Overtime
+        </span>
+        <span>
+          <i style={{ background: "var(--lv)" }} />
+          Leave
         </span>
         <span>
           <i style={{ background: "var(--hol)" }} />
@@ -196,5 +219,98 @@ export function Calendar(props: { period: Period; holidays: string[]; today: str
         </span>
       </div>
     </div>
+  );
+}
+
+/** Why a day's OT counts: the weekend day or holiday; on a weekday the times say it. */
+function offDayName(date: string, holidays: string[]): string | null {
+  if (holidays.includes(date)) return "Holiday";
+  const weekday = weekdayOf(date);
+  if (weekday === 6) return "Saturday";
+  if (weekday === 0) return "Sunday";
+  return null;
+}
+
+/** A day's date as a chip: "WED / 30", coloured like its calendar cell. */
+function DateChip({ date, className }: { date: string; className: string }) {
+  return (
+    <div className={`chip ${className}`}>
+      <small>{weekdayName(date)}</small>
+      <b>{dayOfMonth(date)}</b>
+    </div>
+  );
+}
+
+function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
+  const ot = dayOt(day, facts.rates, facts.holidays);
+  const details = [
+    offDayName(day.date, facts.holidays),
+    day.leave ? "Leave" : null,
+    ot.counted === ot.minutes ? null : `rounded up from ${hoursMinutes(ot.counted)}`,
+    day.note,
+  ].filter((detail) => detail !== null);
+  return (
+    <li className="item">
+      <DateChip date={day.date} className="ot" />
+      <div className="what">
+        <b className="num">{day.ot.map((range) => range.replace("-", "–")).join(" · ")}</b>
+        {details.length > 0 && <small>{details.join(" · ")}</small>}
+      </div>
+      <div className="amt">
+        {money(ot.pay)}
+        <small>{hours(ot.minutes)}</small>
+      </div>
+    </li>
+  );
+}
+
+function LeaveItem({ day }: { day: Day }) {
+  return (
+    <li className="item">
+      <DateChip date={day.date} className="lv" />
+      <div className="what">
+        <b>Leave</b>
+        <small>{[day.note, "no deduction"].filter((detail) => detail !== null).join(" · ")}</small>
+      </div>
+      <div className="amt">
+        0<small>no change</small>
+      </div>
+    </li>
+  );
+}
+
+/** The pay period's OT and leave days, one per row, below the calendar. */
+export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts }) {
+  const days = facts.days.filter(
+    (day) => day.date >= period.start && day.date <= period.end && (day.ot.length > 0 || day.leave),
+  );
+  const leaveDays = days.filter((day) => day.leave).length;
+  const { otMinutes } = summarize(period, facts);
+  return (
+    <section className="list" aria-labelledby="ot-leave">
+      <h3 id="ot-leave">
+        Overtime &amp; leave
+        {days.length > 0 && (
+          <small>
+            {hours(otMinutes)} · {leaveDays} leave {leaveDays === 1 ? "day" : "days"}
+          </small>
+        )}
+      </h3>
+      {days.length === 0 ? (
+        <div className="empty">
+          <b>No overtime or leave</b>Every day was a normal day.
+        </div>
+      ) : (
+        <ul aria-label="Overtime & leave">
+          {days.map((day) =>
+            day.ot.length > 0 ? (
+              <OtItem key={day.date} day={day} facts={facts} />
+            ) : (
+              <LeaveItem key={day.date} day={day} />
+            ),
+          )}
+        </ul>
+      )}
+    </section>
   );
 }

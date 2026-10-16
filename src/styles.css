@@ -663,3 +663,80 @@ a:focus-visible {
   border-radius: 4px;
   display: block;
 }
+
+/* Overtime & leave list */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.list h3 {
+  margin: 0;
+  font-family: var(--font-d);
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.list h3 small {
+  font-family: var(--font-b);
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+.list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.list .item {
+  background: var(--surface);
+  border-radius: var(--r-item);
+  padding: 10px 12px;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.chip {
+  width: 42px;
+  flex: none;
+  text-align: center;
+  border-radius: 12px;
+  padding: 4px 0;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.chip small {
+  display: block;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+}
+.chip b {
+  font-size: 1.05rem;
+  font-family: var(--font-d);
+}
+.chip.ot {
+  background: var(--ot);
+  color: var(--ot-ink);
+}
+.chip.lv {
+  background: var(--lv);
+  color: var(--lv-ink);
+}
+.item .amt {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+.item .amt small {
+  display: block;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
