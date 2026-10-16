@@ -35,8 +35,10 @@ test.beforeEach(async () => {
   paymentId = data.id;
 });
 test.afterEach(async () => {
-  await asAdmin.from("payments").delete().eq("id", paymentId);
-  await asAdmin.from("days").delete().eq("date", "2026-12-05");
+  const payment = await asAdmin.from("payments").delete().eq("id", paymentId);
+  if (payment.error !== null) throw payment.error;
+  const day = await asAdmin.from("days").delete().eq("date", "2026-12-05");
+  if (day.error !== null) throw day.error;
 });
 
 test("Lola confirms a pay period and the admin sees Lola confirmed", async ({ page, browser }) => {

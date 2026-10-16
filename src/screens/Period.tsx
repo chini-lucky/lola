@@ -5,6 +5,7 @@ import {
   nextPeriod,
   payDayOf,
   prevPeriod,
+  snapshotOf,
   summarize,
   type PayFacts,
   type Payment,
@@ -37,7 +38,7 @@ export function PeriodView({ person }: { person: Person }) {
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
   // Newest first: the first one for a pay period is the one that counts.
-  const [confirmed, setConfirmed] = useState<Confirmation[]>([]);
+  const [allConfirmations, setAllConfirmations] = useState<Confirmation[]>([]);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -48,7 +49,7 @@ export function PeriodView({ person }: { person: Person }) {
     Promise.all([payFacts(), confirmations()]).then(
       ([loadedFacts, loadedConfirmations]) => {
         setFacts(loadedFacts);
-        setConfirmed(loadedConfirmations);
+        setAllConfirmations(loadedConfirmations);
       },
       () => {
         setError("Couldn’t load the pay data. Check your connection and reload.");
@@ -68,13 +69,13 @@ export function PeriodView({ person }: { person: Person }) {
   }, [toast]);
 
   const summary = facts === null ? null : summarize(period, facts);
-  const confirmation = confirmed.find((c) => c.period_end === period.end) ?? null;
+  const confirmation = allConfirmations.find((c) => c.period_end === period.end) ?? null;
 
   function onConfirm() {
     if (summary === null) return;
     setConfirming(true);
     setError(null);
-    confirm(period.end, { total: summary.total, paid: summary.paid }).then(
+    confirm(period.end, snapshotOf(summary)).then(
       () => {
         setConfirming(false);
         load();

@@ -4,6 +4,7 @@ import {
   dayOt,
   daysIn,
   isStale,
+  snapshotOf,
   otReason,
   overrideOf,
   paymentsIn,
@@ -14,6 +15,7 @@ import {
   type Payment,
   type PayFacts,
   type Period,
+  type Snapshot,
   type Summary,
 } from "./pay";
 import type { Confirmation, Role } from "./supabase";
@@ -158,8 +160,7 @@ export const bangkokDate = (at: Date) =>
 const confirmedOn = (confirmation: Confirmation) =>
   dayMonth(bangkokDate(new Date(confirmation.confirmed_at)));
 /** "total 22,250 · paid 0": the money numbers a confirmation checked, or as they are now. */
-const checked = ({ total, paid }: { total: number; paid: number }) =>
-  `total ${money(total)} · paid ${money(paid)}`;
+const checked = ({ total, paid }: Snapshot) => `total ${money(total)} · paid ${money(paid)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** OT minutes as hours: "2.5 h". */
@@ -455,42 +456,53 @@ export function Copy() {
   );
 }
 
-/**
- * The admin's view of the nanny's latest confirmation: waiting for it, confirmed, or
- * changed since (stale).
- */
+/** Where a pay period's latest confirmation stands against its money numbers now. */
+type ConfirmationState =
+  { kind: "waiting" } | { kind: "confirmed" | "stale"; confirmation: Confirmation };
+
+function confirmationState(confirmation: Confirmation | null, summary: Summary): ConfirmationState {
+  if (confirmation === null) return { kind: "waiting" };
+  return { kind: isStale(confirmation.snapshot, summary) ? "stale" : "confirmed", confirmation };
+}
+
+/** The admin's view of the nanny's latest confirmation: waiting, confirmed, or changed since. */
 export function ConfirmationBadge(props: { confirmation: Confirmation | null; summary: Summary }) {
-  const { confirmation, summary } = props;
-  if (confirmation === null) {
-    return (
-      <span className="state">
-        <i />
-        Waiting for Lola’s ✓
-      </span>
-    );
+  const state = confirmationState(props.confirmation, props.summary);
+  switch (state.kind) {
+    case "waiting":
+      return (
+        <span className="state">
+          <i />
+          Waiting for Lola’s ✓
+        </span>
+      );
+    case "confirmed":
+      return (
+        <span className="state ok">
+          <i />
+          Lola confirmed {confirmedOn(state.confirmation)}
+        </span>
+      );
+    case "stale":
+      return (
+        <div className="flag" role="note" aria-label="Changed since Lola confirmed">
+          <span className="ic" aria-hidden="true">
+            !
+          </span>
+          <span>
+            <b>Changed since Lola confirmed</b>
+            <small>
+              She checked {checked(state.confirmation.snapshot)} on{" "}
+              {confirmedOn(state.confirmation)}. Now {checked(snapshotOf(props.summary))}.
+            </small>
+          </span>
+        </div>
+      );
+    default: {
+      const unreachable: never = state;
+      return unreachable;
+    }
   }
-  if (!isStale(confirmation.snapshot, summary)) {
-    return (
-      <span className="state ok">
-        <i />
-        Lola confirmed {confirmedOn(confirmation)}
-      </span>
-    );
-  }
-  return (
-    <div className="flag" role="note" aria-label="Changed since Lola confirmed">
-      <span className="ic" aria-hidden="true">
-        !
-      </span>
-      <span>
-        <b>Changed since Lola confirmed</b>
-        <small>
-          She checked {checked(confirmation.snapshot)} on {confirmedOn(confirmation)}. Now{" "}
-          {checked(summary)}.
-        </small>
-      </span>
-    </div>
-  );
 }
 
 /** The nanny's "This looks right ✓", or that she confirmed the numbers as they are now. */
@@ -500,12 +512,12 @@ export function ConfirmButton(props: {
   saving: boolean;
   onConfirm: () => void;
 }) {
-  const { confirmation, summary } = props;
-  if (confirmation !== null && !isStale(confirmation.snapshot, summary)) {
+  const state = confirmationState(props.confirmation, props.summary);
+  if (state.kind === "confirmed") {
     return (
       <div className="done">
         <Check />
-        You confirmed this on {confirmedOn(confirmation)}
+        You confirmed this on {confirmedOn(state.confirmation)}
       </div>
     );
   }
@@ -515,10 +527,10 @@ export function ConfirmButton(props: {
         This looks right
         <Check />
       </button>
-      {confirmation !== null && (
+      {state.kind === "stale" && (
         <div className="note">
-          You checked {checked(confirmation.snapshot)} on {confirmedOn(confirmation)}. The numbers
-          changed since then.
+          You checked {checked(state.confirmation.snapshot)} on {confirmedOn(state.confirmation)}.
+          The numbers changed since then.
         </div>
       )}
     </>
