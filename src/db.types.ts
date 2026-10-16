@@ -144,6 +144,9 @@ export type Database = {
             "my_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"ot_ranges_start_before_end":
+{ Args: { "ot": (string)[] }; Returns: boolean
+                           },
 "set_role":
 { Args: { "new_role": string,"target": string }; Returns: undefined
                            }

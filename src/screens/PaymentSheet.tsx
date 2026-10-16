@@ -202,9 +202,7 @@ export function PaymentSheet(props: {
           />
         </div>
         <div className="field" role="group" aria-labelledby="pay-receipts">
-          <span className="lbl" id="pay-receipts">
-            Receipts
-          </span>
+          <span id="pay-receipts">Receipts</span>
           <div className="rcs">
             {[
               ...stored.map((path) => ({

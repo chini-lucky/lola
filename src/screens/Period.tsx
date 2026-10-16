@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { DaySheet } from "./DaySheet";
 import { PaymentSheet } from "./PaymentSheet";
 import {
   currentPeriod,
@@ -34,6 +35,8 @@ export function PeriodView({ person }: { person: Person }) {
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The date in the day sheet, or no sheet.
+  const [editing, setEditing] = useState<string | null>(null);
   // The payment in the sheet: a new one, one to edit, or no sheet.
   const [sheet, setSheet] = useState<{ payment: Payment | null } | null>(null);
 
@@ -158,8 +161,13 @@ export function PeriodView({ person }: { person: Person }) {
                 Add payment
               </button>
             )}
-            <Calendar period={period} facts={facts} today={today} />
-            <OtLeaveList period={period} facts={facts} />
+            <Calendar
+              period={period}
+              facts={facts}
+              today={today}
+              onEditDay={isAdmin ? setEditing : null}
+            />
+            <OtLeaveList period={period} facts={facts} onEditDay={isAdmin ? setEditing : null} />
             <Payments
               period={period}
               facts={facts}
@@ -176,6 +184,19 @@ export function PeriodView({ person }: { person: Person }) {
           </>
         )}
       </section>
+      {editing !== null && facts !== null && (
+        <DaySheet
+          date={editing}
+          facts={facts}
+          onClose={() => {
+            setEditing(null);
+          }}
+          onSaved={() => {
+            setEditing(null);
+            load();
+          }}
+        />
+      )}
       {sheet !== null && facts !== null && (
         <PaymentSheet
           payment={sheet.payment}

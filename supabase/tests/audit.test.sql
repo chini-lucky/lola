@@ -1,5 +1,5 @@
 begin;
-select plan(13);
+select plan(15);
 
 insert into auth.users (id, email, aud, role) values
   ('00000000-0000-0000-0000-0000000000a1', 'boss@lola.invalid', 'authenticated', 'authenticated'),
@@ -31,6 +31,22 @@ select results_eq(
   $$select tbl, op, actor, new ->> 'note' from public.audit_log order by id desc limit 1$$,
   $$values ('days', 'insert', '00000000-0000-0000-0000-0000000000a1'::uuid, 'dinner out')$$,
   'adding a day is logged with who did it'
+);
+
+-- The day sheet saves by upsert, as here.
+insert into public.days (date, ot, note) values ('2030-01-07', '{18:00-21:00}', 'dinner out')
+  on conflict (date) do update set ot = excluded.ot, note = excluded.note;
+select results_eq(
+  $$select tbl, op, old -> 'ot', new -> 'ot' from public.audit_log order by id desc limit 1$$,
+  $$values ('days', 'update', '["18:00-20:30"]'::jsonb, '["18:00-21:00"]'::jsonb)$$,
+  'editing a day logs the before and after'
+);
+
+delete from public.days where date = '2030-01-07';
+select results_eq(
+  $$select tbl, op, old ->> 'note', new from public.audit_log order by id desc limit 1$$,
+  $$values ('days', 'delete', 'dinner out', null::jsonb)$$,
+  'clearing a day logs what was removed'
 );
 
 insert into public.payments (period_end, paid_on, amount) values ('2030-01-27', '2030-01-28', 22250);
