@@ -18,7 +18,14 @@ const personIcon = (
   </svg>
 );
 
-// Admin only: People, pay rates, holidays, Account.
+const logIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M7 3h7l4 4v14H7z" strokeLinejoin="round" />
+    <path d="M14 3v4h4M10 12h5M10 16h5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// Admin only: People, pay rates, holidays, the change log, Account.
 export function Settings() {
   const [today] = useState(todayInBangkok);
   const [facts, setFacts] = useState<PayFacts | null>(null);
@@ -75,6 +82,11 @@ export function Settings() {
           />
         </>
       )}
+      <a className="navrow" href="#/changes">
+        {logIcon}
+        <span>Change log</span>
+        <i>›</i>
+      </a>
       <a className="navrow" href="#/account">
         {personIcon}
         <span>Account</span>
