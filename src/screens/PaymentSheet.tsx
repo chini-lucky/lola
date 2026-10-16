@@ -9,7 +9,7 @@ import {
   type Payment,
 } from "../pay";
 import { RECEIPT_TYPES, receiptName, receiptPath } from "../receipts";
-import { addPayment, deletePayment, editPayment, uploadReceipt } from "../supabase";
+import { addPayment, deletePayment, editPayment, removeReceipts, uploadReceipt } from "../supabase";
 import { ErrorAlert, money, periodTitle, Plus, Receipt } from "../ui";
 
 /** Whole baht, commas allowed ("22,250"); null if it is not a whole number above 0. */
@@ -18,6 +18,22 @@ function wholeBaht(text: string): number | null {
   if (!/^\d+$/.test(digits)) return null;
   const amount = Number(digits);
   return amount > 0 ? amount : null;
+}
+
+function RemoveButton(props: { name: string; onClick: () => void }) {
+  return (
+    <button className="x" type="button" aria-label={`Remove ${props.name}`} onClick={props.onClick}>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        aria-hidden="true"
+      >
+        <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
 }
 
 /** Admin only: a bottom sheet to record money already sent to the nanny, or edit a payment. */
@@ -41,7 +57,7 @@ export function PaymentSheet(props: {
   const [amount, setAmount] = useState(payment === null ? "" : money(payment.amount));
   const [periodEnd, setPeriodEnd] = useState(payment?.period_end ?? current.end);
   const [note, setNote] = useState(payment?.note ?? "");
-  const [stored] = useState(payment?.receipts ?? []); // receipts already saved
+  const [stored, setStored] = useState(payment?.receipts ?? []); // receipts already saved
   const [added, setAdded] = useState<File[]>([]); // files picked, not uploaded yet
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -82,6 +98,9 @@ export function PaymentSheet(props: {
         receipts: [...stored, ...uploaded],
       };
       await (payment === null ? addPayment(saved) : editPayment(saved));
+      const unlisted = (payment?.receipts ?? []).filter((path) => !stored.includes(path));
+      // The payment no longer lists them, so a file left behind by a failed remove is harmless.
+      await removeReceipts(unlisted).catch(() => undefined);
       props.onSaved();
     } catch {
       setError("Couldn’t save the payment. Check your connection and try again.");
@@ -199,10 +218,24 @@ export function PaymentSheet(props: {
           </span>
           <div className="rcs">
             {stored.map((path) => (
-              <Receipt key={path} name={receiptName(path)} link={null} />
+              <Receipt key={path} name={receiptName(path)} link={null}>
+                <RemoveButton
+                  name={receiptName(path)}
+                  onClick={() => {
+                    setStored((paths) => paths.filter((p) => p !== path));
+                  }}
+                />
+              </Receipt>
             ))}
             {added.map((file, i) => (
-              <Receipt key={`${i.toString()}-${file.name}`} name={file.name} link={null} />
+              <Receipt key={`${i.toString()}-${file.name}`} name={file.name} link={null}>
+                <RemoveButton
+                  name={file.name}
+                  onClick={() => {
+                    setAdded((files) => files.filter((f) => f !== file));
+                  }}
+                />
+              </Receipt>
             ))}
             <div className="rcw">
               <label className="rc add">

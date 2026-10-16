@@ -74,3 +74,15 @@ test("admin adds a payment with 2 receipts; the nanny downloads one", async ({
 
   await deletePayment(page, "Edit payment 1,000 paid 16 Oct");
 });
+
+test("admin removes a receipt from a payment: it leaves the Payments row", async ({ page }) => {
+  await logInOn(page, admin);
+  await addPaymentWith(page, "1,200", "Two slips", [slipPng, kbankPdf]);
+  await page.getByRole("button", { name: "Edit payment 1,200 paid 16 Oct" }).click();
+  const sheet = page.getByRole("dialog", { name: "Edit payment" });
+  await sheet.getByRole("button", { name: "Remove kbank.pdf" }).click();
+  await sheet.getByRole("button", { name: "Save payment" }).click();
+  const payment = page.getByRole("listitem").filter({ hasText: "Two slips" });
+  await expect(payment).toContainText("Paid 16 Oct · 1 receipt");
+  await deletePayment(page, "Edit payment 1,200 paid 16 Oct");
+});

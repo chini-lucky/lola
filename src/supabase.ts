@@ -156,7 +156,8 @@ export async function editPayment({ id, ...fields }: Payment): Promise<void> {
 export async function deletePayment(payment: Payment): Promise<void> {
   const { error } = await supabase.from("payments").delete().eq("id", payment.id);
   if (error !== null) throw error;
-  await removeReceipts(payment.receipts);
+  // The payment is gone, so a file left behind by a failed remove is harmless.
+  await removeReceipts(payment.receipts).catch(() => undefined);
 }
 
 const receipts = () => supabase.storage.from("receipts");
