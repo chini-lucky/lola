@@ -6,13 +6,16 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "scripts/dev.sh",
+    "slot": "scripts/slot.sh",
+    "up": "scripts/slot.sh supabase start",
+    "stop": "scripts/stop.sh",
+    "dev": "scripts/slot.sh scripts/dev.sh",
     "build": "tsc -b && vite build",
-    "check": "tsc -b && eslint . --max-warnings 0 && prettier --check . && vitest run --passWithNoTests && supabase test db && npm run db:types:check",
-    "db:types": "supabase gen types typescript --local > src/db.types.ts.tmp && mv src/db.types.ts.tmp src/db.types.ts",
-    "db:types:check": "f=$(mktemp) && supabase gen types typescript --local > $f && (diff -q $f src/db.types.ts > /dev/null || (echo 'src/db.types.ts is out of date: run npm run db:types' && exit 1))",
-    "db:reset": "supabase db reset",
-    "e2e": "playwright test"
+    "check": "tsc -b && eslint . --max-warnings 0 && prettier --check . && vitest run --passWithNoTests && scripts/slot.sh supabase test db && npm run db:types:check",
+    "db:types": "scripts/slot.sh supabase gen types typescript --local > src/db.types.ts.tmp && mv src/db.types.ts.tmp src/db.types.ts",
+    "db:types:check": "f=$(mktemp) && scripts/slot.sh supabase gen types typescript --local > $f && (diff -q $f src/db.types.ts > /dev/null || (echo 'src/db.types.ts is out of date: run npm run db:types' && exit 1))",
+    "db:reset": "scripts/slot.sh supabase db reset",
+    "e2e": "scripts/slot.sh playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",

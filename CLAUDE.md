@@ -16,9 +16,12 @@ Nanny hours and pay app: an admin records exceptions (OT, leave), payments and r
 
 ## Dev
 
-- `npm run dev` (= `scripts/dev.sh`): starts local Supabase (Docker) + Vite at http://localhost:5173/lola/.
+- Slots: each checkout has its own local Supabase stack (Docker) and Vite ports, picked by a slot number, so parallel worktrees never share a DB or a dev server. The main clone is slot 0 (`supabase/config.toml` as is: project `lola`, ports 554xx, e.g. API 55421, DB 55422, Studio 55423; Vite 5173). A worktree claims the lowest free slot 1–4 on first use and keeps it in `.slot` (gitignored): project `lola-N`, every Supabase port + N×100 (slot 2: API 55621), dev Vite 5173+N, e2e Vite 5273+N. `npm run slot` prints yours; `LOLA_SLOT=N` overrides.
+- `npm run up`: start this slot's Supabase (migrations + seed on first start). `npm run dev` (= `scripts/dev.sh`): `up` + Vite at http://localhost:<5173+N>/lola/.
+- `npm run stop`: stop this slot's stack (slots 1–4 also drop their volumes). Run it before removing a finished worktree; `npm run stop -- N` stops slot N from anywhere.
+- Every npm script that touches Supabase or Vite (`check`, `e2e`, `dev`, `db:reset`, `db:types`) targets your slot. Never run a bare `supabase start|stop|db reset|test db|gen types` in a worktree: it hits slot 0. Use the npm script or `scripts/slot.sh supabase …`. `supabase migration new` is fine bare.
+- `npm run e2e` always starts its own Vite on the e2e port (never reuses a running server), so it can run beside `npm run dev`.
 - Logs: `logs/vite.log`, `logs/supabase-{db,auth,rest}.log` (gitignored). Playwright traces/screenshots: `test-results/`.
-- Local Supabase uses ports 554xx (see `supabase/config.toml`), e.g. API 55421, DB 55422, Studio 55423.
 - Test logins: see `supabase/seed.sql` once it exists (values are not repeated here).
 - `npm run db:reset` re-applies migrations + seed; `npm run db:types` regenerates `src/db.types.ts`.
 
