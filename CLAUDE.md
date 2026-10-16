@@ -21,6 +21,7 @@ Nanny hours and pay app: an admin records exceptions (OT, leave), payments and r
 - `npm run stop`: stop this slot's stack (slots 1–4 also drop their volumes). Run it before removing a finished worktree; `npm run stop -- N` stops slot N from anywhere.
 - Every npm script that touches Supabase or Vite (`check`, `e2e`, `dev`, `db:reset`, `db:types`) targets your slot. Never run a bare `supabase start|stop|db reset|test db|gen types` in a worktree: it hits slot 0. Use the npm script or `scripts/slot.sh supabase …`. `supabase migration new` is fine bare.
 - `npm run e2e` always starts its own Vite on the e2e port (never reuses a running server), so it can run beside `npm run dev`.
+- Edge Functions (`supabase/functions/`, Deno; outside tsc and ESLint): `npm run up` serves the ones that exist when the stack starts, without reloading edits. While editing one, run `npm run functions` (hot reload, logs to stdout) beside it. Tested through Playwright (`e2e/remove-user.spec.ts` calls it directly).
 - Logs: `logs/vite.log`, `logs/supabase-{db,auth,rest}.log` (gitignored). Playwright traces/screenshots: `test-results/`.
 - Test logins: see `supabase/seed.sql` once it exists (values are not repeated here).
 - `npm run db:reset` re-applies migrations + seed; `npm run db:types` regenerates `src/db.types.ts`.

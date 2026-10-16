@@ -2,7 +2,17 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
-  { ignores: ["dist", "logs", "test-results", "playwright-report", "src/db.types.ts"] },
+  {
+    ignores: [
+      "dist",
+      "logs",
+      "test-results",
+      "playwright-report",
+      "src/db.types.ts",
+      // Deno code (Deno globals, npm: imports): outside the app's tsc and lint.
+      "supabase/functions",
+    ],
+  },
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
   reactHooks.configs.flat.recommended,
