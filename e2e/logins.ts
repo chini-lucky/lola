@@ -5,3 +5,4 @@ export const admin = {
   password: "local-admin-pass",
 };
 export const nanny = { username: "lola", password: "local-nanny-pass" };
+export const waiting = { username: "newbie", password: "local-newbie-pass" };

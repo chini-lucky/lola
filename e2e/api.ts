@@ -7,6 +7,10 @@ const env = loadEnv("development", process.cwd());
 const url = env.VITE_SUPABASE_URL ?? "";
 const anonKey = env.VITE_SUPABASE_ANON_KEY ?? "";
 
+// Same mapping as emailOf in src/supabase.ts (which can't load outside Vite).
+const emailOf = (username: string) => `${username}@lola.invalid`;
+const newClient = () => createClient(url, anonKey, { auth: { persistSession: false } });
+
 /** A fresh username nobody has used yet. */
 export function newUsername(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}`;
@@ -14,19 +18,15 @@ export function newUsername(prefix: string): string {
 
 /** A supabase-js client logged in as the given user (no browser). */
 export async function loggedIn(username: string, password: string): Promise<SupabaseClient> {
-  const client = createClient(url, anonKey, { auth: { persistSession: false } });
-  const { error } = await client.auth.signInWithPassword({
-    email: `${username}@lola.invalid`,
-    password,
-  });
+  const client = newClient();
+  const { error } = await client.auth.signInWithPassword({ email: emailOf(username), password });
   if (error !== null) throw error;
   return client;
 }
 
 /** Signs up a new person, who waits for approval. Returns their id. */
 export async function signUpWaiting(username: string, password: string): Promise<string> {
-  const client = createClient(url, anonKey, { auth: { persistSession: false } });
-  const { data, error } = await client.auth.signUp({ email: `${username}@lola.invalid`, password });
+  const { data, error } = await newClient().auth.signUp({ email: emailOf(username), password });
   if (error !== null) throw error;
   if (data.user === null) throw new Error("sign-up returned no user");
   return data.user.id;
