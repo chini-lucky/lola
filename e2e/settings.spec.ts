@@ -9,7 +9,7 @@ async function openSettingsOn(page: Page, today: string) {
   await page.getByRole("link", { name: "Settings" }).click();
 }
 
-test("Settings shows the rates in effect and the rate history with the agreed Sep pay", async ({
+test("the rates in effect are the latest ones started; the history lists every rate and the agreed Sep pay", async ({
   page,
 }) => {
   await openSettingsOn(page, "2026-10-16");
@@ -28,7 +28,7 @@ test.describe("a raise", () => {
     await asAdmin((db) => db.from("rates").delete().eq("effective_from", "2027-03-28"));
   });
 
-  test("a raise from Apr pay changes Apr pay's salary, not Mar pay's", async ({ page }) => {
+  test("a raise from Apr pay changes Apr pay's total, not Mar pay's", async ({ page }) => {
     await openSettingsOn(page, "2027-03-10");
     await page.getByLabel("New salary").fill("25,000");
     await page.getByLabel("Starts from").selectOption("Apr pay · 28 Mar – 27 Apr");
@@ -38,11 +38,11 @@ test.describe("a raise", () => {
     );
     await page.getByRole("link", { name: "Back" }).click();
     await expect(page.getByRole("region", { name: "Mar pay · 28 Feb – 27 Mar" })).toContainText(
-      "Salary20,000",
+      "Total20,000",
     );
     await page.getByRole("button", { name: "Next pay period" }).click();
     await expect(page.getByRole("region", { name: "Apr pay · 28 Mar – 27 Apr" })).toContainText(
-      "Salary25,000",
+      "Total25,000",
     );
   });
 });
