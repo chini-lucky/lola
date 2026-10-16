@@ -2,7 +2,7 @@
 // The password goes only to a file outside the repo (mode 600); it is never printed.
 //
 //   node scripts/create-admin.ts <project-ref>   production (needs `supabase login`)
-//   node scripts/create-admin.ts local [file]    local stack, for trying the script
+//   node scripts/create-admin.ts local <file>    local stack, for trying the script
 //
 // The service role key is read from the Supabase CLI for this run only, never stored.
 import { execFileSync } from "node:child_process";
@@ -23,16 +23,24 @@ function supabaseCli(args: string[]): string {
   });
 }
 
+// Reads a string field from CLI JSON output without trusting its shape.
+function field(value: unknown, key: string): string {
+  if (typeof value !== "object" || value === null || !(key in value)) return "";
+  const found: unknown = Object.getOwnPropertyDescriptor(value, key)?.value;
+  return typeof found === "string" ? found : "";
+}
+
 function target(ref: string): { url: string; serviceKey: string } {
   if (ref === "local") {
-    const status = JSON.parse(supabaseCli(["status", "-o", "json"])) as Record<string, string>;
-    return { url: status.API_URL ?? "", serviceKey: status.SERVICE_ROLE_KEY ?? "" };
+    const status: unknown = JSON.parse(supabaseCli(["status", "-o", "json"]));
+    return { url: field(status, "API_URL"), serviceKey: field(status, "SERVICE_ROLE_KEY") };
   }
-  const keys = JSON.parse(
+  const keys: unknown = JSON.parse(
     supabaseCli(["projects", "api-keys", "--project-ref", ref, "--reveal", "-o", "json"]),
-  ) as { name: string; api_key: string }[];
-  const key = keys.find((k) => k.name === "service_role");
-  return { url: `https://${ref}.supabase.co`, serviceKey: key?.api_key ?? "" };
+  );
+  const list: unknown[] = Array.isArray(keys) ? keys : [];
+  const key = list.find((k) => field(k, "name") === "service_role");
+  return { url: `https://${ref}.supabase.co`, serviceKey: field(key, "api_key") };
 }
 
 function fail(message: string): never {
@@ -41,7 +49,9 @@ function fail(message: string): never {
 }
 
 const [ref, fileArg] = process.argv.slice(2);
-if (ref === undefined) fail("Usage: node scripts/create-admin.ts <project-ref | local> [file]");
+if (ref === undefined || (ref === "local" && fileArg === undefined))
+  fail("Usage: node scripts/create-admin.ts <project-ref> | local <file>");
+// local needs its own file, so a trial run never blocks the real one.
 const file = resolve(fileArg ?? `${homedir()}/lola-admin-password.txt`);
 if (!relative(repo, file).startsWith(".."))
   fail(`Refusing to write the password inside the repo: ${file}`);
@@ -61,11 +71,10 @@ try {
   fail(`${file} already exists (or cannot be written). Move it away first.`);
 }
 
-const created = await admin.auth.admin.createUser({
-  email: `${username}@lola.invalid`,
-  password,
-  email_confirm: true,
-});
+// Same hidden email as emailOf in src/supabase.ts.
+const created = await admin.auth.admin
+  .createUser({ email: `${username}@lola.invalid`, password, email_confirm: true })
+  .catch((e: unknown) => ({ data: null, error: { message: String(e) } }));
 if (created.error !== null) {
   unlinkSync(file);
   fail(`Could not create ${username}: ${created.error.message}`);
