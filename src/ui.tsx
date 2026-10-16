@@ -202,9 +202,9 @@ export function Calendar(props: {
   period: Period;
   facts: PayFacts;
   today: string;
-  onDayTap: OnEditDay;
+  onEditDay: OnEditDay;
 }) {
-  const { onDayTap } = props;
+  const { onEditDay } = props;
   const dates = datesIn(props.period);
   const days = daysByDate(props.facts.days);
   const blanksBeforeFirstDay = (weekdayOf(props.period.start) + 6) % 7;
@@ -234,13 +234,13 @@ export function Calendar(props: {
               {(i === 0 || dayOfMonth(date) === 1) && <span className="m">{monthName(date)}</span>}
               <span className="n">{dayOfMonth(date)}</span>
               {text !== null && <span className="t">{text}</span>}
-              {onDayTap !== null && (
+              {onEditDay !== null && (
                 <button
                   className="tap"
                   type="button"
                   aria-label={`Edit ${label}`}
                   onClick={() => {
-                    onDayTap(date);
+                    onEditDay(date);
                   }}
                 />
               )}
@@ -270,7 +270,7 @@ export function Calendar(props: {
           Weekend
         </span>
       </div>
-      {onDayTap !== null && (
+      {onEditDay !== null && (
         <div className="hint">
           <svg
             viewBox="0 0 24 24"
@@ -286,6 +286,14 @@ export function Calendar(props: {
         </div>
       )}
     </div>
+  );
+}
+
+export function Cross() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -310,15 +318,15 @@ function DateChip({ date, className }: { date: string; className: string }) {
 type OnEditDay = ((date: string) => void) | null;
 
 /** The admin's edit pen on a list row; nothing for the nanny. */
-function EditDay({ date, onEdit }: { date: string; onEdit: OnEditDay }) {
-  if (onEdit === null) return null;
+function EditDay({ date, onEditDay }: { date: string; onEditDay: OnEditDay }) {
+  if (onEditDay === null) return null;
   return (
     <button
       className="pen"
       type="button"
       aria-label={`Edit ${dayLabel(date)}`}
       onClick={() => {
-        onEdit(date);
+        onEditDay(date);
       }}
     >
       <svg
@@ -335,7 +343,7 @@ function EditDay({ date, onEdit }: { date: string; onEdit: OnEditDay }) {
   );
 }
 
-function OtItem({ day, facts, onEdit }: { day: Day; facts: PayFacts; onEdit: OnEditDay }) {
+function OtItem({ day, facts, onEditDay }: { day: Day; facts: PayFacts; onEditDay: OnEditDay }) {
   const ot = dayOt(day, facts.rates, facts.holidays);
   const details = [
     otReason(day, facts.holidays),
@@ -356,12 +364,12 @@ function OtItem({ day, facts, onEdit }: { day: Day; facts: PayFacts; onEdit: OnE
         {money(ot.pay)}
         <small>{hours(ot.paidMinutes)}</small>
       </div>
-      <EditDay date={day.date} onEdit={onEdit} />
+      <EditDay date={day.date} onEditDay={onEditDay} />
     </li>
   );
 }
 
-function LeaveItem({ day, onEdit }: { day: Day; onEdit: OnEditDay }) {
+function LeaveItem({ day, onEditDay }: { day: Day; onEditDay: OnEditDay }) {
   return (
     <li className="item">
       <DateChip date={day.date} className="lv" />
@@ -372,14 +380,14 @@ function LeaveItem({ day, onEdit }: { day: Day; onEdit: OnEditDay }) {
       <div className="amt">
         0<small>no change</small>
       </div>
-      <EditDay date={day.date} onEdit={onEdit} />
+      <EditDay date={day.date} onEditDay={onEditDay} />
     </li>
   );
 }
 
 /** The pay period's OT and leave days, one per row, below the calendar. */
-export function OtLeaveList(props: { period: Period; facts: PayFacts; onEdit: OnEditDay }) {
-  const { period, facts, onEdit } = props;
+export function OtLeaveList(props: { period: Period; facts: PayFacts; onEditDay: OnEditDay }) {
+  const { period, facts, onEditDay } = props;
   const days = daysIn(period, facts.days).filter((day) => day.ot.length > 0 || day.leave);
   const leaveDays = days.filter((day) => day.leave).length;
   const { otMinutes } = summarize(period, facts);
@@ -401,9 +409,9 @@ export function OtLeaveList(props: { period: Period; facts: PayFacts; onEdit: On
         <ul aria-label="Overtime & leave">
           {days.map((day) =>
             day.ot.length > 0 ? (
-              <OtItem key={day.date} day={day} facts={facts} onEdit={onEdit} />
+              <OtItem key={day.date} day={day} facts={facts} onEditDay={onEditDay} />
             ) : (
-              <LeaveItem key={day.date} day={day} onEdit={onEdit} />
+              <LeaveItem key={day.date} day={day} onEditDay={onEditDay} />
             ),
           )}
         </ul>
