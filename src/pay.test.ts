@@ -1,5 +1,14 @@
 import { describe, expect, test } from "vitest";
-import { datesIn, dayKind, nextPeriod, periodOf, prevPeriod, salaryOf, type Rate } from "./pay";
+import {
+  currentPeriod,
+  datesIn,
+  dayKind,
+  nextPeriod,
+  periodOf,
+  prevPeriod,
+  salaryOf,
+  type Rate,
+} from "./pay";
 
 const firstRate: Rate = { effective_from: "2026-09-14", salary: 20000, ot_rate: 150 };
 
@@ -34,6 +43,12 @@ describe("pay period", () => {
 
   test("29 Feb in leap year 2028 is in Mar pay (28 Feb – 27 Mar)", () => {
     expect(periodOf("2028-02-29")).toEqual({ start: "2028-02-28", end: "2028-03-27" });
+  });
+});
+
+describe("current pay period", () => {
+  test("before the start date the current pay period is the first one", () => {
+    expect(currentPeriod("2026-09-01")).toEqual({ start: "2026-09-14", end: "2026-09-27" });
   });
 });
 

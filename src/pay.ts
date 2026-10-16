@@ -37,11 +37,19 @@ function periodEnding(year: number, month: number): Period {
   return { start: start < START_DATE ? START_DATE : start, end: iso(year, month, 27) };
 }
 
-/** The pay period a date falls in, or null before the start date. */
-export function periodOf(date: string): Period | null {
-  if (date < START_DATE) return null;
+function periodContaining(date: string): Period {
   const [year, month, day] = parts(date);
   return periodEnding(year, day >= 28 ? month + 1 : month);
+}
+
+/** The pay period a date falls in, or null before the start date. */
+export function periodOf(date: string): Period | null {
+  return date < START_DATE ? null : periodContaining(date);
+}
+
+/** The pay period to show first: today's, or the first one before the start date. */
+export function currentPeriod(today: string): Period {
+  return periodContaining(today < START_DATE ? START_DATE : today);
 }
 
 function addDays(date: string, days: number): string {
