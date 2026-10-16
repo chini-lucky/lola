@@ -136,6 +136,14 @@ export const weekdayName = (date: string) => WEEKDAYS[weekdayOf(date)] ?? "";
 const dayOfMonth = (date: string) => Number(date.slice(8, 10));
 /** "28 Sep" */
 export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
+/** "Oct pay" */
+export const periodName = (period: Period) => `${monthName(period.end)} pay`;
+/** "Oct pay · 28 Sep – 27 Oct" */
+export const periodTitle = (period: Period) =>
+  `${periodName(period)} · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
+/** Today's date in Bangkok. */
+export const todayInBangkok = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** OT minutes as hours: "2.5 h". */
@@ -156,7 +164,7 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
     <div className="totals">
       <Bear className="peek" />
       <div>
-        <div className="lbl">{monthName(period.end)} pay total</div>
+        <div className="lbl">{periodName(period)} total</div>
         <div className="big">
           {money(total)}
           <small>THB</small>

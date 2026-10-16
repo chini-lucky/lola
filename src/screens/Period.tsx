@@ -1,32 +1,17 @@
 import { useEffect, useState } from "react";
-import {
-  currentPeriod,
-  nextPeriod,
-  payDayOf,
-  prevPeriod,
-  type PayFacts,
-  type Period,
-} from "../pay";
+import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type PayFacts } from "../pay";
 import { payFacts, type Person } from "../supabase";
 import {
   Bear,
   Calendar,
   dayMonth,
   ErrorAlert,
-  monthName,
   OtLeaveList,
+  periodTitle,
+  todayInBangkok,
   Totals,
   weekdayName,
 } from "../ui";
-
-/** "Oct pay · 28 Sep – 27 Oct" */
-function periodTitle(period: Period): string {
-  return `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
-}
-
-function todayInBangkok(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
-}
 
 const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
 

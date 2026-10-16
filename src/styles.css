@@ -823,3 +823,59 @@ a:focus-visible {
   border-radius: 999px;
   padding: 2px 8px;
 }
+.kv {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.kv div {
+  background: var(--t-bg);
+  color: var(--t-ink);
+  border-radius: var(--r-item);
+  padding: 10px 12px;
+}
+.kv small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+.kv b {
+  font-family: var(--font-d);
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+}
+.hist {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.hist th,
+.hist td {
+  padding: 4px 0 4px 14px;
+  text-align: left;
+}
+.hist th:first-child,
+.hist td:first-child {
+  padding-left: 0;
+}
+.hist td {
+  border-top: 1px solid var(--line);
+}
+.hist th {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.hist .r {
+  text-align: right;
+  font-weight: 800;
+}
+.hist .muted {
+  color: var(--muted);
+}
