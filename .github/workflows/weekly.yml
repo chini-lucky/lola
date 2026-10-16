@@ -1,0 +1,87 @@
+name: Weekly backup
+
+# Monday: dump the production database and every receipt file into a dated folder of the PRIVATE
+# repo chini-lucky/lola-backup (data.sql holds password hashes, so that repo must stay private).
+# The dump is database activity, so it also keeps the free Supabase project from pausing (it pauses
+# after about 7 days idle). The ping job runs after it on every run, also when the backup fails, and
+# alone on Thursday, so a late or failed Monday never leaves a 7-day gap.
+# A failed scheduled run emails whoever last changed the schedule (GitHub's default notification).
+# GitHub turns schedules off after 60 days without commits to lola: `gh workflow enable weekly.yml`.
+on:
+  schedule:
+    - cron: "0 3 * * 1" # Monday: backup + ping
+    - cron: "0 3 * * 4" # Thursday: ping only
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  # The `production` environment allows only `main`; the `if` is a second guard.
+  backup:
+    if: github.ref == 'refs/heads/main' && github.event.schedule != '0 3 * * 4'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      # lola itself: `supabase link` needs the supabase/ folder.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # BACKUP_DEPLOY_KEY: a write deploy key of lola-backup only.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: chini-lucky/lola-backup
+          ssh-key: ${{ secrets.BACKUP_DEPLOY_KEY }}
+          path: backup
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.121.0
+      - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      # The schema dump covers only the public schema; the migrations in this repo are the full schema.
+      # The data dump leaves out sessions and one-time tokens.
+      - name: Dump database and receipts
+        run: |
+          dir="backup/$(date -u +%F)"
+          rm -rf "$dir" && mkdir -p "$dir"
+          supabase db dump --linked -f "$dir/schema.sql"
+          supabase db dump --linked --data-only --use-copy \
+            -x auth.sessions,auth.refresh_tokens,auth.audit_log_entries,auth.flow_state,auth.one_time_tokens \
+            -f "$dir/data.sql"
+          supabase storage cp --linked --experimental -r ss:///receipts "$dir"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      - name: Commit to lola-backup
+        working-directory: backup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No change since the last backup'
+          else
+            git commit -q -m "Backup $(date -u +%F)"
+            git push -q
+          fi
+
+  # A real database query through the public API (the anon key is public by design).
+  ping:
+    needs: backup
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -fsS --retry 3 -o /dev/null -H "apikey: $VITE_SUPABASE_ANON_KEY" \
+            "$VITE_SUPABASE_URL/rest/v1/holidays?select=date&limit=1"
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
