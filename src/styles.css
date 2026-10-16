@@ -1185,3 +1185,67 @@ select.inp {
 .hols .pen {
   background: var(--surface);
 }
+
+/* change log */
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.log h4 {
+  margin: 6px 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.log ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lg {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 2px 10px;
+  background: var(--surface);
+  border-radius: var(--r-item);
+  padding: 10px 12px;
+  font-size: 0.84rem;
+}
+.lg time {
+  font-weight: 800;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  padding-top: 1px;
+}
+.lg small {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+.op {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-right: 4px;
+}
+.op.add {
+  background: var(--ok);
+  color: var(--ok-ink);
+}
+.op.edit {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.op.del {
+  background: var(--danger-soft);
+  color: var(--danger);
+}

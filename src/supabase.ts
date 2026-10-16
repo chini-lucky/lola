@@ -1,5 +1,5 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
-import type { Database } from "./db.types";
+import type { Database, Json } from "./db.types";
 import type { Day, PayFacts, Payment, Rate } from "./pay";
 
 export const supabase = createClient<Database>(
@@ -201,4 +201,34 @@ export async function saveDay(day: Day): Promise<void> {
 export async function clearDay(date: string): Promise<void> {
   const { error } = await supabase.from("days").delete().eq("date", date);
   if (error !== null) throw error;
+}
+
+/** The tables the change log covers. */
+export type LoggedTable =
+  "days" | "payments" | "rates" | "holidays" | "period_overrides" | "confirmations" | "people";
+
+/** One change log entry: who (null = setup, not a person) changed which row, and how. */
+export interface Change {
+  id: number;
+  at: string;
+  actor: string | null;
+  tbl: LoggedTable;
+  op: "insert" | "update" | "delete";
+  old: Json | null;
+  new: Json | null;
+}
+
+/** Admin only (RLS): the change log, newest first. */
+export async function changeLog(): Promise<Change[]> {
+  const { data, error } = await supabase
+    .from("audit_log")
+    .select("id, at, actor, tbl, op, old, new")
+    .order("id", { ascending: false });
+  if (error !== null) throw error;
+  // tbl and op are written only by the audit trigger and remove-user; op is checked in the DB.
+  return data.map((row) => ({
+    ...row,
+    tbl: row.tbl as LoggedTable,
+    op: row.op as Change["op"],
+  }));
 }
