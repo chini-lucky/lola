@@ -2,6 +2,7 @@ import {
   datesIn,
   dayKind,
   overrideOf,
+  paymentsIn,
   totalsOf,
   weekdayOf,
   type DayKind,
@@ -133,6 +134,43 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
         <span>{balance === 0 ? "Fully paid" : "Balance to pay"}</span>
         <span>{money(balance)} THB</span>
       </div>
+    </div>
+  );
+}
+
+/** The pay period's payments by date paid. */
+export function Payments({ period, facts }: { period: Period; facts: PayFacts }) {
+  const payments = paymentsIn(period, facts.payments);
+  const { paid } = totalsOf(period, facts);
+  return (
+    <div className="list">
+      <h3>
+        Payments<small>{money(paid)} paid</small>
+      </h3>
+      {payments.length === 0 ? (
+        <div className="empty">
+          <b>No payments for {monthName(period.end)} pay yet</b>
+        </div>
+      ) : (
+        <ul className="items" aria-label="Payments">
+          {payments.map((payment) => (
+            <li className="item" key={payment.id}>
+              <div className="chip pay">
+                <small>{weekdayName(payment.paid_on)}</small>
+                <b>{dayOfMonth(payment.paid_on)}</b>
+              </div>
+              <div className="what">
+                <b>{payment.note ?? "Payment"}</b>
+                <small>Paid {dayMonth(payment.paid_on)}</small>
+              </div>
+              <div className="amt">
+                {money(payment.amount)}
+                <small>THB</small>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
