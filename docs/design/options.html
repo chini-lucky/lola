@@ -1,0 +1,1586 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Lola Design Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Mali:wght@500;600;700&family=Figtree:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Outfit:wght@400;500;600;700&display=swap"
+  />
+  <style>
+    /* Layout: a presentation page. Each option is a band with its own palette; inside, four 390px phone frames sit in a wrapping row and stack to one column on a phone.
+   The app itself is light-only (agreed), so this page deliberately commits to a single light look. */
+    :root {
+      --page: #f4f2ee;
+      --page-ink: #2b2a33;
+      --page-muted: #6c6873;
+      --page-line: #dedad3;
+      --bear: #a8744a;
+      --bear-lt: #e8c79f;
+      --bear-dk: #4a2e1f;
+      --cheek: #f2a79e;
+      --fb: #1877f2;
+      --f-page: "Figtree", system-ui, sans-serif;
+      color-scheme: light;
+    }
+    body {
+      background: var(--page);
+      color: var(--page-ink);
+      font-family: var(--f-page);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding-inline: 16px;
+      padding-block: 28px 64px;
+    }
+    .intro {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .intro svg {
+      width: 72px;
+      height: 72px;
+      flex: none;
+    }
+    .intro h1 {
+      font-family: "Baloo 2", system-ui, sans-serif;
+      font-size: 2.1rem;
+      line-height: 1.1;
+      margin: 0;
+      text-wrap: balance;
+    }
+    .intro p {
+      margin: 4px 0 0;
+      color: var(--page-muted);
+      max-width: 68ch;
+    }
+    .jump {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .jump a {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--page-ink);
+      text-decoration: none;
+      border: 1px solid var(--page-line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+    .jump a:focus-visible,
+    .jump a:hover {
+      border-color: var(--page-ink);
+    }
+
+    /* ---------- option bands ---------- */
+    .opt {
+      border-radius: 28px;
+      padding-inline: clamp(12px, 3vw, 32px);
+      padding-block: 26px 32px;
+      margin-bottom: 28px;
+      background: var(--band);
+    }
+    .opt-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+      align-items: baseline;
+      margin-bottom: 20px;
+    }
+    .opt-tag {
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--page-ink);
+      color: #fff;
+      border-radius: 6px;
+      padding: 3px 9px;
+    }
+    .opt-head h2 {
+      margin: 0;
+      font-size: 1.7rem;
+      line-height: 1.15;
+      font-family: var(--font-d);
+      color: var(--ink);
+    }
+    .opt-head p {
+      margin: 0;
+      color: var(--muted);
+      flex: 1 1 320px;
+      min-width: 0;
+    }
+    .sw {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .sw span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-family: ui-monospace, Menlo, monospace;
+      color: var(--muted);
+      background: #ffffffb0;
+      border-radius: 999px;
+      padding: 3px 9px 3px 3px;
+    }
+    .sw i {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: block;
+      border: 1px solid #0000001a;
+    }
+    .frames {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 26px 22px;
+      align-items: flex-start;
+    }
+    figure.ph {
+      margin: 0;
+      width: 390px;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    figure.ph figcaption {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding-left: 6px;
+    }
+
+    /* ---------- phone shell (all options use tokens) ---------- */
+    .phone {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-b);
+      border-radius: 40px;
+      border: 7px solid var(--frame);
+      box-shadow: 0 18px 40px -22px #3a2c2066;
+      overflow: hidden;
+      position: relative;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 24px 2px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .screen {
+      padding: 8px 16px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .top .bearsm {
+      width: 44px;
+      height: 44px;
+      flex: none;
+    }
+    .top .hi {
+      flex: 1;
+      min-width: 0;
+    }
+    .top .hi b {
+      display: block;
+      font-family: var(--font-d);
+      font-size: 1.25rem;
+      line-height: 1.15;
+    }
+    .top .hi small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .iconbtn {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 0;
+      background: var(--surface);
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+    }
+    .iconbtn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+    }
+    .month {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .month b {
+      font-family: var(--font-d);
+      font-size: 1.1rem;
+    }
+    .month button {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 0;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .totals {
+      border-radius: var(--r-card);
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      background: var(--t-bg);
+      color: var(--t-ink);
+    }
+    .totals .lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      opacity: 0.75;
+    }
+    .totals .big {
+      font-family: var(--font-d);
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .totals .big small {
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0.75;
+      margin-left: 4px;
+    }
+    .rows {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 5px 12px;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.9rem;
+    }
+    .rows dt {
+      opacity: 0.8;
+    }
+    .rows dd {
+      margin: 0;
+      text-align: right;
+      font-weight: 700;
+    }
+    .rows .sep {
+      grid-column: 1/-1;
+      height: 1px;
+      background: var(--t-line);
+      margin: 3px 0;
+    }
+    .bal {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: calc(var(--r-card) - 6px);
+      padding: 9px 12px;
+      background: var(--t-bal);
+      color: var(--t-bal-ink);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .bal span:last-child {
+      font-family: var(--font-d);
+      font-size: 1.15rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--r-card);
+      padding: 14px;
+    }
+    .dow,
+    .cal {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    .dow span {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      padding-bottom: 4px;
+    }
+    .d {
+      aspect-ratio: 1/1.08;
+      max-width: 100%;
+      border-radius: var(--r-day);
+      background: var(--day);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+    }
+    .d .n {
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .d .t {
+      font-size: 0.58rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .d.e {
+      background: transparent;
+    }
+    .d.wkd {
+      background: var(--wkd);
+      color: var(--muted);
+    }
+    .d.ot {
+      background: var(--ot);
+      color: var(--ot-ink);
+    }
+    .d.lv {
+      background: var(--lv);
+      color: var(--lv-ink);
+    }
+    .d.hol {
+      background: var(--hol);
+      color: var(--hol-ink);
+    }
+    .d.today {
+      box-shadow: inset 0 0 0 2px var(--ink);
+    }
+    .d.edit::after {
+      content: "";
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      margin-top: 12px;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .legend i {
+      width: 11px;
+      height: 11px;
+      border-radius: 4px;
+      display: block;
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .list h3,
+    .sec h3 {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1rem;
+    }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+    }
+    .chip {
+      width: 42px;
+      flex: none;
+      text-align: center;
+      border-radius: 12px;
+      padding: 4px 0;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip small {
+      display: block;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+    .chip b {
+      font-size: 1.05rem;
+      font-family: var(--font-d);
+    }
+    .chip.ot {
+      background: var(--ot);
+      color: var(--ot-ink);
+    }
+    .chip.lv {
+      background: var(--lv);
+      color: var(--lv-ink);
+    }
+    .item .what {
+      flex: 1;
+      min-width: 0;
+    }
+    .item .what b {
+      display: block;
+      font-size: 0.88rem;
+    }
+    .item .what small {
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+    .item .amt {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+    .item .amt small {
+      display: block;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.72rem;
+    }
+    .pen {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 0;
+      background: var(--bg);
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+    .pen svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .btn {
+      font: inherit;
+      font-weight: 700;
+      border: 0;
+      border-radius: var(--r-btn);
+      padding: 14px 16px;
+      font-size: 0.98rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn:focus-visible,
+    .iconbtn:focus-visible,
+    .pen:focus-visible,
+    .month button:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .btn.pri {
+      background: var(--accent);
+      color: var(--accent-on);
+    }
+    .btn.sec {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1.5px var(--line);
+    }
+    .btn.dash {
+      background: transparent;
+      color: var(--accent-ink);
+      box-shadow: inset 0 0 0 1.5px var(--line);
+      border-radius: var(--r-item);
+      font-size: 0.88rem;
+      padding: 11px;
+    }
+    .btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .note {
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: -6px;
+    }
+    .adminbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .state {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .state i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--hol-ink);
+      display: block;
+    }
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--bg);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 999px;
+    }
+
+    /* sheet */
+    .behind {
+      padding: 8px 16px 0;
+      opacity: 0.35;
+      filter: saturate(0.7);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .scrim {
+      position: absolute;
+      inset: 0;
+      background: var(--scrim);
+    }
+    .sheet {
+      position: relative;
+      margin-top: -40px;
+      background: var(--bg);
+      border-radius: 28px 28px 0 0;
+      padding: 10px 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 -10px 30px -12px #0003;
+    }
+    .grab {
+      width: 40px;
+      height: 5px;
+      border-radius: 9px;
+      background: var(--line);
+      margin: 0 auto 2px;
+    }
+    .sheet h4 {
+      margin: 0;
+      font-family: var(--font-d);
+      font-size: 1.3rem;
+      line-height: 1.1;
+    }
+    .sheet .sub {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field > label,
+    .field > span {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .range {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .range .arrow {
+      color: var(--muted);
+    }
+    input[type="time"],
+    textarea {
+      font: inherit;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+      width: 100%;
+      box-sizing: border-box;
+      min-width: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    textarea {
+      font-size: 0.9rem;
+      font-weight: 500;
+      resize: none;
+      min-height: 64px;
+    }
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 1px;
+    }
+    .calc {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--ot);
+      color: var(--ot-ink);
+      border-radius: var(--r-item);
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .calc b {
+      font-family: var(--font-d);
+      font-size: 1.1rem;
+    }
+    .quick {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .quick span {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border-radius: var(--r-item);
+      padding: 11px 12px;
+    }
+    .toggle b {
+      display: block;
+      font-size: 0.9rem;
+    }
+    .toggle small {
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+    .sw-in {
+      position: relative;
+      width: 46px;
+      height: 28px;
+      flex: none;
+    }
+    .sw-in input {
+      appearance: none;
+      -webkit-appearance: none;
+      margin: 0;
+      width: 46px;
+      height: 28px;
+      border-radius: 99px;
+      background: var(--line);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .sw-in input::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px #0003;
+      transition: transform 0.2s;
+    }
+    .sw-in input:checked {
+      background: var(--lv-ink);
+    }
+    .sw-in input:checked::after {
+      transform: translateX(18px);
+    }
+    .sw-in input:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .del {
+      background: none;
+      border: 0;
+      color: var(--danger);
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 4px;
+    }
+
+    /* login */
+    .login {
+      min-height: 700px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 30px 26px 26px;
+      gap: 12px;
+      background: var(--login-bg);
+    }
+    .login .hero {
+      width: 180px;
+      height: 180px;
+      margin-top: 40px;
+    }
+    .login h5 {
+      margin: 6px 0 0;
+      font-family: var(--font-d);
+      font-size: 2.6rem;
+      line-height: 1;
+      color: var(--login-ink);
+    }
+    .login p {
+      margin: 0;
+      color: var(--login-muted);
+      max-width: 28ch;
+    }
+    .login .grow {
+      flex: 1;
+    }
+    .btn.fb {
+      background: var(--fb);
+      color: #fff;
+    }
+    .login .links {
+      font-size: 0.75rem;
+      color: var(--login-muted);
+      display: flex;
+      gap: 14px;
+    }
+    .login .links a {
+      color: inherit;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .login .hero {
+        animation: bob 3.2s ease-in-out infinite;
+      }
+    }
+    @keyframes bob {
+      50% {
+        transform: translateY(-6px) rotate(-2deg);
+      }
+    }
+
+    /* =================== OPTION A: Sky & Cream =================== */
+    .opt-a {
+      --band: #e9f2f8;
+      --bg: #fffbf3;
+      --surface: #ffffff;
+      --ink: #24384a;
+      --muted: #6f7f8c;
+      --line: #dce6ee;
+      --frame: #24384a;
+      --accent: #4e9bd1;
+      --accent-on: #fff;
+      --accent-ink: #2d6e9e;
+      --accent-soft: #ddeefa;
+      --t-bg: #cfe6f7;
+      --t-ink: #1f3b52;
+      --t-line: #a9cde6;
+      --t-bal: #ffffff;
+      --t-bal-ink: #1f3b52;
+      --day: #ffffff;
+      --wkd: #f3eee4;
+      --ot: #bfe0f5;
+      --ot-ink: #1c5a86;
+      --lv: #fce3c9;
+      --lv-ink: #b8692a;
+      --hol: #ffe9a8;
+      --hol-ink: #8a6a00;
+      --danger: #c2554a;
+      --scrim: #24384a55;
+      --login-bg: linear-gradient(180deg, #ddeefa 0%, #fffbf3 62%);
+      --login-ink: #24384a;
+      --login-muted: #5e7182;
+      --r-card: 26px;
+      --r-day: 14px;
+      --r-item: 18px;
+      --r-btn: 999px;
+      --font-d: "Baloo 2", "Nunito", system-ui, sans-serif;
+      --font-b: "Nunito", system-ui, sans-serif;
+      --bow: #4e9bd1;
+    }
+    .opt-a .totals .peek {
+      position: absolute;
+      right: 12px;
+      top: -30px;
+      width: 70px;
+      height: 70px;
+    }
+    .opt-a .card {
+      box-shadow: 0 1px 0 var(--line);
+    }
+
+    /* =================== OPTION B: Sage & Sand =================== */
+    .opt-b {
+      --band: #ecefe6;
+      --bg: #f7f2ea;
+      --surface: #fffdf9;
+      --ink: #31403a;
+      --muted: #7a8278;
+      --line: #e2dacb;
+      --frame: #5e6f63;
+      --accent: #6e9c7e;
+      --accent-on: #fff;
+      --accent-ink: #46705a;
+      --accent-soft: #ddebdf;
+      --t-bg: #fffdf9;
+      --t-ink: #31403a;
+      --t-line: #e8e0d2;
+      --t-bal: #ddebdf;
+      --t-bal-ink: #2f5a43;
+      --day: #fffdf9;
+      --wkd: #efe8dc;
+      --ot: #cfe3d4;
+      --ot-ink: #2f5a43;
+      --lv: #f1d9c9;
+      --lv-ink: #a35f3c;
+      --hol: #e9e1f0;
+      --hol-ink: #6b5888;
+      --danger: #b4533e;
+      --scrim: #31403a55;
+      --login-bg: #f7f2ea;
+      --login-ink: #31403a;
+      --login-muted: #7a8278;
+      --r-card: 20px;
+      --r-day: 50%;
+      --r-item: 16px;
+      --r-btn: 16px;
+      --font-d: "Mali", "Figtree", system-ui, sans-serif;
+      --font-b: "Figtree", system-ui, sans-serif;
+      --bow: #6e9c7e;
+    }
+    .opt-b .totals {
+      box-shadow: inset 0 0 0 1.5px var(--line);
+    }
+    .opt-b .totals .head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .opt-b .totals .head svg {
+      width: 62px;
+      height: 62px;
+      flex: none;
+      margin: -6px -4px -4px 0;
+    }
+    .opt-b .d {
+      aspect-ratio: 1/1;
+    }
+    .opt-b .d .t {
+      font-size: 0.55rem;
+    }
+    .opt-b .login .blob {
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      background: #ddebdf;
+      display: grid;
+      place-items: center;
+      margin-top: 44px;
+    }
+    .opt-b .login .hero {
+      margin-top: 0;
+      width: 170px;
+      height: 170px;
+    }
+    .opt-b .chip {
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* =================== OPTION C: Navy & Butter =================== */
+    .opt-c {
+      --band: #e6e9f1;
+      --bg: #ffffff;
+      --surface: #f3f5fa;
+      --ink: #1d2b4f;
+      --muted: #69728a;
+      --line: #dce1ec;
+      --frame: #1d2b4f;
+      --accent: #ffd45c;
+      --accent-on: #1d2b4f;
+      --accent-ink: #1d2b4f;
+      --accent-soft: #fff1c2;
+      --t-bg: #1d2b4f;
+      --t-ink: #ffffff;
+      --t-line: #3a4a73;
+      --t-bal: #ffd45c;
+      --t-bal-ink: #1d2b4f;
+      --day: #f3f5fa;
+      --wkd: #ffffff;
+      --ot: #ffe79a;
+      --ot-ink: #5c4500;
+      --lv: #d8e4ff;
+      --lv-ink: #2f55b5;
+      --hol: #1d2b4f;
+      --hol-ink: #ffd45c;
+      --danger: #c8473d;
+      --scrim: #1d2b4f66;
+      --login-bg: #1d2b4f;
+      --login-ink: #ffd45c;
+      --login-muted: #b9c2da;
+      --r-card: 18px;
+      --r-day: 9px;
+      --r-item: 14px;
+      --r-btn: 14px;
+      --font-d: "Bricolage Grotesque", "Outfit", system-ui, sans-serif;
+      --font-b: "Outfit", system-ui, sans-serif;
+      --bow: #ffd45c;
+    }
+    .opt-c .d.wkd {
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .opt-c .header-band {
+      background: var(--ink);
+      color: #fff;
+      margin: 0 -16px;
+      padding: 4px 16px 18px;
+      border-radius: 0 0 26px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .opt-c .header-band .top .hi small {
+      color: #b9c2da;
+    }
+    .opt-c .header-band .iconbtn,
+    .opt-c .header-band .month button {
+      background: #2b3b66;
+      color: #fff;
+    }
+    .opt-c .header-band .pill {
+      background: var(--accent);
+      color: var(--ink);
+    }
+    .opt-c .status.dark {
+      background: var(--ink);
+      color: #fff;
+    }
+    .opt-c .totals {
+      padding: 0;
+      gap: 12px;
+    }
+    .opt-c .totals .big {
+      color: var(--accent);
+      font-size: 2.6rem;
+    }
+    .opt-c .card {
+      background: var(--bg);
+      box-shadow: inset 0 0 0 1.5px var(--line);
+    }
+    .opt-c .item {
+      background: var(--bg);
+      box-shadow: inset 0 0 0 1.5px var(--line);
+    }
+    .opt-c .btn.pri {
+      box-shadow: 0 3px 0 #d9a92a;
+    }
+    .opt-c .login .hero {
+      width: 190px;
+      height: 190px;
+    }
+    .opt-c .login .sun {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: #2b3b66;
+      display: grid;
+      place-items: center;
+      margin-top: 40px;
+      box-shadow: 0 0 0 18px #24345c;
+    }
+    .opt-c .login .sun .hero {
+      margin: 0;
+    }
+
+    @media (max-width: 480px) {
+      .phone {
+        border-width: 5px;
+        border-radius: 32px;
+      }
+      .opt {
+        border-radius: 20px;
+      }
+    }
+  </style>
+
+  <div class="wrap">
+    <header class="intro">
+      <svg viewBox="0 0 120 120" aria-hidden="true" id="introBear"></svg>
+      <div>
+        <h1>Lola: three looks to choose from</h1>
+        <p>
+          Same screens, same October 2026 sample data, three different moods. Each option shows
+          Lola's month, the admin month, the add/edit day sheet and the login screen. Pick one, or
+          mix parts you like.
+        </p>
+        <nav class="jump" aria-label="Options">
+          <a href="#option-a">Option A · Sky &amp; Cream</a
+          ><a href="#option-b">Option B · Sage &amp; Sand</a
+          ><a href="#option-c">Option C · Navy &amp; Butter</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="opt opt-a" id="option-a">
+      <div class="opt-head">
+        <span class="opt-tag">Option A</span>
+        <h2>Sky &amp; Cream</h2>
+        <p>Soft sky blue on warm cream with bubbly rounded type. Puffy, playful, nursery-bright.</p>
+        <div class="sw">
+          <span><i style="background: #fffbf3"></i>#FFFBF3</span
+          ><span><i style="background: #cfe6f7"></i>#CFE6F7</span
+          ><span><i style="background: #4e9bd1"></i>#4E9BD1</span
+          ><span><i style="background: #24384a"></i>#24384A</span
+          ><span><i style="background: #ffe9a8"></i>#FFE9A8</span>
+        </div>
+      </div>
+      <div class="frames" data-opt="a"></div>
+    </section>
+
+    <section class="opt opt-b" id="option-b">
+      <div class="opt-head">
+        <span class="opt-tag">Option B</span>
+        <h2>Sage &amp; Sand</h2>
+        <p>
+          Muted sage and mint on warm sand, a hand-drawn Thai rounded display face. Calm, natural,
+          storybook.
+        </p>
+        <div class="sw">
+          <span><i style="background: #f7f2ea"></i>#F7F2EA</span
+          ><span><i style="background: #ddebdf"></i>#DDEBDF</span
+          ><span><i style="background: #6e9c7e"></i>#6E9C7E</span
+          ><span><i style="background: #31403a"></i>#31403A</span
+          ><span><i style="background: #f1d9c9"></i>#F1D9C9</span>
+        </div>
+      </div>
+      <div class="frames" data-opt="b"></div>
+    </section>
+
+    <section class="opt opt-c" id="option-c">
+      <div class="opt-head">
+        <span class="opt-tag">Option C</span>
+        <h2>Navy &amp; Butter</h2>
+        <p>
+          Deep navy blocks with butter-yellow highlights and a modern grotesque. Confident, crisp,
+          still cuddly.
+        </p>
+        <div class="sw">
+          <span><i style="background: #ffffff"></i>#FFFFFF</span
+          ><span><i style="background: #1d2b4f"></i>#1D2B4F</span
+          ><span><i style="background: #ffd45c"></i>#FFD45C</span
+          ><span><i style="background: #d8e4ff"></i>#D8E4FF</span
+          ><span><i style="background: #f3f5fa"></i>#F3F5FA</span>
+        </div>
+      </div>
+      <div class="frames" data-opt="c"></div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      // ---------- sample data: October 2026 ----------
+      var RATE = 150,
+        SALARY = 20000;
+      var HOL = { 13: "King Bhumibol Memorial Day", 23: "Chulalongkorn Day" };
+      var OT = [
+        // day, from, to, note
+        [5, "18:00", "20:30", "Parents at a work dinner"],
+        [7, "18:00", "19:10", "Traffic, home late"],
+        [10, "10:00", "14:00", "Saturday, family wedding"],
+        [15, "07:30", "09:00", "Early flight"],
+        [20, "18:00", "21:00", ""],
+        [28, "18:00", "20:15", ""],
+      ];
+      var LEAVE = { 19: "Sick day (no deduction)" };
+      var TODAY = 16;
+      var DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      function mins(t) {
+        var p = t.split(":");
+        return +p[0] * 60 + +p[1];
+      }
+      function rounded(f, t) {
+        return (Math.ceil((mins(t) - mins(f)) / 30) * 30) / 60;
+      }
+      var otMap = {},
+        otHours = 0;
+      OT.forEach(function (o) {
+        var h = rounded(o[1], o[2]);
+        otMap[o[0]] = { from: o[1], to: o[2], h: h, note: o[3] };
+        otHours += h;
+      });
+      var otPay = otHours * RATE,
+        total = SALARY + otPay,
+        paid = 0,
+        balance = total - paid;
+      function fmt(n) {
+        return n.toLocaleString("en-US");
+      }
+      function hrs(h) {
+        return (h % 1 ? h.toFixed(1) : h) + " h";
+      }
+      function dow(d) {
+        return new Date(2026, 9, d).getDay();
+      }
+
+      // ---------- mascot: original baby bear with bow tie ----------
+      function bear(cls, extra) {
+        return (
+          '<svg class="' +
+          (cls || "") +
+          '" viewBox="0 0 120 120" aria-hidden="true">' +
+          '<circle cx="31" cy="35" r="16" fill="var(--bear)"/><circle cx="89" cy="35" r="16" fill="var(--bear)"/>' +
+          '<circle cx="31" cy="35" r="8.5" fill="var(--bear-lt)"/><circle cx="89" cy="35" r="8.5" fill="var(--bear-lt)"/>' +
+          '<ellipse cx="60" cy="64" rx="41" ry="37" fill="var(--bear)"/>' +
+          '<path d="M55 29 q5 -9 10 -2 q-4 -1 -5 4" fill="none" stroke="var(--bear-dk)" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<ellipse cx="33" cy="76" rx="7" ry="4.5" fill="var(--cheek)" opacity=".65"/><ellipse cx="87" cy="76" rx="7" ry="4.5" fill="var(--cheek)" opacity=".65"/>' +
+          '<ellipse cx="60" cy="79" rx="18" ry="13.5" fill="var(--bear-lt)"/>' +
+          '<circle cx="44" cy="61" r="4.8" fill="var(--bear-dk)"/><circle cx="76" cy="61" r="4.8" fill="var(--bear-dk)"/>' +
+          '<circle cx="45.6" cy="59.4" r="1.6" fill="#fff"/><circle cx="77.6" cy="59.4" r="1.6" fill="#fff"/>' +
+          '<ellipse cx="60" cy="73" rx="6.5" ry="4.6" fill="var(--bear-dk)"/>' +
+          '<path d="M60 77.5 v4 M60 81.5 q-4.5 3.5 -8 0 M60 81.5 q4.5 3.5 8 0" fill="none" stroke="var(--bear-dk)" stroke-width="2.2" stroke-linecap="round"/>' +
+          (extra === false
+            ? ""
+            : '<path d="M60 104 L45 96 L45 112 Z M60 104 L75 96 L75 112 Z" fill="var(--bow)" stroke="var(--bow)" stroke-width="3" stroke-linejoin="round"/><circle cx="60" cy="104" r="4.5" fill="var(--bow)"/><circle cx="60" cy="104" r="2" fill="#ffffff" opacity=".5"/>') +
+          "</svg>"
+        );
+      }
+      document.getElementById("introBear").outerHTML = bear("", true).replace(
+        "<svg ",
+        '<svg style="--bow:#4E9BD1;width:72px;height:72px;flex:none" ',
+      );
+
+      var I = {
+        pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>',
+        gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
+        copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="3"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+        plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+        check:
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+        tap: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" opacity=".5"/></svg>',
+        fb: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 21v-7.5H16l.4-3H13.5V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10.5H8v3h2.4V21z"/></svg>',
+      };
+      var status = function (dark) {
+        return (
+          '<div class="status' +
+          (dark ? " dark" : "") +
+          '"><span>9:41</span><span>●●● 5G ▮</span></div>'
+        );
+      };
+
+      function totals(o, admin) {
+        var rows =
+          '<dl class="rows"><dt>Salary</dt><dd>' +
+          fmt(SALARY) +
+          "</dd>" +
+          "<dt>Overtime " +
+          hrs(otHours) +
+          " × " +
+          RATE +
+          "</dt><dd>" +
+          fmt(otPay) +
+          "</dd>" +
+          '<div class="sep"></div><dt>Total</dt><dd>' +
+          fmt(total) +
+          "</dd>" +
+          "<dt>Paid</dt><dd>" +
+          fmt(paid) +
+          "</dd></dl>";
+        var bal =
+          '<div class="bal"><span>Balance to pay</span><span>' + fmt(balance) + " ฿</span></div>";
+        var big =
+          '<div><div class="lbl">October total</div><div class="big">' +
+          fmt(total) +
+          "<small>THB</small></div></div>";
+        if (o === "a") return '<div class="totals">' + bear("peek") + big + rows + bal + "</div>";
+        if (o === "b")
+          return (
+            '<div class="totals"><div class="head">' +
+            big +
+            bear() +
+            "</div>" +
+            rows +
+            bal +
+            "</div>"
+          );
+        return '<div class="totals">' + big + rows + bal + "</div>";
+      }
+
+      function calendar(admin) {
+        var h =
+          '<div class="card"><div class="dow">' +
+          ["M", "T", "W", "T", "F", "S", "S"]
+            .map(function (x) {
+              return "<span>" + x + "</span>";
+            })
+            .join("") +
+          '</div><div class="cal">';
+        var lead = (dow(1) + 6) % 7;
+        for (var i = 0; i < lead; i++) h += '<div class="d e"></div>';
+        for (var d = 1; d <= 31; d++) {
+          var w = dow(d),
+            c = "d",
+            t = "";
+          if (otMap[d]) {
+            c += " ot";
+            t = hrs(otMap[d].h).replace(" ", "");
+          } else if (LEAVE[d]) {
+            c += " lv";
+            t = "leave";
+          } else if (HOL[d]) {
+            c += " hol";
+            t = "holiday";
+          } else if (w === 0 || w === 6) {
+            c += " wkd";
+          }
+          if (d === TODAY) c += " today";
+          h +=
+            '<div class="' +
+            c +
+            '" aria-label="' +
+            DOW[w] +
+            " " +
+            d +
+            ' October"><span class="n">' +
+            d +
+            "</span>" +
+            (t ? '<span class="t">' + t + "</span>" : "") +
+            "</div>";
+        }
+        h +=
+          '</div><div class="legend"><span><i style="background:var(--day);box-shadow:inset 0 0 0 1px var(--line)"></i>Normal</span><span><i style="background:var(--ot)"></i>Overtime</span><span><i style="background:var(--lv)"></i>Leave</span><span><i style="background:var(--hol)"></i>Holiday</span><span><i style="background:var(--wkd);box-shadow:inset 0 0 0 1px var(--line)"></i>Weekend</span></div>';
+        if (admin) h += '<div class="hint">' + I.tap + "Tap any day to add overtime or leave</div>";
+        return h + "</div>";
+      }
+
+      function list(admin) {
+        var days = Object.keys(otMap)
+          .concat(Object.keys(LEAVE))
+          .map(Number)
+          .sort(function (a, b) {
+            return a - b;
+          });
+        var h = '<div class="list"><h3>Overtime &amp; leave</h3>';
+        days.forEach(function (d) {
+          var w = DOW[dow(d)];
+          if (otMap[d]) {
+            var o = otMap[d],
+              raw = mins(o.to) - mins(o.from);
+            var why =
+              dow(d) === 0 || dow(d) === 6
+                ? "Weekend"
+                : mins(o.from) < 540
+                  ? "Before 09:00"
+                  : "After 18:00";
+            h +=
+              '<div class="item"><div class="chip ot"><small>' +
+              w +
+              "</small><b>" +
+              d +
+              '</b></div><div class="what"><b class="num">' +
+              o.from +
+              "–" +
+              o.to +
+              "</b><small>" +
+              why +
+              (raw % 30
+                ? " · rounded up from " + Math.floor(raw / 60) + "h " + (raw % 60) + "m"
+                : "") +
+              (o.note ? " · " + o.note : "") +
+              '</small></div><div class="amt">' +
+              fmt(o.h * RATE) +
+              "<small>" +
+              hrs(o.h) +
+              "</small></div>" +
+              (admin
+                ? '<button class="pen" aria-label="Edit ' + d + ' October">' + I.pen + "</button>"
+                : "") +
+              "</div>";
+          } else {
+            h +=
+              '<div class="item"><div class="chip lv"><small>' +
+              w +
+              "</small><b>" +
+              d +
+              '</b></div><div class="what"><b>Leave</b><small>' +
+              LEAVE[d] +
+              '</small></div><div class="amt">0<small>no change</small></div>' +
+              (admin
+                ? '<button class="pen" aria-label="Edit ' + d + ' October">' + I.pen + "</button>"
+                : "") +
+              "</div>";
+          }
+        });
+        return h + "</div>";
+      }
+
+      function head(o, admin) {
+        var top =
+          '<div class="top">' +
+          (admin ? "" : bear("bearsm")) +
+          '<div class="hi">' +
+          (admin
+            ? "<b>October pay</b><small>Signed in as chini lucky</small>"
+            : "<b>Hi Lola 👋</b><small>Pooh's month so far</small>") +
+          "</div>" +
+          (admin
+            ? '<span class="pill">Admin</span><button class="iconbtn" aria-label="Settings">' +
+              I.gear +
+              "</button>"
+            : "") +
+          "</div>";
+        var month =
+          '<div class="month"><button aria-label="Previous month">‹</button><b>October 2026</b><button aria-label="Next month">›</button></div>';
+        if (o === "c")
+          return '<div class="header-band">' + top + month + totals(o, admin) + "</div>";
+        return top + month + totals(o, admin);
+      }
+
+      function lolaView(o) {
+        return (
+          '<div class="phone">' +
+          status(o === "c") +
+          '<div class="screen">' +
+          head(o, false) +
+          calendar(false) +
+          list(false) +
+          '<button class="btn pri">This looks right ' +
+          I.check +
+          '</button><div class="note">Tells chini lucky you checked October.</div></div></div>'
+        );
+      }
+      function adminView(o) {
+        return (
+          '<div class="phone">' +
+          status(o === "c") +
+          '<div class="screen">' +
+          head(o, true) +
+          '<div class="duo"><button class="btn sec" data-copy>' +
+          I.copy +
+          'Copy summary</button><button class="btn pri">' +
+          I.plus +
+          "Add payment</button></div>" +
+          '<div class="adminbar"><span class="state"><i></i>Waiting for Lola\'s ✓</span></div>' +
+          calendar(true) +
+          list(true) +
+          '<div class="list"><h3>Payments</h3><div class="item"><div class="what"><b>No payments in October yet</b><small>September: 11,000 paid on 30 Sep</small></div></div><button class="btn dash">' +
+          I.plus +
+          "Add payment</button></div>" +
+          "</div></div>"
+        );
+      }
+      function sheetView(o) {
+        var id = o + "-";
+        return (
+          '<div class="phone" style="min-height:760px">' +
+          status(o === "c") +
+          '<div class="behind">' +
+          (o === "c"
+            ? '<div style="height:120px;border-radius:18px;background:var(--ink)"></div>'
+            : '<div class="month"><b>October 2026</b></div><div style="height:120px;border-radius:var(--r-card);background:var(--t-bg)"></div>') +
+          calendar(true) +
+          '</div><div class="scrim"></div>' +
+          '<div class="sheet" role="dialog" aria-label="Edit Monday 5 October"><div class="grab"></div>' +
+          '<div><h4>Mon 5 October</h4><div class="sub">Normal day 09:00–18:00 · add anything extra</div></div>' +
+          '<div class="field"><span>Overtime</span><div class="range"><input type="time" id="' +
+          id +
+          'from" aria-label="Overtime from" value="18:00"><span class="arrow">→</span><input type="time" id="' +
+          id +
+          'to" aria-label="Overtime to" value="20:30"></div>' +
+          '<div class="quick"><span>+30 min</span><span>+1 h</span><span>Until 20:00</span><span>Until 21:00</span></div></div>' +
+          '<div class="calc"><span>2 h 30 min × ' +
+          RATE +
+          " ฿</span><b>375 ฿</b></div>" +
+          '<label class="toggle" for="' +
+          id +
+          'leave"><span><b>Leave / day off</b><small>Shown to Lola, no pay deduction</small></span><span class="sw-in"><input type="checkbox" id="' +
+          id +
+          'leave" role="switch"></span></label>' +
+          '<div class="field"><label for="' +
+          id +
+          'note">Note</label><textarea id="' +
+          id +
+          'note">Parents at a work dinner</textarea></div>' +
+          '<button class="btn pri">Save day</button><button class="del">Clear this day</button></div></div>'
+        );
+      }
+      function loginView(o) {
+        var art =
+          o === "b"
+            ? '<div class="blob">' + bear("hero") + "</div>"
+            : o === "c"
+              ? '<div class="sun">' + bear("hero") + "</div>"
+              : bear("hero");
+        return (
+          '<div class="phone">' +
+          (o === "c" ? status(true) : status(false)) +
+          '<div class="login">' +
+          art +
+          '<h5>Lola</h5><p>Pooh\'s hours and pay, kept simple for Lola and the family.</p><div class="grow"></div>' +
+          '<button class="btn fb">' +
+          I.fb +
+          'Continue with Facebook</button><div class="links"><a href="#">Privacy policy</a><a href="#">Data deletion</a></div></div></div>'
+        );
+      }
+
+      var caps = [
+        "1 · Lola's month (read only)",
+        "2 · Admin month",
+        "3 · Admin: add / edit day",
+        "4 · Login",
+      ];
+      document.querySelectorAll(".frames").forEach(function (el) {
+        var o = el.getAttribute("data-opt");
+        var screens = [lolaView(o), adminView(o), sheetView(o), loginView(o)];
+        el.innerHTML = screens
+          .map(function (s, i) {
+            return '<figure class="ph"><figcaption>' + caps[i] + "</figcaption>" + s + "</figure>";
+          })
+          .join("");
+      });
+
+      var summary =
+        "Lola · October 2026\nSalary " +
+        fmt(SALARY) +
+        "\nOT " +
+        hrs(otHours) +
+        " = " +
+        fmt(otPay) +
+        "\nTotal " +
+        fmt(total) +
+        " · Paid " +
+        fmt(paid) +
+        "\nBalance " +
+        fmt(balance) +
+        " THB\nchini-lucky.github.io/lola";
+      document.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-copy]");
+        if (!b) return;
+        var ph = b.closest(".phone");
+        function toast(msg) {
+          var t = document.createElement("div");
+          t.className = "toast";
+          t.textContent = msg;
+          ph.appendChild(t);
+          setTimeout(function () {
+            t.remove();
+          }, 1800);
+        }
+        try {
+          navigator.clipboard.writeText(summary).then(
+            function () {
+              toast("Summary copied");
+            },
+            function () {
+              toast("Copy blocked here");
+            },
+          );
+        } catch (err) {
+          toast("Copy blocked here");
+        }
+      });
+      document.querySelectorAll('a[href="#"]').forEach(function (a) {
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+        });
+      });
+    })();
+  </script>
+</html>
