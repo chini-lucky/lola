@@ -10,6 +10,7 @@
     "up": "scripts/slot.sh supabase start",
     "stop": "scripts/stop.sh",
     "dev": "scripts/slot.sh scripts/dev.sh",
+    "functions": "scripts/slot.sh supabase functions serve",
     "build": "tsc -b && vite build",
     "check": "tsc -b && eslint . --max-warnings 0 && prettier --check . && vitest run --passWithNoTests && scripts/slot.sh supabase test db && npm run db:types:check",
     "db:types": "scripts/slot.sh supabase gen types typescript --local > src/db.types.ts.tmp && mv src/db.types.ts.tmp src/db.types.ts",
