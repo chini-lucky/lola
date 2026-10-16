@@ -278,3 +278,8 @@ export function snapshotOf(summary: Summary): Snapshot {
 export function isStale(snapshot: Snapshot, now: Summary): boolean {
   return snapshot.total !== now.total || snapshot.paid !== now.paid;
 }
+
+/** A payslip is a draft until its pay period is over (today is past its end) and fully paid. */
+export function isDraft(period: Period, balance: number, today: string): boolean {
+  return today <= period.end || balance > 0;
+}
