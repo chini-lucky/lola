@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { nextPeriod, periodOf, prevPeriod, salaryOf, type Rate } from "./pay";
+import { datesIn, nextPeriod, periodOf, prevPeriod, salaryOf, type Rate } from "./pay";
 
 const firstRate: Rate = { effective_from: "2026-09-14", salary: 20000, ot_rate: 150 };
 
@@ -75,5 +75,26 @@ describe("salary", () => {
     const raise: Rate = { effective_from: "2026-10-15", salary: 22000, ot_rate: 150 };
     const novPay = { start: "2026-10-28", end: "2026-11-27" };
     expect(salaryOf(novPay, [raise, firstRate], [])).toBe(22000);
+  });
+});
+
+describe("days of a pay period", () => {
+  test("the first pay period has the days 14 Sep to 27 Sep", () => {
+    expect(datesIn({ start: "2026-09-14", end: "2026-09-27" })).toEqual([
+      "2026-09-14",
+      "2026-09-15",
+      "2026-09-16",
+      "2026-09-17",
+      "2026-09-18",
+      "2026-09-19",
+      "2026-09-20",
+      "2026-09-21",
+      "2026-09-22",
+      "2026-09-23",
+      "2026-09-24",
+      "2026-09-25",
+      "2026-09-26",
+      "2026-09-27",
+    ]);
   });
 });

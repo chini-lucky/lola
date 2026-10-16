@@ -78,3 +78,10 @@ export function salaryOf(period: Period, rates: Rate[], overrides: PeriodOverrid
   if (override !== undefined) return override.salary;
   return rateOn(period.start, rates).salary;
 }
+
+/** Every date in the pay period, in order. */
+export function datesIn(period: Period): string[] {
+  const dates: string[] = [];
+  for (let date = period.start; date <= period.end; date = addDays(date, 1)) dates.push(date);
+  return dates;
+}
