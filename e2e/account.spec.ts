@@ -20,6 +20,7 @@ test("a nanny changes her password, logs out and logs back in with it", async ({
 
 test("a new password shorter than 10 characters is refused", async ({ page }) => {
   await logIn(page, admin);
+  await page.getByRole("link", { name: "Settings" }).click();
   await page.getByRole("link", { name: /^Account/ }).click();
   await page.getByLabel("Current password").fill(admin.password);
   await page.getByLabel("New password", { exact: true }).fill("123456789");

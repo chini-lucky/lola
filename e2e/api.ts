@@ -59,3 +59,11 @@ export async function signUpNanny(username: string, password: string): Promise<s
   if (error !== null) throw error;
   return id;
 }
+
+/** Runs one table change as the admin (a test's setup or clean-up). */
+export async function asAdmin(
+  change: (client: SupabaseClient) => PromiseLike<{ error: Error | null }>,
+): Promise<void> {
+  const { error } = await change(await loggedIn(admin.username, admin.password));
+  if (error !== null) throw error;
+}

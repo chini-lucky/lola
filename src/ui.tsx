@@ -1,11 +1,16 @@
+import { useState } from "react";
 import {
+  currentPeriod,
   datesIn,
   dayKind,
   dayOt,
   daysIn,
+  nextPeriod,
   otReason,
   overrideOf,
   paymentsIn,
+  periodOf,
+  rateOn,
   summarize,
   weekdayOf,
   type Day,
@@ -13,8 +18,9 @@ import {
   type Payment,
   type PayFacts,
   type Period,
+  type Rate,
 } from "./pay";
-import type { Role } from "./supabase";
+import type { Holiday, Role } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
@@ -66,7 +72,8 @@ export function Field(props: {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "password";
+  type?: "text" | "password" | "date";
+  inputMode?: "numeric";
   autoComplete: string;
   help?: string;
 }) {
@@ -77,6 +84,7 @@ export function Field(props: {
         className="inp"
         id={props.id}
         type={props.type ?? "text"}
+        inputMode={props.inputMode}
         autoComplete={props.autoComplete}
         autoCapitalize="none"
         spellCheck={false}
@@ -146,9 +154,16 @@ export const weekdayName = (date: string) => WEEKDAYS[weekdayOf(date)] ?? "";
 const dayOfMonth = (date: string) => Number(date.slice(8, 10));
 /** "28 Sep" */
 export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
+/** "17 Mar 2027" */
+export const fullDate = (date: string) => `${dayMonth(date)} ${date.slice(0, 4)}`;
+/** "Oct pay" */
+export const periodName = (period: Period) => `${monthName(period.end)} pay`;
 /** "Oct pay · 28 Sep – 27 Oct" */
 export const periodTitle = (period: Period) =>
-  `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
+  `${periodName(period)} · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
+/** Today's date in Bangkok. */
+export const todayInBangkok = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** OT minutes as hours: "2.5 h". */
@@ -169,7 +184,7 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
     <div className="totals">
       <Bear className="peek" />
       <div>
-        <div className="lbl">{monthName(period.end)} pay total</div>
+        <div className="lbl">{periodName(period)} total</div>
         <div className="big">
           {money(total)}
           <small>THB</small>
@@ -340,7 +355,7 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
 }
 
 /** A day's date as a chip: "WED / 30", coloured like its calendar cell. */
-function DateChip({ date, className }: { date: string; className: string }) {
+export function DateChip({ date, className }: { date: string; className: string }) {
   return (
     <div className={`chip ${className}`}>
       <small>{weekdayName(date)}</small>
@@ -418,6 +433,283 @@ export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts
             ),
           )}
         </ul>
+      )}
+    </section>
+  );
+}
+
+/** "Sep pay": the pay period a date falls in (the date itself before the start date). */
+function periodNameOf(date: string): string {
+  const period = periodOf(date);
+  return period === null ? date : periodName(period);
+}
+
+/** "Sep pay (14 Sep 2026)" */
+const fromLabel = (date: string) => `${periodNameOf(date)} (${dayMonth(date)} ${date.slice(0, 4)})`;
+
+/** The pay periods a new rate can start from: the next twelve after today's. */
+function upcomingPeriods(today: string): Period[] {
+  const periods: Period[] = [];
+  let period = currentPeriod(today);
+  for (let i = 0; i < 12; i++) {
+    period = nextPeriod(period);
+    periods.push(period);
+  }
+  return periods;
+}
+
+/** Whole baht typed by the admin ("20,000"), or null if it isn't a positive whole number. */
+function bahtOf(text: string): number | null {
+  const amount = Number(text.replaceAll(",", "").trim());
+  return Number.isInteger(amount) && amount > 0 ? amount : null;
+}
+
+/** A new salary and OT rate, starting from an upcoming pay period (never the current one). */
+function NewRate(props: { current: Rate; today: string; onSave: (rate: Rate) => Promise<void> }) {
+  const periods = upcomingPeriods(props.today);
+  const [salary, setSalary] = useState(money(props.current.salary));
+  const [otRate, setOtRate] = useState(money(props.current.ot_rate));
+  const [from, setFrom] = useState(periods[0]?.start ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    const newSalary = bahtOf(salary);
+    const newOtRate = bahtOf(otRate);
+    if (newSalary === null || newOtRate === null) {
+      setError("Salary and OT rate must be whole baht above 0.");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await props.onSave({ effective_from: from, salary: newSalary, ot_rate: newOtRate });
+    } catch {
+      setError("Couldn’t save the new rate. Please try again.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <form
+      className="rateform"
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        void save();
+      }}
+    >
+      <div className="two">
+        <Field
+          id="st-s"
+          label="New salary"
+          inputMode="numeric"
+          autoComplete="off"
+          value={salary}
+          onChange={setSalary}
+        />
+        <Field
+          id="st-o"
+          label="New OT rate"
+          inputMode="numeric"
+          autoComplete="off"
+          value={otRate}
+          onChange={setOtRate}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="st-f">Starts from</label>
+        <select
+          className="inp"
+          id="st-f"
+          value={from}
+          onChange={(event) => {
+            setFrom(event.target.value);
+          }}
+        >
+          {periods.map((period) => (
+            <option key={period.start} value={period.start}>
+              {periodTitle(period)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <ErrorAlert message={error} />
+      <button className="btn sec" type="submit" disabled={busy}>
+        Save new rate
+      </button>
+    </form>
+  );
+}
+
+/** The rates in effect today, then every rate and agreed salary override. */
+export function PayRates(props: {
+  facts: PayFacts;
+  today: string;
+  onSave: (rate: Rate) => Promise<void>;
+}) {
+  const { facts, today } = props;
+  const current = rateOn(today, facts.rates);
+  const rates = facts.rates.toSorted((a, b) => a.effective_from.localeCompare(b.effective_from));
+  return (
+    <section className="sec" aria-labelledby="pay-rates">
+      <h3 id="pay-rates">
+        Pay rates<small>from {periodNameOf(current.effective_from)}</small>
+      </h3>
+      <div className="kv">
+        <div>
+          <small>Salary / month</small>
+          <b>{money(current.salary)}</b>
+        </div>
+        <div>
+          <small>OT / hour</small>
+          <b>{money(current.ot_rate)}</b>
+        </div>
+      </div>
+      <table className="hist">
+        <thead>
+          <tr>
+            <th>From period</th>
+            <th className="r">Salary</th>
+            <th className="r">OT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rates.map((rate) => (
+            <tr key={rate.effective_from}>
+              <td>{fromLabel(rate.effective_from)}</td>
+              <td className="r">{money(rate.salary)}</td>
+              <td className="r">{money(rate.ot_rate)}</td>
+            </tr>
+          ))}
+          {facts.overrides.map((override) => (
+            <tr key={override.period_end}>
+              <td className="muted">
+                {periodNameOf(override.period_end)} fixed at {money(override.salary)}
+                {override.note === null ? "" : ` (${override.note})`}
+              </td>
+              <td className="r">{money(override.salary)}</td>
+              <td className="r">–</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <NewRate current={current} today={today} onSave={props.onSave} />
+    </section>
+  );
+}
+
+/** Holidays from today's pay period on, each removable, plus Add holiday. */
+export function Holidays(props: {
+  holidays: Holiday[];
+  today: string;
+  onAdd: (holiday: Holiday) => Promise<void>;
+  onRemove: (date: string) => Promise<void>;
+}) {
+  const from = currentPeriod(props.today).start;
+  const [adding, setAdding] = useState(false);
+  const [date, setDate] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  /** Runs one change; shows `failed` and returns false if it fails. */
+  async function change(action: () => Promise<void>, failed: string): Promise<boolean> {
+    setError(null);
+    try {
+      await action();
+      return true;
+    } catch {
+      setError(failed);
+      return false;
+    }
+  }
+
+  async function add() {
+    if (date === "" || name.trim() === "") {
+      setError("Pick a date and type the holiday’s name.");
+      return;
+    }
+    const added = await change(
+      () => props.onAdd({ date, name: name.trim() }),
+      "Couldn’t add the holiday. Please try again.",
+    );
+    if (!added) return;
+    setAdding(false);
+    setDate("");
+    setName("");
+  }
+
+  return (
+    <section className="sec" aria-labelledby="holidays">
+      <h3 id="holidays">
+        Holidays<small>Thai public holidays</small>
+      </h3>
+      <ul className="hols" aria-label="Holidays">
+        {props.holidays
+          .filter((holiday) => holiday.date >= from)
+          .map((holiday) => (
+            <li className="item" key={holiday.date}>
+              <DateChip date={holiday.date} className="hol" />
+              <div className="what">
+                <b>{holiday.name}</b>
+                <small>{fullDate(holiday.date)}</small>
+              </div>
+              <button
+                className="pen"
+                type="button"
+                aria-label={`Remove ${holiday.name}, ${fullDate(holiday.date)}`}
+                onClick={() =>
+                  void change(
+                    () => props.onRemove(holiday.date),
+                    `Couldn’t remove ${holiday.name}. Please try again.`,
+                  )
+                }
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+                  <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                </svg>
+              </button>
+            </li>
+          ))}
+      </ul>
+      <ErrorAlert message={error} />
+      {adding ? (
+        <form
+          className="rateform"
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void add();
+          }}
+        >
+          <div className="two">
+            <Field
+              id="hd-d"
+              label="Date"
+              type="date"
+              autoComplete="off"
+              value={date}
+              onChange={setDate}
+            />
+            <Field id="hd-n" label="Name" autoComplete="off" value={name} onChange={setName} />
+          </div>
+          <button className="btn sec" type="submit">
+            Save holiday
+          </button>
+        </form>
+      ) : (
+        <button
+          className="btn dash"
+          type="button"
+          onClick={() => {
+            setAdding(true);
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+          </svg>
+          Add holiday
+        </button>
       )}
     </section>
   );

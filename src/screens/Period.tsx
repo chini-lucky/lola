@@ -18,13 +18,10 @@ import {
   Payments,
   periodTitle,
   Plus,
+  todayInBangkok,
   Totals,
   weekdayName,
 } from "../ui";
-
-function todayInBangkok(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
-}
 
 const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
 
@@ -60,6 +57,15 @@ export function PeriodView({ person }: { person: Person }) {
             <small>Signed in as {person.username}</small>
           </div>
           <span className="pill">Admin</span>
+          <a className="iconbtn" href="#/settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3.2" />
+              <path
+                d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"
+                strokeLinecap="round"
+              />
+            </svg>
+          </a>
         </div>
       ) : (
         <div className="top">
@@ -152,18 +158,6 @@ export function PeriodView({ person }: { person: Person }) {
             load();
           }}
         />
-      )}
-      {isAdmin && (
-        <>
-          <a className="navrow" href="#/people">
-            <span>People</span>
-            <i>›</i>
-          </a>
-          <a className="navrow" href="#/account">
-            <span>Account</span>
-            <i>›</i>
-          </a>
-        </>
       )}
     </div>
   );
