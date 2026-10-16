@@ -27,3 +27,16 @@ test("an admin adds weekday OT 18:00–20:30 and the total goes up by 2.5 h = 37
   await sheet.getByRole("button", { name: "Save day" }).click();
   await expect(novPay(page)).toContainText(/Overtime 2\.5 h\s*375\s*Total\s*20,375/);
 });
+
+test("an OT range that ends before it starts is refused", async ({ page }) => {
+  await adminOn16Nov(page);
+  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
+  await sheet.getByRole("button", { name: "Add a time" }).click();
+  await sheet.getByLabel("Range 1 from").fill("20:30");
+  await sheet.getByLabel("Range 1 to").fill("18:00");
+  await sheet.getByRole("button", { name: "Save day" }).click();
+  await expect(sheet.getByRole("alert")).toHaveText(
+    "Range 1 must start before it ends (a range can’t cross midnight).",
+  );
+});

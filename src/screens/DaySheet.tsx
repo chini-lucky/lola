@@ -18,6 +18,17 @@ const rangeOf = (range: string): Range => {
 const isValid = (range: Range) => range.from !== "" && range.to !== "" && range.from < range.to;
 const textOf = (range: Range) => `${range.from}-${range.to}`;
 
+/** What is wrong with the first range that is not valid, or null if they all are. */
+function rangesProblem(ranges: Range[]): string | null {
+  const index = ranges.findIndex((range) => !isValid(range));
+  const range = ranges[index];
+  if (range === undefined) return null;
+  const n = (index + 1).toString();
+  return range.from === "" || range.to === ""
+    ? `Fill in both times of range ${n}, or remove it.`
+    : `Range ${n} must start before it ends (a range can’t cross midnight).`;
+}
+
 /** Admin only: a bottom sheet to record a day's OT ranges. */
 export function DaySheet(props: {
   date: string;
@@ -56,6 +67,11 @@ export function DaySheet(props: {
   }
 
   async function save() {
+    const problem = rangesProblem(ranges);
+    if (problem !== null) {
+      setError(problem);
+      return;
+    }
     setSaving(true);
     try {
       await saveDay(draft);
