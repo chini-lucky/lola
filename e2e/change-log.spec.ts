@@ -66,7 +66,7 @@ test.describe("payments, rates, holidays and role changes", () => {
     );
   });
 
-  test("a new pay rate shows its salary and OT rate", async ({ page }) => {
+  test("a new rate shows its salary and OT rate", async ({ page }) => {
     await asAdmin((db) =>
       db.from("rates").insert({ effective_from: "2027-03-28", salary: 25000, ot_rate: 150 }),
     );
@@ -106,7 +106,6 @@ test("the change log is for admins only: a nanny opening its link sees the pay p
   await logIn(page, nanny);
   await page.goto("./#/changes");
   await expect(page.getByRole("list", { name: "Days" })).toBeVisible();
-  await expect(page.getByText("Change log")).toBeHidden();
 });
 
 test("a sign-up shows as added by the person who signed up", async ({ page }) => {

@@ -4,12 +4,14 @@ import { periodOf } from "../pay";
 import {
   approvedPeople,
   changeLog,
+  isRole,
   waitingPeople,
   type Change,
   type LoggedTable,
 } from "../supabase";
 import {
   BackBar,
+  bangkokDay,
   dayLabel,
   dayMonth,
   ErrorAlert,
@@ -31,6 +33,10 @@ const date = (value: Json | undefined) => {
   const day = text(value);
   return day === null ? null : fullDate(day);
 };
+const weekdayDate = (value: Json | undefined) => {
+  const day = text(value);
+  return day === null ? null : dayLabel(day);
+};
 const periodOfEnd = (value: Json | undefined) => {
   const end = text(value);
   const period = end === null ? null : periodOf(end);
@@ -44,16 +50,7 @@ const ranges = (value: Json | undefined) =>
 const count = (value: Json | undefined) =>
   Array.isArray(value) && value.length > 0 ? value.length.toString() : null;
 const yes = (value: Json | undefined) => (value === true ? "yes" : null);
-const role = (value: Json | undefined) => {
-  switch (value) {
-    case "admin":
-    case "nanny":
-    case "waiting":
-      return roleLabel(value);
-    default:
-      return null;
-  }
-};
+const role = (value: Json | undefined) => (isRole(value) ? roleLabel(value) : null);
 
 /** A shown field of a logged row: its label and its value in readable form (null = none). */
 interface Field {
@@ -74,7 +71,7 @@ function describe(tbl: LoggedTable, row: Json | null): { subject: string; fields
   switch (tbl) {
     case "days":
       return {
-        subject: `Day ${dayLabel(text(get(row, "date")) ?? "")}`,
+        subject: `Day ${weekdayDate(get(row, "date")) ?? "?"}`,
         fields: [
           field("OT", "ot", ranges),
           field("Leave", "leave", yes),
@@ -146,37 +143,13 @@ function summary(change: Change): string {
   return parts.length === 0 ? subject : `${subject}: ${parts.join(" · ")}`;
 }
 
-function opLabel(op: Change["op"]): string {
-  switch (op) {
-    case "insert":
-      return "Added";
-    case "update":
-      return "Changed";
-    case "delete":
-      return "Removed";
-    default: {
-      const unreachable: never = op;
-      return unreachable;
-    }
-  }
-}
+/** How each kind of change is labelled, and its badge class. */
+const ops: Record<Change["op"], { label: string; badge: string }> = {
+  insert: { label: "Added", badge: "add" },
+  update: { label: "Changed", badge: "edit" },
+  delete: { label: "Removed", badge: "del" },
+};
 
-function opClass(op: Change["op"]): string {
-  switch (op) {
-    case "insert":
-      return "add";
-    case "update":
-      return "edit";
-    case "delete":
-      return "del";
-    default: {
-      const unreachable: never = op;
-      return unreachable;
-    }
-  }
-}
-
-const bangkokDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" });
 const bangkokTime = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Bangkok",
   hour: "2-digit",
@@ -194,7 +167,7 @@ function dayHeading(day: string, today: string): string {
 function byDay(changes: Change[]): [string, Change[]][] {
   const days = new Map<string, Change[]>();
   for (const change of changes) {
-    const day = bangkokDate.format(new Date(change.at));
+    const day = bangkokDay(new Date(change.at));
     days.set(day, [...(days.get(day) ?? []), change]);
   }
   return [...days];
@@ -266,11 +239,13 @@ export function ChangeLog() {
                       <li
                         className="lg"
                         key={change.id}
-                        aria-label={`${time}, ${opLabel(change.op)} ${what}, by ${who}`}
+                        aria-label={`${time}, ${ops[change.op].label} ${what}, by ${who}`}
                       >
                         <time dateTime={change.at}>{time}</time>
                         <span>
-                          <span className={`op ${opClass(change.op)}`}>{opLabel(change.op)}</span>
+                          <span className={`op ${ops[change.op].badge}`}>
+                            {ops[change.op].label}
+                          </span>
                           {what}
                         </span>
                         <small>by {who}</small>

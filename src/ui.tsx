@@ -163,8 +163,10 @@ export const periodName = (period: Period) => `${monthName(period.end)} pay`;
 export const periodTitle = (period: Period) =>
   `${periodName(period)} · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
 /** Today's date in Bangkok. */
-export const todayInBangkok = () =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
+export const todayInBangkok = () => bangkokDay(new Date());
+/** The Bangkok date of a moment, as YYYY-MM-DD. */
+export const bangkokDay = (moment: Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(moment);
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** "Tue 20 Oct" */
