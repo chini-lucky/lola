@@ -4,7 +4,7 @@ select plan(7);
 insert into auth.users (id, email, aud, role) values
   ('00000000-0000-0000-0000-0000000000a1', 'boss@lola.invalid', 'authenticated', 'authenticated'),
   ('00000000-0000-0000-0000-0000000000b1', 'nan@lola.invalid', 'authenticated', 'authenticated'),
-  ('00000000-0000-0000-0000-0000000000c1', 'newbie@lola.invalid', 'authenticated', 'authenticated');
+  ('00000000-0000-0000-0000-0000000000c1', 'newcomer@lola.invalid', 'authenticated', 'authenticated');
 update public.people set role = 'admin' where id = '00000000-0000-0000-0000-0000000000a1';
 update public.people set role = 'nanny' where id = '00000000-0000-0000-0000-0000000000b1';
 

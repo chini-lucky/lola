@@ -45,3 +45,37 @@ export async function signUp(username: string, password: string): Promise<string
 export async function logOut(): Promise<void> {
   await supabase.auth.signOut();
 }
+
+const personColumns = "id, username, role, created_at";
+
+function toPerson(row: { id: string; username: string; role: string; created_at: string }): Person {
+  return { ...row, role: row.role as Role }; // people.role is checked in the DB
+}
+
+/** The signed-in person's own row, or null if it is gone (account removed). */
+export async function myPerson(id: string): Promise<Person | null> {
+  const { data, error } = await supabase
+    .from("people")
+    .select(personColumns)
+    .eq("id", id)
+    .maybeSingle();
+  if (error !== null) throw error;
+  return data === null ? null : toPerson(data);
+}
+
+/** Admin only (RLS): sign-ups waiting for approval, oldest first. */
+export async function waitingPeople(): Promise<Person[]> {
+  const { data, error } = await supabase
+    .from("people")
+    .select(personColumns)
+    .eq("role", "waiting")
+    .order("created_at");
+  if (error !== null) throw error;
+  return data.map(toPerson);
+}
+
+/** Admin only: approving makes a waiting person a nanny. */
+export async function approve(id: string): Promise<void> {
+  const { error } = await supabase.rpc("set_role", { target: id, new_role: "nanny" });
+  if (error !== null) throw error;
+}

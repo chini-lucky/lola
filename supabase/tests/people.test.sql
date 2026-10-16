@@ -4,7 +4,7 @@ select plan(7);
 insert into auth.users (id, email, aud, role) values
   ('00000000-0000-0000-0000-0000000000a1', 'boss@lola.invalid', 'authenticated', 'authenticated'),
   ('00000000-0000-0000-0000-0000000000b1', 'nan@lola.invalid', 'authenticated', 'authenticated'),
-  ('00000000-0000-0000-0000-0000000000c1', 'newbie@lola.invalid', 'authenticated', 'authenticated');
+  ('00000000-0000-0000-0000-0000000000c1', 'newcomer@lola.invalid', 'authenticated', 'authenticated');
 update public.people set role = 'admin' where id = '00000000-0000-0000-0000-0000000000a1';
 update public.people set role = 'nanny' where id = '00000000-0000-0000-0000-0000000000b1';
 
@@ -13,7 +13,7 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
 select results_eq(
   $$select username from public.people$$,
-  $$values ('newbie')$$,
+  $$values ('newcomer')$$,
   'a waiting person sees only their own row'
 );
 select is_empty(
@@ -36,8 +36,8 @@ select results_eq(
 
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}';
 select results_eq(
-  $$select username from public.people where username in ('boss', 'nan', 'newbie') order by username$$,
-  $$values ('boss'), ('nan'), ('newbie')$$,
+  $$select username from public.people where username in ('boss', 'nan', 'newcomer') order by username$$,
+  $$values ('boss'), ('nan'), ('newcomer')$$,
   'an admin sees everyone'
 );
 select is_empty(

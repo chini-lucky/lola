@@ -2,11 +2,11 @@ begin;
 select plan(2);
 
 insert into auth.users (id, email, aud, role)
-values ('00000000-0000-0000-0000-0000000000c1', 'newbie@lola.invalid', 'authenticated', 'authenticated');
+values ('00000000-0000-0000-0000-0000000000c1', 'newcomer@lola.invalid', 'authenticated', 'authenticated');
 
 select results_eq(
   $$select username, role from public.people where id = '00000000-0000-0000-0000-0000000000c1'$$,
-  $$values ('newbie', 'waiting')$$,
+  $$values ('newcomer', 'waiting')$$,
   'a new sign-up is a waiting person named after their username'
 );
 
