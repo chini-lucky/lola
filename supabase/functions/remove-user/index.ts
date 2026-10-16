@@ -43,7 +43,19 @@ Deno.serve(async (req) => {
   if (userId === caller.user.id) return json(400, { error: "you cannot remove yourself" });
 
   const asService = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), noSession);
+  const { data: removed, error: readError } = await asService
+    .from("people")
+    .select()
+    .eq("id", userId)
+    .maybeSingle();
+  if (readError !== null) return json(500, { error: readError.message });
+  if (removed === null) return json(404, { error: "no such person" });
   const { error: deleteError } = await asService.auth.admin.deleteUser(userId); // people row cascades
   if (deleteError !== null) return json(500, { error: deleteError.message });
+  // The audit trigger skips people deletes (it would not know the admin): log who removed whom.
+  const { error: auditError } = await asService
+    .from("audit_log")
+    .insert({ actor: caller.user.id, tbl: "people", op: "delete", old: removed });
+  if (auditError !== null) return json(500, { error: auditError.message });
   return json(200, { ok: true });
 });

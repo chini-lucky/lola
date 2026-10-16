@@ -17,3 +17,17 @@ test("a removed person can no longer log in", async () => {
   expect(await removeUserStatus(admin, target)).toBe(200);
   await expect(loggedIn(username, "a-good-password")).rejects.toThrow("Invalid login credentials");
 });
+
+test("removing a person is logged with who removed whom", async () => {
+  const username = newUsername("gone");
+  const target = await signUpWaiting(username, "a-good-password");
+  await removeUserStatus(admin, target);
+  const asAdmin = await loggedIn(admin.username, admin.password);
+  const { data } = await asAdmin
+    .from("audit_log")
+    .select("tbl, op, actor, old->>username")
+    .order("id", { ascending: false })
+    .limit(1)
+    .single();
+  expect(data).toEqual({ tbl: "people", op: "delete", actor: admin.id, username });
+});
