@@ -13,4 +13,8 @@ describe("pay period", () => {
   test("the first pay period starts on the start date, 14 Sep 2026", () => {
     expect(periodOf("2026-09-14")).toEqual({ start: "2026-09-14", end: "2026-09-27" });
   });
+
+  test("13 Sep 2026 is before the start date, so it is in no pay period", () => {
+    expect(periodOf("2026-09-13")).toBeNull();
+  });
 });

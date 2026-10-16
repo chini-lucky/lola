@@ -18,8 +18,9 @@ function parts(date: string): [number, number, number] {
   return [year, month, day];
 }
 
-/** The pay period a date falls in. */
-export function periodOf(date: string): Period {
+/** The pay period a date falls in, or null before the start date. */
+export function periodOf(date: string): Period | null {
+  if (date < START_DATE) return null;
   const [year, month, day] = parts(date);
   const endMonth = day >= 28 ? month + 1 : month;
   const start = iso(year, endMonth - 1, 28);
