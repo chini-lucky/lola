@@ -51,6 +51,26 @@ export function Login() {
           Create account
         </a>
       </div>
+      <div className="grow" />
+      <div className="a2hs">
+        <span className="ic">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 3v12M7.5 7.5L12 3l4.5 4.5" />
+            <path d="M6 11H5v9h14v-9h-1" />
+          </svg>
+        </span>
+        <span>
+          <b>Add Lola to your Home Screen.</b> In Safari tap Share, then “Add to Home Screen”.
+          Otherwise iPhone may log you out after about 7 days.
+        </span>
+      </div>
     </div>
   );
 }
