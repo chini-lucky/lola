@@ -59,3 +59,10 @@ export async function signUpNanny(username: string, password: string): Promise<s
   if (error !== null) throw error;
   return id;
 }
+
+/** Deletes every exception day from one date to another, as the admin. */
+export async function clearDays(from: string, to: string): Promise<void> {
+  const asAdmin = await loggedIn(admin.username, admin.password);
+  const { error } = await asAdmin.from("days").delete().gte("date", from).lte("date", to);
+  if (error !== null) throw error;
+}

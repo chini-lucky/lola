@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { DaySheet } from "./DaySheet";
 import {
   currentPeriod,
   nextPeriod,
@@ -32,16 +33,20 @@ const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(
 
 /** The main screen for admin and nanny: one pay period at a time, ‹ › to move. */
 export function PeriodView({ person }: { person: Person }) {
+  const isAdmin = person.role === "admin";
   const [today] = useState(todayInBangkok);
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The date in the day sheet, or no sheet.
+  const [editing, setEditing] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     payFacts().then(setFacts, () => {
       setError("Couldn’t load the pay data. Check your connection and reload.");
     });
   }, []);
+  useEffect(load, [load]);
 
   const prev = prevPeriod(period);
   const payDay = payDayOf(period);
@@ -49,7 +54,7 @@ export function PeriodView({ person }: { person: Person }) {
 
   return (
     <div className="screen">
-      {person.role === "admin" ? (
+      {isAdmin ? (
         <div className="top">
           <div className="hi">
             <h1>
@@ -109,12 +114,30 @@ export function PeriodView({ person }: { person: Person }) {
         {facts !== null && (
           <>
             <Totals period={period} facts={facts} />
-            <Calendar period={period} facts={facts} today={today} />
+            <Calendar
+              period={period}
+              facts={facts}
+              today={today}
+              onDayTap={isAdmin ? setEditing : null}
+            />
             <OtLeaveList period={period} facts={facts} />
           </>
         )}
       </section>
-      {person.role === "admin" && (
+      {editing !== null && facts !== null && (
+        <DaySheet
+          date={editing}
+          facts={facts}
+          onClose={() => {
+            setEditing(null);
+          }}
+          onSaved={() => {
+            setEditing(null);
+            load();
+          }}
+        />
+      )}
+      {isAdmin && (
         <>
           <a className="navrow" href="#/people">
             <span>People</span>

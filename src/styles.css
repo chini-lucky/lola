@@ -40,6 +40,7 @@
   --ok-ink: #2f6b3f;
   --danger: #c2554a;
   --danger-soft: #fbe4e1;
+  --scrim: #24384a55;
   --bear: #a8744a;
   --bear-lt: #e8c79f;
   --bear-dk: #4a2e1f;
@@ -391,7 +392,8 @@ a:focus-visible {
   gap: 6px;
   text-align: left;
 }
-.field > label {
+.field > label,
+.field > span {
   font-size: 0.75rem;
   font-weight: 800;
   color: var(--muted);
@@ -814,4 +816,106 @@ a:focus-visible {
   color: var(--muted);
   font-weight: 600;
   font-size: 0.72rem;
+}
+
+/* admin taps a calendar day to edit it */
+.d .tap {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.d .tap:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.hint svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* bottom sheets (native modal dialog) */
+.sheet {
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92dvh;
+  border: 0;
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 28px 28px 0 0;
+  padding: 10px 18px 22px;
+  box-shadow: 0 -10px 30px -12px #0003;
+}
+.sheet::backdrop {
+  background: var(--scrim);
+}
+.sheet form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.grab {
+  width: 40px;
+  height: 5px;
+  border-radius: 9px;
+  background: var(--line);
+  margin: 0 auto 2px;
+}
+.sheet h4 {
+  margin: 0;
+  font-family: var(--font-d);
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+.sheet .sub {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+/* day sheet */
+.btn.dash {
+  background: transparent;
+  color: var(--accent-ink);
+  box-shadow: inset 0 0 0 1.5px var(--t-line);
+  border-radius: var(--r-item);
+  font-size: 0.88rem;
+  padding: 11px;
+}
+.range {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.range .arrow {
+  color: var(--muted);
+}
+.calc {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: var(--ot);
+  color: var(--ot-ink);
+  border-radius: var(--r-item);
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.calc b {
+  font-family: var(--font-d);
+  font-size: 1.1rem;
+  white-space: nowrap;
 }

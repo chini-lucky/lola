@@ -1,6 +1,6 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database } from "./db.types";
-import type { PayFacts } from "./pay";
+import type { Day, PayFacts } from "./pay";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
@@ -135,4 +135,16 @@ export async function payFacts(): Promise<PayFacts> {
     holidays: holidays.data.map((holiday) => holiday.date),
     days: days.data,
   };
+}
+
+/** Admin only (RLS): adds the exception day, or replaces the one on its date. */
+export async function saveDay(day: Day): Promise<void> {
+  const { error } = await supabase.from("days").upsert(day);
+  if (error !== null) throw error;
+}
+
+/** Admin only (RLS): the day goes back to normal. */
+export async function clearDay(date: string): Promise<void> {
+  const { error } = await supabase.from("days").delete().eq("date", date);
+  if (error !== null) throw error;
 }

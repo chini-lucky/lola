@@ -138,8 +138,10 @@ const dayOfMonth = (date: string) => Number(date.slice(8, 10));
 export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
+/** "Tue 20 Oct" */
+export const dayLabel = (date: string) => `${weekdayName(date)} ${dayMonth(date)}`;
 /** OT minutes as hours: "2.5 h". */
-const hours = (minutes: number) => `${(minutes / 60).toString()} h`;
+export const hours = (minutes: number) => `${(minutes / 60).toString()} h`;
 /** OT minutes as hours in a calendar cell: "2.5h". */
 const hoursShort = (minutes: number) => `${(minutes / 60).toString()}h`;
 /** Minutes as "1h 10m". */
@@ -196,7 +198,13 @@ function cellText(kind: DayKind, day: Day | undefined, facts: PayFacts): string 
 const daysByDate = (days: Day[]) => new Map(days.map((day) => [day.date, day]));
 
 /** The pay period's days in Monday-first weeks, coloured by kind. */
-export function Calendar(props: { period: Period; facts: PayFacts; today: string }) {
+export function Calendar(props: {
+  period: Period;
+  facts: PayFacts;
+  today: string;
+  onDayTap: ((date: string) => void) | null;
+}) {
+  const { onDayTap } = props;
   const dates = datesIn(props.period);
   const days = daysByDate(props.facts.days);
   const blanksBeforeFirstDay = (weekdayOf(props.period.start) + 6) % 7;
@@ -215,7 +223,7 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
           const day = days.get(date);
           const kind = dayKind(date, props.facts.holidays, day);
           const { className, name } = KINDS[kind];
-          const label = `${weekdayName(date)} ${dayMonth(date)}`;
+          const label = dayLabel(date);
           const text = cellText(kind, day, props.facts);
           return (
             <li
@@ -226,6 +234,16 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
               {(i === 0 || dayOfMonth(date) === 1) && <span className="m">{monthName(date)}</span>}
               <span className="n">{dayOfMonth(date)}</span>
               {text !== null && <span className="t">{text}</span>}
+              {onDayTap !== null && (
+                <button
+                  className="tap"
+                  type="button"
+                  aria-label={`Edit ${label}`}
+                  onClick={() => {
+                    onDayTap(date);
+                  }}
+                />
+              )}
             </li>
           );
         })}
@@ -252,7 +270,30 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
           Weekend
         </span>
       </div>
+      {onDayTap !== null && (
+        <div className="hint">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <circle cx="12" cy="12" r="8" opacity=".5" />
+          </svg>
+          Tap any day to add overtime or leave
+        </div>
+      )}
     </div>
+  );
+}
+
+export function Plus() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+    </svg>
   );
 }
 
