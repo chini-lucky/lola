@@ -10,7 +10,7 @@ name: Weekly backup
 on:
   schedule:
     - cron: "0 3 * * 1" # Monday: backup + ping
-    - cron: "0 3 * * 4" # Thursday: ping only
+    - cron: "0 3 * * 4" # Thursday: ping only (the backup job's `if` names this string)
   workflow_dispatch:
 
 permissions:
@@ -25,6 +25,7 @@ jobs:
   backup:
     if: github.ref == 'refs/heads/main' && github.event.schedule != '0 3 * * 4'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
     steps:
       # lola itself: `supabase link` needs the supabase/ folder.
@@ -45,7 +46,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-      # The schema dump covers only the public schema; the migrations in this repo are the full schema.
+      # The schema dump leaves out Supabase's own schemas (auth, storage); the migrations in this repo are the full schema.
       # The data dump leaves out sessions and one-time tokens.
       - name: Dump database and receipts
         run: |
@@ -75,7 +76,7 @@ jobs:
   # A real database query through the public API (the anon key is public by design).
   ping:
     needs: backup
-    if: always() && github.ref == 'refs/heads/main'
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase
