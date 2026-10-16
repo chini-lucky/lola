@@ -1,6 +1,7 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database, Json } from "./db.types";
 import type { Day, PayFacts, Payment, Rate } from "./pay";
+import { receiptType } from "./receipts";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
@@ -124,7 +125,7 @@ export async function payFacts(): Promise<PayFacts> {
     supabase.from("period_overrides").select("period_end, salary, note"),
     supabase.from("holidays").select("date"),
     supabase.from("days").select("date, ot, leave, note").order("date"),
-    supabase.from("payments").select("id, period_end, paid_on, amount, note"),
+    supabase.from("payments").select("id, period_end, paid_on, amount, note, receipts"),
   ]);
   if (rates.error !== null) throw rates.error;
   if (overrides.error !== null) throw overrides.error;
@@ -140,25 +141,60 @@ export async function payFacts(): Promise<PayFacts> {
   };
 }
 
-/** A payment as the admin enters it; the DB gives it its id. */
-export type PaymentFields = Omit<Payment, "id">;
-
-/** Admin only (RLS). */
-export async function addPayment(fields: PaymentFields): Promise<void> {
-  const { error } = await supabase.from("payments").insert(fields);
+/** Admin only (RLS). The id is made in the browser, so receipts can be stored under it first. */
+export async function addPayment(payment: Payment): Promise<void> {
+  const { error } = await supabase.from("payments").insert(payment);
   if (error !== null) throw error;
 }
 
 /** Admin only (RLS). */
-export async function editPayment(id: string, fields: PaymentFields): Promise<void> {
+export async function editPayment({ id, ...fields }: Payment): Promise<void> {
   const { error } = await supabase.from("payments").update(fields).eq("id", id);
   if (error !== null) throw error;
 }
 
-/** Admin only (RLS). */
-export async function deletePayment(id: string): Promise<void> {
-  const { error } = await supabase.from("payments").delete().eq("id", id);
+/** Admin only (RLS): deletes the payment, then its receipt files. */
+export async function deletePayment(payment: Payment): Promise<void> {
+  const { error } = await supabase.from("payments").delete().eq("id", payment.id);
   if (error !== null) throw error;
+  // The payment is gone, so a file left behind by a failed remove is harmless.
+  await removeReceipts(payment.receipts).catch(() => undefined);
+}
+
+const receipts = () => supabase.storage.from("receipts");
+
+/** Admin only (storage policy). Stores a receipt file at the given path. */
+export async function uploadReceipt(path: string, file: File): Promise<void> {
+  const contentType = receiptType(file);
+  const { error } = await receipts().upload(path, file, { contentType, upsert: false });
+  if (error !== null) throw error;
+}
+
+/** Admin only (storage policy). Without the right, Storage removes nothing and says nothing. */
+export async function removeReceipts(paths: string[]): Promise<void> {
+  if (paths.length === 0) return;
+  const { data, error } = await receipts().remove(paths);
+  if (error !== null) throw error;
+  if (data.length !== paths.length) throw new Error("Some receipts were not removed");
+}
+
+/** Short-lived links to view receipts, by path (admin and nanny). */
+export async function receiptLinks(paths: string[]): Promise<Map<string, string>> {
+  if (paths.length === 0) return new Map();
+  const { data, error } = await receipts().createSignedUrls(paths, 60 * 60);
+  if (error !== null) throw error;
+  return new Map(
+    data.flatMap(({ path, signedUrl }) =>
+      path === null || signedUrl === null ? [] : [[path, signedUrl]],
+    ),
+  );
+}
+
+/** A one-minute link that downloads the receipt as the given file name. */
+export async function receiptDownloadLink(path: string, name: string): Promise<string> {
+  const { data, error } = await receipts().createSignedUrl(path, 60, { download: name });
+  if (error !== null) throw error;
+  return data.signedUrl;
 }
 
 /** Admin only (RLS): adds a rate, or replaces the one starting on the same date. */

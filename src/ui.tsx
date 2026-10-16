@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   currentPeriod,
   datesIn,
@@ -20,6 +20,7 @@ import {
   type Period,
   type Rate,
 } from "./pay";
+import { isPdf, receiptName } from "./receipts";
 import type { Holiday, Role } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
@@ -221,10 +222,85 @@ export function Pen() {
   );
 }
 
-/** The pay period's payments by date paid, each with an edit pen for the admin. */
+function Download() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+      <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** A receipt tile's corner button that takes it off the payment. */
+export function RemoveReceipt(props: { name: string; onClick: () => void }) {
+  return (
+    <button className="x" type="button" aria-label={`Remove ${props.name}`} onClick={props.onClick}>
+      <Cross />
+    </button>
+  );
+}
+
+/**
+ * A receipt as a small tile with its name under it: the image itself when there is a link to
+ * it (a PDF, or an image the browser can't show, is drawn as a sheet of paper), and the tile's
+ * corner button.
+ */
+export function Receipt(props: { name: string; link: string | null; children?: ReactNode }) {
+  const { name, link } = props;
+  const [undrawable, setUndrawable] = useState(false); // e.g. HEIC outside Safari
+  const face =
+    link === null || isPdf(name) || undrawable ? (
+      <>
+        <i />
+        <i />
+        <i />
+        <i />
+        {isPdf(name) && <span className="tag">PDF</span>}
+      </>
+    ) : (
+      <img
+        src={link}
+        alt=""
+        onError={() => {
+          setUndrawable(true);
+        }}
+      />
+    );
+  return (
+    <div className="rcw">
+      <div className="rc">
+        {link === null ? (
+          face
+        ) : (
+          <a
+            className="face"
+            href={link}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Open ${name}`}
+          >
+            {face}
+          </a>
+        )}
+        {props.children}
+      </div>
+      <span>{name}</span>
+    </div>
+  );
+}
+
+const receiptCount = (count: number) =>
+  `${count.toString()} ${count === 1 ? "receipt" : "receipts"}`;
+
+/**
+ * The pay period's payments by date paid, each with its receipts to open and download, and an
+ * edit pen for the admin.
+ */
 export function Payments(props: {
   period: Period;
   facts: PayFacts;
+  /** Links to view the period's receipts, by path. */
+  links: Map<string, string>;
+  onDownload: (path: string) => void;
   onEdit: ((payment: Payment) => void) | null;
 }) {
   const { period, facts, onEdit } = props;
@@ -242,30 +318,56 @@ export function Payments(props: {
       ) : (
         <ul className="items" aria-label="Payments">
           {payments.map((payment) => (
-            <li className="item" key={payment.id}>
-              <div className="chip pay">
-                <small>{weekdayName(payment.paid_on)}</small>
-                <b>{dayOfMonth(payment.paid_on)}</b>
+            <li className="payment" key={payment.id}>
+              <div className="item">
+                <div className="chip pay">
+                  <small>{weekdayName(payment.paid_on)}</small>
+                  <b>{dayOfMonth(payment.paid_on)}</b>
+                </div>
+                <div className="what">
+                  <b>{payment.note ?? "Payment"}</b>
+                  <small>
+                    Paid {dayMonth(payment.paid_on)}
+                    {payment.receipts.length > 0 && ` · ${receiptCount(payment.receipts.length)}`}
+                  </small>
+                </div>
+                <div className="amt">
+                  {money(payment.amount)}
+                  <small>THB</small>
+                </div>
+                {onEdit !== null && (
+                  <button
+                    className="pen"
+                    type="button"
+                    aria-label={`Edit payment ${money(payment.amount)} paid ${dayMonth(payment.paid_on)}`}
+                    onClick={() => {
+                      onEdit(payment);
+                    }}
+                  >
+                    <Pen />
+                  </button>
+                )}
               </div>
-              <div className="what">
-                <b>{payment.note ?? "Payment"}</b>
-                <small>Paid {dayMonth(payment.paid_on)}</small>
-              </div>
-              <div className="amt">
-                {money(payment.amount)}
-                <small>THB</small>
-              </div>
-              {onEdit !== null && (
-                <button
-                  className="pen"
-                  type="button"
-                  aria-label={`Edit payment ${money(payment.amount)} paid ${dayMonth(payment.paid_on)}`}
-                  onClick={() => {
-                    onEdit(payment);
-                  }}
-                >
-                  <Pen />
-                </button>
+              {payment.receipts.length > 0 && (
+                <div className="rcs">
+                  {payment.receipts.map((path) => {
+                    const name = receiptName(path);
+                    return (
+                      <Receipt key={path} name={name} link={props.links.get(path) ?? null}>
+                        <button
+                          className="dl"
+                          type="button"
+                          aria-label={`Download ${name}`}
+                          onClick={() => {
+                            props.onDownload(path);
+                          }}
+                        >
+                          <Download />
+                        </button>
+                      </Receipt>
+                    );
+                  })}
+                </div>
               )}
             </li>
           ))}
