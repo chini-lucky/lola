@@ -167,7 +167,7 @@ export const periodName = (period: Period) => `${monthName(period.end)} pay`;
 export const periodTitle = (period: Period) =>
   `${periodName(period)} · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
 /** A moment's date in Bangkok, YYYY-MM-DD. */
-const bangkokDate = (at: Date) =>
+export const bangkokDate = (at: Date) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(at);
 /** Today's date in Bangkok. */
 export const todayInBangkok = () => bangkokDate(new Date());
@@ -233,7 +233,7 @@ export function Pen() {
   );
 }
 
-function Download() {
+export function Download() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
       <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
@@ -639,7 +639,10 @@ export function Copy() {
 type ConfirmationState =
   { kind: "waiting" } | { kind: "confirmed" | "stale"; confirmation: Confirmation };
 
-function confirmationState(confirmation: Confirmation | null, summary: Summary): ConfirmationState {
+export function confirmationState(
+  confirmation: Confirmation | null,
+  summary: Summary,
+): ConfirmationState {
   if (confirmation === null) return { kind: "waiting" };
   return { kind: isStale(confirmation.snapshot, summary) ? "stale" : "confirmed", confirmation };
 }

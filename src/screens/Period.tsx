@@ -16,6 +16,7 @@ import { receiptName } from "../receipts";
 import {
   confirm,
   confirmations,
+  holidays,
   payFacts,
   receiptDownloadLink,
   receiptLinks,
@@ -29,6 +30,7 @@ import {
   ConfirmButton,
   Copy,
   dayMonth,
+  Download,
   ErrorAlert,
   OtLeaveList,
   Payments,
@@ -138,6 +140,27 @@ export function PeriodView({ person }: { person: Person }) {
         setError("Couldn’t download the receipt. Check your connection and try again.");
       },
     );
+  }
+
+  function downloadPayslip() {
+    if (facts === null) return;
+    setError(null);
+    // The footer names the app as the address bar shows it: "chini-lucky.github.io/lola".
+    const site = `${window.location.host}${window.location.pathname}`.replace(/\/$/, "");
+    Promise.all([import("../payslip"), holidays()])
+      .then(([payslip, loadedHolidays]) =>
+        payslip.downloadPayslip({
+          period,
+          facts,
+          holidays: loadedHolidays,
+          confirmation,
+          today,
+          site,
+        }),
+      )
+      .catch(() => {
+        setError("Couldn’t make the payslip. Check your connection and try again.");
+      });
   }
 
   const prev = prevPeriod(period);
@@ -256,6 +279,10 @@ export function PeriodView({ person }: { person: Person }) {
                   : null
               }
             />
+            <button className="btn sec" type="button" onClick={downloadPayslip}>
+              <Download />
+              Download payslip
+            </button>
             {!isAdmin && (
               <ConfirmButton
                 confirmation={confirmation}
