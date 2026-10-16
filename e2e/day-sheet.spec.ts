@@ -53,3 +53,17 @@ test("an admin removes one of a day's OT ranges and edits the other: 3 h becomes
   await sheet.getByRole("button", { name: "Save day" }).click();
   await expect(novPay(page)).toContainText(/Overtime 1 h\s*150\s*Total\s*20,150/);
 });
+
+test("an admin marks a day as leave with a note; the list shows it with no deduction", async ({
+  page,
+}) => {
+  await adminOn16Nov(page);
+  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
+  await sheet.getByRole("switch", { name: /Leave/ }).check();
+  await sheet.getByLabel("Note").fill("Sick day");
+  await sheet.getByRole("button", { name: "Save day" }).click();
+  await expect(
+    page.getByRole("list", { name: "Overtime & leave" }).getByRole("listitem"),
+  ).toHaveText([/^Tue17.*Leave.*Sick day · no deduction/]);
+});

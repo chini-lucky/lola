@@ -29,7 +29,7 @@ function rangesProblem(ranges: Range[]): string | null {
     : `Range ${n} must start before it ends (a range can’t cross midnight).`;
 }
 
-/** Admin only: a bottom sheet to record a day's OT ranges. */
+/** Admin only: a bottom sheet to record a day's OT ranges, leave and note. */
 export function DaySheet(props: {
   date: string;
   facts: PayFacts;
@@ -40,6 +40,8 @@ export function DaySheet(props: {
   const { date, facts } = props;
   const day = facts.days.find((d) => d.date === date);
   const [ranges, setRanges] = useState<Range[]>(() => day?.ot.map(rangeOf) ?? []);
+  const [leave, setLeave] = useState(day?.leave ?? false);
+  const [note, setNote] = useState(day?.note ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -52,8 +54,8 @@ export function DaySheet(props: {
   const draft: Day = {
     date,
     ot: ranges.map(textOf),
-    leave: day?.leave ?? false,
-    note: day?.note ?? null,
+    leave,
+    note: note.trim() === "" ? null : note.trim(),
   };
   // The OT so far, from the ranges filled in correctly.
   const ot = dayOt(
@@ -175,6 +177,34 @@ export function DaySheet(props: {
             <b>{money(ot.pay)} THB</b>
           </div>
         )}
+        <label className="toggle" htmlFor="day-leave">
+          <span>
+            <b>Leave / day off</b>
+            <small>Shown to Lola, no pay deduction</small>
+          </span>
+          <span className="sw-in">
+            <input
+              id="day-leave"
+              type="checkbox"
+              role="switch"
+              checked={leave}
+              onChange={(event) => {
+                setLeave(event.target.checked);
+              }}
+            />
+          </span>
+        </label>
+        <div className="field">
+          <label htmlFor="day-note">Note</label>
+          <textarea
+            className="inp"
+            id="day-note"
+            value={note}
+            onChange={(event) => {
+              setNote(event.target.value);
+            }}
+          />
+        </div>
         <ErrorAlert message={error} />
         <button className="btn pri" type="submit" disabled={saving}>
           Save day
