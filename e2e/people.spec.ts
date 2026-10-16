@@ -9,6 +9,7 @@ test("reject removes a waiting sign-up", async ({ page }) => {
   await logIn(page, admin);
   await page.getByRole("link", { name: "People" }).click();
   await page.getByRole("button", { name: `Reject ${username}` }).click();
+  await expect(page.getByText(username)).toBeHidden();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Waiting for approval" })).toBeVisible();
   await expect(page.getByText(username)).toBeHidden();
@@ -31,6 +32,7 @@ test("remove deletes an approved person", async ({ page }) => {
   await logIn(page, admin);
   await page.getByRole("link", { name: "People" }).click();
   await page.getByRole("button", { name: `Remove ${username}` }).click();
+  await expect(page.getByText(username)).toBeHidden();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Approved" })).toBeVisible();
   await expect(page.getByText(username)).toBeHidden();
