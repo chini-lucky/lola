@@ -1,5 +1,5 @@
 begin;
-select plan(15);
+select plan(18);
 
 insert into auth.users (id, email, aud, role) values
   ('00000000-0000-0000-0000-0000000000a1', 'boss@lola.invalid', 'authenticated', 'authenticated'),
@@ -96,12 +96,22 @@ select is_empty(
   $$delete from public.audit_log returning 1$$,
   'an admin cannot erase the change log'
 );
+select is_empty(
+  $$update public.audit_log set new = null returning 1$$,
+  'an admin cannot rewrite the change log'
+);
 
 reset role;
 update public.people set role = 'nanny' where id = '00000000-0000-0000-0000-0000000000b1';
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}';
 select is_empty($$select 1 from public.audit_log$$, 'a nanny cannot read the change log');
+select throws_ok(
+  $$insert into public.audit_log (tbl, op) values ('days', 'delete')$$,
+  '42501',
+  null,
+  'a nanny cannot write the change log'
+);
 
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
 select is_empty($$select 1 from public.audit_log$$, 'a waiting person cannot read the change log');
@@ -110,6 +120,12 @@ reset role;
 set local role anon;
 set local request.jwt.claims = '{"role":"anon"}';
 select is_empty($$select 1 from public.audit_log$$, 'anonymous visitors cannot read the change log');
+select throws_ok(
+  $$insert into public.audit_log (tbl, op) values ('days', 'delete')$$,
+  '42501',
+  null,
+  'anonymous visitors cannot write the change log'
+);
 
 select * from finish();
 rollback;
