@@ -7,7 +7,7 @@ test("a nanny changes her password, logs out and logs back in with it", async ({
   const nanny = { username: newUsername("nanny"), password: "first-password" };
   await signUpNanny(nanny.username, nanny.password);
   await logIn(page, nanny);
-  await page.getByRole("link", { name: "Account", exact: true }).click();
+  await page.getByRole("link", { name: /^Account/ }).click();
   await page.getByLabel("Current password").fill(nanny.password);
   await page.getByLabel("New password", { exact: true }).fill("second-password");
   await page.getByLabel("Repeat new password").fill("second-password");
@@ -20,7 +20,7 @@ test("a nanny changes her password, logs out and logs back in with it", async ({
 
 test("a new password shorter than 10 characters is refused", async ({ page }) => {
   await logIn(page, admin);
-  await page.getByRole("link", { name: "Account", exact: true }).click();
+  await page.getByRole("link", { name: /^Account/ }).click();
   await page.getByLabel("Current password").fill(admin.password);
   await page.getByLabel("New password", { exact: true }).fill("123456789");
   await page.getByLabel("Repeat new password").fill("123456789");
