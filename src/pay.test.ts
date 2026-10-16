@@ -4,6 +4,7 @@ import {
   datesIn,
   dayKind,
   dayOt,
+  isDraft,
   isStale,
   nextPeriod,
   otReason,
@@ -422,5 +423,19 @@ describe("stale confirmation", () => {
   test("changing a day's OT makes a confirmation stale", () => {
     const otChanged = { ...facts, days: [{ ...day, ot: ["18:00-21:00"] }] };
     expect(isStale(confirmed, summarize(octPay, otChanged))).toBe(true);
+  });
+});
+
+describe("payslip draft", () => {
+  test("a payslip is a draft on the last day of its pay period, even fully paid", () => {
+    expect(isDraft(octPay, 0, "2026-10-27")).toBe(true);
+  });
+
+  test("a payslip is a draft while its pay period has a balance, even once over", () => {
+    expect(isDraft(octPay, 250, "2026-11-05")).toBe(true);
+  });
+
+  test("a payslip is final once its pay period is over and fully paid", () => {
+    expect(isDraft(octPay, 0, "2026-10-28")).toBe(false);
   });
 });

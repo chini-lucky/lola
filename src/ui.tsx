@@ -182,6 +182,9 @@ const checked = ({ total, paid }: Snapshot) => `total ${money(total)} · paid ${
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** "Tue 20 Oct" */
 export const dayLabel = (date: string) => `${weekdayName(date)} ${dayMonth(date)}`;
+/** A day's OT ranges with en dashes, joined: "07:00–08:00 · 18:00–20:00". */
+export const otTimes = (day: Day, separator: string) =>
+  day.ot.map((range) => range.replace("-", "–")).join(separator);
 /** OT minutes as hours: "2.5 h". */
 export const hours = (minutes: number) => `${(minutes / 60).toString()} h`;
 /** OT minutes as hours in a calendar cell: "2.5h". */
@@ -235,7 +238,7 @@ export function Pen() {
   );
 }
 
-function Download() {
+export function Download() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
       <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
@@ -553,7 +556,7 @@ function OtItem({ day, facts, onEditDay }: { day: Day; facts: PayFacts; onEditDa
     <li className="item">
       <DateChip date={day.date} className="ot" />
       <div className="what">
-        <b className="num">{day.ot.map((range) => range.replace("-", "–")).join(" · ")}</b>
+        <b className="num">{otTimes(day, " · ")}</b>
         {details.length > 0 && <small>{details.join(" · ")}</small>}
       </div>
       <div className="amt">
@@ -641,7 +644,10 @@ export function Copy() {
 type ConfirmationState =
   { kind: "waiting" } | { kind: "confirmed" | "stale"; confirmation: Confirmation };
 
-function confirmationState(confirmation: Confirmation | null, summary: Summary): ConfirmationState {
+export function confirmationState(
+  confirmation: Confirmation | null,
+  summary: Summary,
+): ConfirmationState {
   if (confirmation === null) return { kind: "waiting" };
   return { kind: isStale(confirmation.snapshot, summary) ? "stale" : "confirmed", confirmation };
 }

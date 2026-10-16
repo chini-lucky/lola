@@ -218,8 +218,8 @@ export function otReason(day: Day, holidays: string[]): string {
   return reasons.filter((reason) => reason !== null).join(" + ");
 }
 
-/** The exception days that fall in the pay period. */
-export function daysIn(period: Period, days: Day[]): Day[] {
+/** The exception days (or holidays, or anything dated) that fall in the pay period. */
+export function daysIn<Dated extends { date: string }>(period: Period, days: Dated[]): Dated[] {
   return days.filter((day) => day.date >= period.start && day.date <= period.end);
 }
 
@@ -282,4 +282,9 @@ export function snapshotOf(summary: Summary): Snapshot {
 /** A confirmation is stale once its money numbers (total, paid) no longer match. */
 export function isStale(snapshot: Snapshot, now: Summary): boolean {
   return snapshot.total !== now.total || snapshot.paid !== now.paid;
+}
+
+/** A payslip is a draft until its pay period is over (today is past its end) and fully paid. */
+export function isDraft(period: Period, balance: number, today: string): boolean {
+  return today <= period.end || balance > 0;
 }
