@@ -2,7 +2,7 @@
 // The password goes only to a file outside the repo (mode 600); it is never printed.
 //
 //   node scripts/create-admin.ts <project-ref>   production (needs `supabase login`)
-//   node scripts/create-admin.ts local <file>    local stack, for trying the script
+//   scripts/slot.sh node scripts/create-admin.ts local <file>   this checkout's local stack (trial run)
 //
 // The service role key is read from the Supabase CLI for this run only, never stored.
 import { execFileSync } from "node:child_process";
