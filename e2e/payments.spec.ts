@@ -91,3 +91,11 @@ test("admin deletes a payment: it leaves the Payments list", async ({ page }) =>
   await deletePayment(page, "Edit payment 300 paid 16 Oct");
   await expect(page.getByRole("listitem").filter({ hasText: "Mistake" })).toHaveCount(0);
 });
+
+test("a payment's amount must be whole baht above 0", async ({ page }) => {
+  await logInOn(page, "2026-10-16", admin);
+  await addPayment(page, "0", "Nothing");
+  await expect(page.getByRole("dialog", { name: "Add payment" }).getByRole("alert")).toHaveText(
+    "Amount must be whole baht, more than 0.",
+  );
+});
