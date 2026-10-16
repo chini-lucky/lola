@@ -33,3 +33,23 @@ begin
 end $$;
 revoke execute on function public.set_role(uuid, text) from public, anon;
 grant execute on function public.set_role(uuid, text) to authenticated;
+
+-- Pay data tables: admin and nanny read; only admin writes.
+do $$
+declare t text;
+begin
+  foreach t in array array['days', 'payments', 'rates', 'holidays', 'period_overrides'] loop
+    execute format('alter table public.%I enable row level security', t);
+    execute format(
+      'create policy "admin and nanny read" on public.%I for select to authenticated
+         using ((select public.my_role()) in (''admin'', ''nanny''))', t);
+    execute format(
+      'create policy "admin writes" on public.%I for all to authenticated
+         using ((select public.my_role()) = ''admin'') with check ((select public.my_role()) = ''admin'')', t);
+  end loop;
+end $$;
+
+-- Confirmations: admin and nanny read; nobody edits or deletes one.
+alter table public.confirmations enable row level security;
+create policy "admin and nanny read" on public.confirmations for select to authenticated
+  using ((select public.my_role()) in ('admin', 'nanny'));
