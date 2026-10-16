@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
-import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Period } from "../pay";
-import { payFacts, type PayFacts, type Person } from "../supabase";
-import { Bear, Calendar, dayMonth, ErrorAlert, monthName, Totals, weekdayName } from "../ui";
+import {
+  currentPeriod,
+  nextPeriod,
+  payDayOf,
+  prevPeriod,
+  type PayFacts,
+  type Period,
+} from "../pay";
+import { payFacts, type Person } from "../supabase";
+import {
+  Bear,
+  Calendar,
+  dayMonth,
+  ErrorAlert,
+  monthName,
+  OtLeaveList,
+  Totals,
+  weekdayName,
+} from "../ui";
 
 /** "Oct pay · 28 Sep – 27 Oct" */
 function periodTitle(period: Period): string {
@@ -93,7 +109,8 @@ export function PeriodView({ person }: { person: Person }) {
         {facts !== null && (
           <>
             <Totals period={period} facts={facts} />
-            <Calendar period={period} holidays={facts.holidays} today={today} />
+            <Calendar period={period} facts={facts} today={today} />
+            <OtLeaveList period={period} facts={facts} />
           </>
         )}
       </section>

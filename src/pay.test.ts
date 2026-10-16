@@ -3,11 +3,14 @@ import {
   currentPeriod,
   datesIn,
   dayKind,
+  dayOt,
   nextPeriod,
+  otReason,
   payDayOf,
   periodOf,
   prevPeriod,
   salaryOf,
+  summarize,
   type Rate,
 } from "./pay";
 
@@ -122,6 +125,21 @@ describe("days of a pay period", () => {
 });
 
 describe("day kind", () => {
+  test("OT on a holiday shows as OT", () => {
+    const day = { date: "2026-10-13", ot: ["10:00-12:00"], leave: false, note: null };
+    expect(dayKind("2026-10-13", ["2026-10-13"], day)).toBe("ot");
+  });
+
+  test("a leave day with OT shows as OT", () => {
+    const day = { date: "2026-10-19", ot: ["18:00-19:00"], leave: true, note: null };
+    expect(dayKind("2026-10-19", [], day)).toBe("ot");
+  });
+
+  test("leave on a holiday shows as leave", () => {
+    const day = { date: "2026-10-13", ot: [], leave: true, note: null };
+    expect(dayKind("2026-10-13", ["2026-10-13"], day)).toBe("leave");
+  });
+
   test("Saturday is a weekend", () => {
     expect(dayKind("2026-10-17", [])).toBe("weekend");
   });
@@ -136,5 +154,165 @@ describe("day kind", () => {
 
   test("a holiday on a weekend shows as a holiday", () => {
     expect(dayKind("2026-12-05", ["2026-12-05"])).toBe("holiday");
+  });
+});
+
+describe("OT", () => {
+  const holidays = ["2026-10-13", "2026-12-05"];
+  const otOn = (date: string, ot: string[]) =>
+    dayOt({ date, ot, leave: false, note: null }, [firstRate], holidays);
+
+  test("a day's OT is rounded up to the next 30 minutes: 18:00–18:01 is 30 min", () => {
+    expect(otOn("2026-10-05", ["18:00-18:01"]).paidMinutes).toBe(30);
+  });
+
+  test("a day's OT keeps the minutes counted before rounding: 18:00–19:10 is 70 min", () => {
+    expect(otOn("2026-10-07", ["18:00-19:10"]).countedMinutes).toBe(70);
+  });
+
+  test("exactly half an hour stays as is: 18:00–18:30 is 30 min", () => {
+    expect(otOn("2026-10-05", ["18:00-18:30"]).paidMinutes).toBe(30);
+  });
+
+  test("18:00–18:31 rounds up to 60 min", () => {
+    expect(otOn("2026-10-05", ["18:00-18:31"]).paidMinutes).toBe(60);
+  });
+
+  test("18:00–20:30 is 150 min, paid 375 THB at 150 THB/h", () => {
+    expect(otOn("2026-10-05", ["18:00-20:30"])).toMatchObject({ paidMinutes: 150, pay: 375 });
+  });
+
+  test("several ranges add up before the day is rounded: 07:00–08:10 + 18:00–18:20 is 90 min", () => {
+    expect(otOn("2026-10-05", ["07:00-08:10", "18:00-18:20"]).paidMinutes).toBe(90);
+  });
+
+  test("weekday OT counts only time before 09:00 or after 18:00: 08:00–19:00 is 120 min", () => {
+    expect(otOn("2026-10-05", ["08:00-19:00"]).paidMinutes).toBe(120);
+  });
+
+  test("rounding is per day, not per range: 07:30–08:00 + 18:00–18:10 is 40 → 60 min", () => {
+    expect(otOn("2026-10-05", ["07:30-08:00", "18:00-18:10"]).paidMinutes).toBe(60);
+  });
+
+  test("weekday OT counts only the part before 09:00: 08:00–10:00 is 60 min", () => {
+    expect(otOn("2026-10-05", ["08:00-10:00"]).paidMinutes).toBe(60);
+  });
+
+  test("weekday OT counts only the part after 18:00: 17:00–19:00 is 60 min", () => {
+    expect(otOn("2026-10-05", ["17:00-19:00"]).paidMinutes).toBe(60);
+  });
+
+  test("weekday OT inside 09:00–18:00 is no OT: 10:00–17:00 is 0 min", () => {
+    expect(otOn("2026-10-05", ["10:00-17:00"]).paidMinutes).toBe(0);
+  });
+
+  test("all hours on a Saturday are OT: 10:00–14:00 is 240 min", () => {
+    expect(otOn("2026-10-10", ["10:00-14:00"]).paidMinutes).toBe(240);
+  });
+
+  test("all hours on a Sunday are OT: 09:00–09:10 rounds up to 30 min", () => {
+    expect(otOn("2026-10-11", ["09:00-09:10"]).paidMinutes).toBe(30);
+  });
+
+  test("all hours on a weekday holiday are OT: 09:00–18:00 is 540 min", () => {
+    expect(otOn("2026-10-13", ["09:00-18:00"]).paidMinutes).toBe(540);
+  });
+
+  test("a holiday on a weekend is counted once: Sat 10:00–14:00 is 240 min", () => {
+    expect(otOn("2026-12-05", ["10:00-14:00"]).paidMinutes).toBe(240);
+  });
+});
+
+describe("pay period totals", () => {
+  const octPay = { start: "2026-09-28", end: "2026-10-27" };
+  const otDay = (date: string, ot: string[]) => ({ date, ot, leave: false, note: null });
+
+  test("an OT rate change during a pay period pays each day at its own rate", () => {
+    const newOtRate: Rate = { effective_from: "2026-10-15", salary: 20000, ot_rate: 200 };
+    const facts = {
+      rates: [firstRate, newOtRate],
+      overrides: [],
+      holidays: [],
+      days: [otDay("2026-10-05", ["18:00-19:00"]), otDay("2026-10-20", ["18:00-19:00"])],
+    };
+    expect(summarize(octPay, facts).otPay).toBe(350);
+  });
+
+  test("leave never deducts from salary", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: [],
+      days: [{ date: "2026-10-19", ot: [], leave: true, note: "Sick day" }],
+    };
+    expect(summarize(octPay, facts).total).toBe(20000);
+  });
+
+  test("seeded Oct pay: 15 h OT = 2,250, total 22,250", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: ["2026-10-13", "2026-10-23"],
+      days: [
+        otDay("2026-09-30", ["18:00-20:15"]),
+        otDay("2026-10-05", ["18:00-20:30"]),
+        otDay("2026-10-07", ["18:00-19:10"]),
+        otDay("2026-10-10", ["10:00-14:00"]),
+        otDay("2026-10-15", ["07:30-09:00"]),
+        { date: "2026-10-19", ot: [], leave: true, note: "Sick day" },
+        otDay("2026-10-20", ["07:00-08:00", "18:00-20:00"]),
+      ],
+    };
+    expect(summarize(octPay, facts)).toEqual({
+      salary: 20000,
+      otMinutes: 900,
+      otPay: 2250,
+      total: 22250,
+    });
+  });
+
+  test("a holiday with no OT leaves the salary unchanged", () => {
+    const facts = { rates: [firstRate], overrides: [], holidays: ["2026-10-13"], days: [] };
+    expect(summarize(octPay, facts).total).toBe(20000);
+  });
+
+  test("OT on a leave day is still paid", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: [],
+      days: [{ date: "2026-10-19", ot: ["18:00-19:00"], leave: true, note: null }],
+    };
+    expect(summarize(octPay, facts).otPay).toBe(150);
+  });
+
+  test("OT on 28 Oct counts in Nov pay, not Oct pay", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: [],
+      days: [otDay("2026-10-28", ["18:00-19:00"])],
+    };
+    expect(summarize(octPay, facts).otPay).toBe(0);
+  });
+});
+
+describe("why a day's OT counts", () => {
+  const holidays = ["2026-10-13", "2026-12-05"];
+  const reasonOn = (date: string, ot: string[]) =>
+    otReason({ date, ot, leave: false, note: null }, holidays);
+
+  test("weekday OT before 09:00 and after 18:00 says both", () => {
+    expect(reasonOn("2026-10-20", ["07:00-08:00", "18:00-20:00"])).toBe(
+      "Before 09:00 + After 18:00",
+    );
+  });
+
+  test("OT on a weekday holiday counts because it is a holiday", () => {
+    expect(reasonOn("2026-10-13", ["10:00-12:00"])).toBe("Holiday");
+  });
+
+  test("OT on a holiday that falls on a Saturday says Saturday", () => {
+    expect(reasonOn("2026-12-05", ["10:00-12:00"])).toBe("Saturday");
   });
 });

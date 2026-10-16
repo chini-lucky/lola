@@ -106,16 +106,129 @@ export function datesIn(period: Period): string[] {
   return dates;
 }
 
-export type DayKind = "holiday" | "weekend" | "normal";
-
-/** How a day shows on the calendar. */
-export function dayKind(date: string, holidays: string[]): DayKind {
-  if (holidays.includes(date)) return "holiday";
+function isWeekend(date: string): boolean {
   const weekday = weekdayOf(date);
-  return weekday === 0 || weekday === 6 ? "weekend" : "normal";
+  return weekday === 0 || weekday === 6;
+}
+
+export type DayKind = "ot" | "leave" | "holiday" | "weekend" | "normal";
+
+/** How a day shows on the calendar: OT > leave > holiday > weekend > normal. */
+export function dayKind(date: string, holidays: string[], day?: Day): DayKind {
+  if (day !== undefined && day.ot.length > 0) return "ot";
+  if (day?.leave === true) return "leave";
+  if (holidays.includes(date)) return "holiday";
+  return isWeekend(date) ? "weekend" : "normal";
 }
 
 /** Pay day: the 28th, the day after the pay period ends. */
 export function payDayOf(period: Period): string {
   return addDays(period.end, 1);
+}
+
+/** An exception day the admin recorded: OT ranges ("18:00-20:30"), leave, a note. */
+export interface Day {
+  date: string;
+  ot: string[];
+  leave: boolean;
+  note: string | null;
+}
+
+/**
+ * A day's OT: the minutes counted, the minutes paid (the day's total rounded up to the
+ * next 30 minutes) and their pay.
+ */
+export interface DayOt {
+  countedMinutes: number;
+  paidMinutes: number;
+  pay: number;
+}
+
+const toMinutes = (time: string) => {
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+/** Normal hours on a weekday: 09:00–18:00. */
+const DAY_START = toMinutes("09:00");
+const DAY_END = toMinutes("18:00");
+
+/** A range "07:00-19:00" as minutes since midnight. */
+function rangeOf(range: string): [number, number] {
+  const [from = 0, to = 0] = range.split("-").map(toMinutes);
+  return [from, to];
+}
+
+/**
+ * Minutes of a range that count as OT: all of it on a weekend or holiday,
+ * else only before 09:00 or after 18:00.
+ */
+function otMinutesOf(range: string, weekendOrHoliday: boolean): number {
+  const [from, to] = rangeOf(range);
+  if (weekendOrHoliday) return to - from;
+  const before = Math.max(0, Math.min(to, DAY_START) - from);
+  const after = Math.max(0, to - Math.max(from, DAY_END));
+  return before + after;
+}
+
+/** The day's OT, paid at the OT rate in effect that day, in whole baht. */
+export function dayOt(day: Day, rates: Rate[], holidays: string[]): DayOt {
+  const weekendOrHoliday = isWeekend(day.date) || holidays.includes(day.date);
+  const countedMinutes = day.ot.reduce(
+    (sum, range) => sum + otMinutesOf(range, weekendOrHoliday),
+    0,
+  );
+  const paidMinutes = Math.ceil(countedMinutes / 30) * 30;
+  return {
+    countedMinutes,
+    paidMinutes,
+    pay: Math.round((paidMinutes * rateOn(day.date, rates).ot_rate) / 60),
+  };
+}
+
+/** Why a day's OT counts: "Saturday", "Sunday", "Holiday", or "Before 09:00 + After 18:00". */
+export function otReason(day: Day, holidays: string[]): string {
+  const weekday = weekdayOf(day.date);
+  if (weekday === 6) return "Saturday";
+  if (weekday === 0) return "Sunday";
+  if (holidays.includes(day.date)) return "Holiday";
+  const ranges = day.ot.map(rangeOf);
+  const reasons = [
+    ranges.some(([from]) => from < DAY_START) ? "Before 09:00" : null,
+    ranges.some(([, to]) => to > DAY_END) ? "After 18:00" : null,
+  ];
+  return reasons.filter((reason) => reason !== null).join(" + ");
+}
+
+/** The exception days that fall in the pay period. */
+export function daysIn(period: Period, days: Day[]): Day[] {
+  return days.filter((day) => day.date >= period.start && day.date <= period.end);
+}
+
+/** Everything the pay maths needs, as stored: rates, agreed overrides, holiday dates, exception days. */
+export interface PayFacts {
+  rates: Rate[];
+  overrides: PeriodOverride[];
+  holidays: string[];
+  days: Day[];
+}
+
+/** A pay period's money: salary plus the OT of its days. */
+export interface Summary {
+  salary: number;
+  otMinutes: number;
+  otPay: number;
+  total: number;
+}
+
+export function summarize(period: Period, facts: PayFacts): Summary {
+  const salary = salaryOf(period, facts.rates, facts.overrides);
+  let otMinutes = 0;
+  let otPay = 0;
+  for (const day of daysIn(period, facts.days)) {
+    const ot = dayOt(day, facts.rates, facts.holidays);
+    otMinutes += ot.paidMinutes;
+    otPay += ot.pay;
+  }
+  return { salary, otMinutes, otPay, total: salary + otPay };
 }

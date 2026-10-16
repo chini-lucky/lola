@@ -48,3 +48,33 @@ test("the calendar marks weekends", async ({ page }) => {
   await logInOn(page, "2026-10-16");
   await expect(page.getByRole("listitem", { name: "Sat 17 Oct, weekend" })).toBeVisible();
 });
+
+test("seeded Oct pay adds 15 h OT = 2,250 to the salary: total 22,250", async ({ page }) => {
+  await logInOn(page, "2026-10-16");
+  await expect(page.getByRole("region", { name: "Oct pay · 28 Sep – 27 Oct" })).toContainText(
+    /Overtime 15 h\s*2,250\s*Total\s*22,250/,
+  );
+});
+
+test("the calendar marks OT and leave days", async ({ page }) => {
+  await logInOn(page, "2026-10-16");
+  const days = page.getByRole("list", { name: "Days" });
+  await expect(days.getByRole("listitem", { name: "Sat 10 Oct, overtime" })).toBeVisible();
+  await expect(days.getByRole("listitem", { name: "Mon 19 Oct, leave" })).toBeVisible();
+});
+
+test("the Overtime & leave list shows each OT day's hours and pay, and leave with no deduction", async ({
+  page,
+}) => {
+  await logInOn(page, "2026-10-16");
+  const list = page.getByRole("list", { name: "Overtime & leave" });
+  await expect(list.getByRole("listitem")).toHaveText([
+    /^Wed30.*18:00–20:15.*375.*2\.5 h/,
+    /^Mon5.*18:00–20:30.*375.*2\.5 h/,
+    /^Wed7.*18:00–19:10.*225.*1\.5 h/,
+    /^Sat10.*10:00–14:00.*600.*4 h/,
+    /^Thu15.*07:30–09:00.*225.*1\.5 h/,
+    /^Mon19.*Leave.*no deduction/,
+    /^Tue20.*07:00–08:00 · 18:00–20:00.*450.*3 h/,
+  ]);
+});
