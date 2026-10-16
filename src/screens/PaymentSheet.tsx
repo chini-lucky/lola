@@ -6,7 +6,6 @@ import {
   periodsThrough,
   totalsOf,
   type Payment,
-  type Period,
 } from "../pay";
 import {
   addPayment,
@@ -15,11 +14,7 @@ import {
   type PayFacts,
   type PaymentFields,
 } from "../supabase";
-import { dayMonth, ErrorAlert, money, monthName } from "../ui";
-
-/** "Oct pay · 28 Sep – 27 Oct" */
-const periodName = (period: Period) =>
-  `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
+import { ErrorAlert, money, periodTitle } from "../ui";
 
 /** Whole baht, commas allowed ("22,250"); null if it is not a whole number above 0. */
 function wholeBaht(text: string): number | null {
@@ -173,7 +168,7 @@ export function PaymentSheet(props: {
           >
             {periods.map((p) => (
               <option key={p.end} value={p.end}>
-                {periodName(p)}
+                {periodTitle(p)}
               </option>
             ))}
           </select>

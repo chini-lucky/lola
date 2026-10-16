@@ -112,6 +112,9 @@ export const weekdayName = (date: string) => WEEKDAYS[weekdayOf(date)] ?? "";
 const dayOfMonth = (date: string) => Number(date.slice(8, 10));
 /** "28 Sep" */
 export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
+/** "Oct pay · 28 Sep – 27 Oct" */
+export const periodTitle = (period: Period) =>
+  `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 

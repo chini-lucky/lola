@@ -1,23 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { PaymentSheet } from "./PaymentSheet";
-import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Payment, type Period } from "../pay";
+import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Payment } from "../pay";
 import { logOut, payFacts, type PayFacts, type Person } from "../supabase";
 import {
   Bear,
   Calendar,
   dayMonth,
   ErrorAlert,
-  monthName,
   Payments,
+  periodTitle,
   Plus,
   Totals,
   weekdayName,
 } from "../ui";
-
-/** "Oct pay · 28 Sep – 27 Oct" */
-function periodTitle(period: Period): string {
-  return `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
-}
 
 function todayInBangkok(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
@@ -27,6 +22,7 @@ const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(
 
 /** The main screen for admin and nanny: one pay period at a time, ‹ › to move. */
 export function PeriodView({ person }: { person: Person }) {
+  const isAdmin = person.role === "admin";
   const [today] = useState(todayInBangkok);
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
@@ -47,7 +43,7 @@ export function PeriodView({ person }: { person: Person }) {
 
   return (
     <div className="screen">
-      {person.role === "admin" ? (
+      {isAdmin ? (
         <div className="top">
           <div className="hi">
             <h1>
@@ -101,7 +97,7 @@ export function PeriodView({ person }: { person: Person }) {
         {facts !== null && (
           <>
             <Totals period={period} facts={facts} />
-            {person.role === "admin" && (
+            {isAdmin && (
               <button
                 className="btn pri"
                 type="button"
@@ -118,7 +114,7 @@ export function PeriodView({ person }: { person: Person }) {
               period={period}
               facts={facts}
               onEdit={
-                person.role === "admin"
+                isAdmin
                   ? (payment) => {
                       setSheet({ payment });
                     }
@@ -142,7 +138,7 @@ export function PeriodView({ person }: { person: Person }) {
           }}
         />
       )}
-      {person.role === "admin" && (
+      {isAdmin && (
         <a className="navrow" href="#/people">
           <span>People</span>
           <i>›</i>
