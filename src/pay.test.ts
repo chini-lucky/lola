@@ -141,9 +141,18 @@ describe("day kind", () => {
 });
 
 describe("OT", () => {
-  const otOn = (date: string, ot: string[]) => dayOt({ date, ot, leave: false, note: null });
+  const otOn = (date: string, ot: string[]) =>
+    dayOt({ date, ot, leave: false, note: null }, [firstRate]);
 
   test("a day's OT is rounded up to the next 30 minutes: 18:00–18:01 is 30 min", () => {
     expect(otOn("2026-10-05", ["18:00-18:01"]).minutes).toBe(30);
+  });
+
+  test("18:00–18:31 rounds up to 60 min", () => {
+    expect(otOn("2026-10-05", ["18:00-18:31"]).minutes).toBe(60);
+  });
+
+  test("18:00–20:30 is 150 min, paid 375 THB at 150 THB/h", () => {
+    expect(otOn("2026-10-05", ["18:00-20:30"])).toMatchObject({ minutes: 150, pay: 375 });
   });
 });

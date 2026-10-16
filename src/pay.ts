@@ -128,9 +128,10 @@ export interface Day {
   note: string | null;
 }
 
-/** A day's OT: the minutes paid (the day's total rounded up to the next 30 minutes). */
+/** A day's OT: the minutes paid (the day's total rounded up to the next 30 minutes) and their pay. */
 export interface DayOt {
   minutes: number;
+  pay: number;
 }
 
 const toMinutes = (time: string) => {
@@ -143,7 +144,9 @@ function rangeMinutes(range: string): number {
   return toMinutes(to) - toMinutes(from);
 }
 
-export function dayOt(day: Day): DayOt {
+/** The day's OT, paid at the OT rate in effect that day, in whole baht. */
+export function dayOt(day: Day, rates: Rate[]): DayOt {
   const counted = day.ot.reduce((sum, range) => sum + rangeMinutes(range), 0);
-  return { minutes: Math.ceil(counted / 30) * 30 };
+  const minutes = Math.ceil(counted / 30) * 30;
+  return { minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };
 }
