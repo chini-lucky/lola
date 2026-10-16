@@ -34,7 +34,7 @@ lola/
     tests/                  # pgTAP: rls.test.sql, audit.test.sql
   e2e/  lola.spec.ts  admin.spec.ts
   scripts/dev.sh            # starts supabase + vite, writes logs/
-  scripts/create-admin.mjs  # one-time: prod admin `chini-lucky`, password → file outside repo
+  scripts/create-admin.ts   # one-time: prod admin `chini-lucky`, password → file outside repo
   logs/                     # gitignored
   .github/workflows/  ci.yml  deploy.yml  weekly.yml
 ```
@@ -124,7 +124,7 @@ lola/
 - **P1 DB + RLS + audit + seed.** Migrations, seed, pgTAP tests, `db.types.ts`. Done: `supabase db reset` works; tests prove admin all / nanny read + confirm / waiting & anon nothing; `set_role` guards (non-admin, self); every write audited; storage policies tested.
 - **P2 Pay module.** `pay.ts` + all §4 tests, 100% branch coverage. _Parallel with P1, P3._
 - **P3 Design update.** Option A frames → 28→27 period: header "Oct pay · 28 Sep – 27 Oct" with ‹ › by period, grid starting 28 Sep, receipt thumbnails under Payments, "Download payslip", "Changed since Lola confirmed". Done: user approves. _Parallel with P1, P2._
-- **P4 Deploy skeleton + admin.** `deploy.yml`, prod Supabase link, migrations + `config push` + function deploy on merge, manifest + icons; then run `create-admin.mjs` once. Done: chini-lucky.github.io/lola loads and installs; password file exists outside the repo.
+- **P4 Deploy skeleton + admin.** `deploy.yml`, prod Supabase link, migrations + `config push` + function deploy on merge, manifest + icons; then run `create-admin.ts` once. Done: chini-lucky.github.io/lola loads and installs; password file exists outside the repo.
 - **P5 Core screens.** Login / Sign up (username + password, "Add to Home Screen" hint), Waiting, Account (change password, Log out), Period view (totals card with bear, grid, OT/leave list, ‹ ›), Lola's "This looks right ✓", admin DaySheet. Done: Playwright covers Lola + admin flows on seed; matches P3 frames at 390px.
 - **P6 Payments + receipts.** Add/list payments (default current period), canvas shrink (max 1600px, JPEG 0.8), multi-file upload, signed-URL view/download. HEIC the browser can't decode → upload original. Done: e2e adds payment with 2 files; Lola downloads. _Parallel with P7._
 - **P7 Settings + people + audit + copy summary.** Rate history, holidays add/remove, People (waiting: Approve / Reject; approved: role picker + Remove, hidden for self), audit list, "Copy summary", stale badge. Done: e2e approves waiting user who then sees Period view; reject and role change work. _Parallel with P6._
@@ -146,8 +146,8 @@ lola/
 ## 7. Deployment
 
 - **Frontend:** `deploy.yml` on push to main: check → `vite build` (`base: '/lola/'`) → `actions/deploy-pages`. Hash routes (`#/settings`) avoid Pages 404s.
-- **Database + auth:** same workflow, before build: `supabase link --project-ref $SUPABASE_PROJECT_REF` → `supabase db push` → `supabase config push` → `supabase functions deploy remove-user`. Any failure → nothing deploys.
-- **Admin account (once, after first deploy):** `node scripts/create-admin.mjs` (service role key fetched with `supabase projects api-keys`, never stored) → `auth.admin.createUser` for `chini-lucky` with a random 32-char password, role admin → password written to `~/lola-admin-password.txt` (mode 600). Never printed, never in chat or repo.
+- **Database + auth:** same workflow, after check and build, before the Pages deploy (only this job sees Supabase secrets, via the `production` environment, main only): `supabase link --project-ref $SUPABASE_PROJECT_REF` → `supabase db push` → `supabase config push` → `supabase functions deploy`. Any failure → nothing deploys.
+- **Admin account (once, after first deploy):** `node scripts/create-admin.ts <project-ref>` (service role key fetched with `supabase projects api-keys`, never stored) → `auth.admin.createUser` for `chini-lucky` with a random 32-char password, role admin → password written to `~/lola-admin-password.txt` (mode 600). Never printed, never in chat or repo.
 - **Weekly (`weekly.yml`, Mon 03:00 UTC + manual):** `supabase db dump` (schema + data) + receipt files (`supabase storage cp -r`) → commit dated files to private `chini-lucky/lola-backup`. This run is also the keep-alive ping; a `curl` to the REST health endpoint covers dump failure.
 - **Secrets:** `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`, `BACKUP_REPO_TOKEN` (fine-grained PAT, contents r/w on `lola-backup` only).
 - **Variables (public anyway):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
