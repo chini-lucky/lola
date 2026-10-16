@@ -1,6 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { loadEnv } from "vite";
-import type { Database } from "../src/db.types";
 import { admin } from "./logins";
 
 // The same Supabase the app under test talks to (this slot's URL beats .env.development).
@@ -61,16 +60,10 @@ export async function signUpNanny(username: string, password: string): Promise<s
   return id;
 }
 
-/** Deletes every exception day from one date to another, as the admin. */
-export async function clearDays(from: string, to: string): Promise<void> {
-  const asAdmin = await loggedIn(admin.username, admin.password);
-  const { error } = await asAdmin.from("days").delete().gte("date", from).lte("date", to);
-  if (error !== null) throw error;
-}
-
-/** Records an exception day, as the admin. */
-export async function addDay(day: Database["public"]["Tables"]["days"]["Insert"]): Promise<void> {
-  const asAdmin = await loggedIn(admin.username, admin.password);
-  const { error } = await asAdmin.from("days").insert(day);
+/** Runs one table change as the admin (a test's setup or clean-up). */
+export async function asAdmin(
+  change: (client: SupabaseClient) => PromiseLike<{ error: Error | null }>,
+): Promise<void> {
+  const { error } = await change(await loggedIn(admin.username, admin.password));
   if (error !== null) throw error;
 }

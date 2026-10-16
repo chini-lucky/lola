@@ -1,11 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
-import { addDay, clearDays } from "./api";
+import { asAdmin } from "./api";
 import { logIn } from "./login";
 import { admin, nanny } from "./logins";
 
 // Nov pay (28 Oct – 27 Nov 2026) has no seeded days; each test starts it empty.
 test.beforeEach(async () => {
-  await clearDays("2026-10-28", "2026-11-27");
+  await asAdmin((db) =>
+    db.from("days").delete().gte("date", "2026-10-28").lte("date", "2026-11-27"),
+  );
 });
 
 async function adminOn16Nov(page: Page) {
@@ -52,7 +54,9 @@ test("an OT range that ends before it starts is refused", async ({ page }) => {
 test("an admin removes one of a day's OT ranges and edits the other: 3 h becomes 1 h", async ({
   page,
 }) => {
-  await addDay({ date: "2026-11-17", ot: ["07:00-08:00", "18:00-20:00"] });
+  await asAdmin((db) =>
+    db.from("days").insert({ date: "2026-11-17", ot: ["07:00-08:00", "18:00-20:00"] }),
+  );
   await adminOn16Nov(page);
   await tapDay(page, "Tue 17 Nov");
   const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
@@ -77,7 +81,11 @@ test("an admin marks a day as leave with a note; the list shows it with no deduc
 });
 
 test("clearing a day returns it to a normal day", async ({ page }) => {
-  await addDay({ date: "2026-11-17", ot: ["18:00-20:30"], leave: true, note: "Dinner out" });
+  await asAdmin((db) =>
+    db
+      .from("days")
+      .insert({ date: "2026-11-17", ot: ["18:00-20:30"], leave: true, note: "Dinner out" }),
+  );
   await adminOn16Nov(page);
   await tapDay(page, "Tue 17 Nov");
   await page
@@ -92,7 +100,7 @@ test("clearing a day returns it to a normal day", async ({ page }) => {
 });
 
 test("an admin edits an OT day from its pen in the Overtime & leave list", async ({ page }) => {
-  await addDay({ date: "2026-11-17", ot: ["18:00-20:30"] });
+  await asAdmin((db) => db.from("days").insert({ date: "2026-11-17", ot: ["18:00-20:30"] }));
   await adminOn16Nov(page);
   await page
     .getByRole("list", { name: "Overtime & leave" })
@@ -102,7 +110,7 @@ test("an admin edits an OT day from its pen in the Overtime & leave list", async
 });
 
 test("the nanny's pay period view has no edit controls for days", async ({ page }) => {
-  await addDay({ date: "2026-11-17", ot: ["18:00-20:30"] });
+  await asAdmin((db) => db.from("days").insert({ date: "2026-11-17", ot: ["18:00-20:30"] }));
   await page.clock.setFixedTime(new Date("2026-11-16T10:00:00+07:00"));
   await logIn(page, nanny);
   await expect(page.getByRole("list", { name: "Overtime & leave" })).toBeVisible();
