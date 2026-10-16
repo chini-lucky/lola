@@ -13,5 +13,7 @@ Domain words used in code, tests, UI and PRs. Use these exact words.
 - **Reject / Remove** — an admin deleting an account: Reject for a waiting sign-up, Remove for an approved person. Never your own. A forgotten password = Remove, sign up again, Approve.
 - **Confirmation** — the nanny's "This looks right ✓" on a pay period; stores a snapshot of the money numbers at that moment.
 - **Stale** — a confirmation whose money numbers (total, paid) no longer match the current ones; shown as "Changed since Lola confirmed". Note-only edits don't make it stale.
+- **Payment** — money the admin sent the nanny, in whole baht: the date paid, the amount, an optional note, and the pay period it is for (defaults to the current one). It counts in that pay period, whatever its date paid.
+- **Paid / balance** — a pay period's paid is the sum of its payments; its balance is the total minus paid. Balance 0 shows as "Fully paid".
 - **Receipt** — an image or PDF of a bank transfer, attached by the admin to a payment; the nanny can view and download it.
 - **Payslip** — a PDF per pay period with salary, OT per day, leave/holidays, total due, payments and balance; stamped "DRAFT" if the period isn't over or isn't fully paid.
