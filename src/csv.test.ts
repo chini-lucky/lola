@@ -13,6 +13,11 @@ const noFacts: PayFacts = {
   payments: [],
 };
 
+/** The CSV's line for a date. */
+function rowOn(date: string, facts: PayFacts): string | undefined {
+  return rowsOf(exportCsv(octPay, octPay, facts)).find((row) => row.startsWith(date));
+}
+
 /** The CSV's lines, without the header. */
 const rowsOf = (csv: string) => csv.split("\r\n").slice(1, -1);
 
@@ -20,5 +25,17 @@ describe("CSV export", () => {
   test("Sep pay to Oct pay is one row per day, 14 Sep through 27 Oct", () => {
     const dates = rowsOf(exportCsv(sepPay, octPay, noFacts)).map((row) => row.slice(0, 10));
     expect([dates.length, dates[0], dates.at(-1)]).toEqual([44, "2026-09-14", "2026-10-27"]);
+  });
+
+  test("an OT day shows its weekday, OT times, OT hours paid (rounded up) and OT pay", () => {
+    const day = {
+      date: "2026-10-20",
+      ot: ["07:30-09:00", "18:00-19:10"],
+      leave: false,
+      note: null,
+    };
+    expect(rowOn("2026-10-20", { ...noFacts, days: [day] })).toBe(
+      "2026-10-20,Tue,OT,07:30-09:00; 18:00-19:10,3,450,,,",
+    );
   });
 });
