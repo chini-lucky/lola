@@ -74,9 +74,20 @@ export async function waitingPeople(): Promise<Person[]> {
   return data.map(toPerson);
 }
 
-/** Admin only: approving makes a waiting person a nanny. */
-export async function approve(id: string): Promise<void> {
-  const { error } = await supabase.rpc("set_role", { target: id, new_role: "nanny" });
+/** Admin only (RLS): approved people (admins and nannies), oldest first. */
+export async function approvedPeople(): Promise<Person[]> {
+  const { data, error } = await supabase
+    .from("people")
+    .select(personColumns)
+    .neq("role", "waiting")
+    .order("created_at");
+  if (error !== null) throw error;
+  return data.map(toPerson);
+}
+
+/** Admin only, never on yourself (set_role guards both). Approve = setRole(id, "nanny"). */
+export async function setRole(id: string, role: "admin" | "nanny"): Promise<void> {
+  const { error } = await supabase.rpc("set_role", { target: id, new_role: role });
   if (error !== null) throw error;
 }
 

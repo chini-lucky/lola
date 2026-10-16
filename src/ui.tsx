@@ -1,3 +1,5 @@
+import type { Role } from "./supabase";
+
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
   return (
@@ -79,4 +81,19 @@ export function ErrorAlert({ message }: { message: string | null }) {
       {message}
     </p>
   );
+}
+
+export function roleLabel(role: Role): string {
+  switch (role) {
+    case "admin":
+      return "Admin";
+    case "nanny":
+      return "Nanny";
+    case "waiting":
+      return "Waiting";
+    default: {
+      const unreachable: never = role;
+      return unreachable;
+    }
+  }
 }

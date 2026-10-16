@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { loadEnv } from "vite";
+import { admin } from "./logins";
 
 // The same Supabase the app under test talks to (this slot's URL beats .env.development).
 const env = loadEnv("development", process.cwd());
@@ -48,4 +49,13 @@ export async function removeUserStatus(
     body: JSON.stringify({ userId }),
   });
   return response.status;
+}
+
+/** Signs up a new person and has the admin approve them as a nanny. Returns their id. */
+export async function signUpNanny(username: string, password: string): Promise<string> {
+  const id = await signUpWaiting(username, password);
+  const asAdmin = await loggedIn(admin.username, admin.password);
+  const { error } = await asAdmin.rpc("set_role", { target: id, new_role: "nanny" });
+  if (error !== null) throw error;
+  return id;
 }

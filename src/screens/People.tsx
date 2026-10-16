@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { approve, removePerson, waitingPeople, type Person } from "../supabase";
-import { ErrorAlert } from "../ui";
+import { approvedPeople, removePerson, setRole, waitingPeople, type Person } from "../supabase";
+import { ErrorAlert, roleLabel } from "../ui";
 
 const signedUpAt = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Bangkok",
@@ -10,13 +10,25 @@ const signedUpAt = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
 });
 
+const approvedRoles: readonly ("nanny" | "admin")[] = ["nanny", "admin"];
+
+interface Lists {
+  waiting: Person[];
+  approved: Person[];
+}
+
+async function fetchLists(): Promise<Lists> {
+  const [waiting, approved] = await Promise.all([waitingPeople(), approvedPeople()]);
+  return { waiting, approved };
+}
+
 // Admin only.
 export function People() {
-  const [waiting, setWaiting] = useState<Person[] | null>(null);
+  const [lists, setLists] = useState<Lists | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    void waitingPeople().then(setWaiting, () => {
+    void fetchLists().then(setLists, () => {
       setError("Couldn’t load people. Check your connection and try again.");
     });
   }, []);
@@ -47,10 +59,10 @@ export function People() {
       <ErrorAlert message={error} />
       <div className="sec">
         <h3>
-          Waiting for approval<small>{waiting?.length}</small>
+          Waiting for approval<small>{lists?.waiting.length}</small>
         </h3>
-        {waiting?.length === 0 && <div className="empty">Nobody is waiting.</div>}
-        {waiting?.map((person) => (
+        {lists?.waiting.length === 0 && <div className="empty">Nobody is waiting.</div>}
+        {lists?.waiting.map((person) => (
           <div className="prow" key={person.id}>
             <div className="item">
               <span className="av w">{person.username.charAt(0)}</span>
@@ -79,7 +91,7 @@ export function People() {
                 aria-label={`Approve ${person.username}`}
                 onClick={() =>
                   void change(
-                    () => approve(person.id),
+                    () => setRole(person.id, "nanny"),
                     `Couldn’t approve ${person.username}. Please try again.`,
                   )
                 }
@@ -93,6 +105,44 @@ export function People() {
           </div>
         ))}
         <div className="note">Approved people start as nanny. Reject deletes the sign-up.</div>
+      </div>
+      <div className="sec">
+        <h3>
+          Approved<small>{lists?.approved.length}</small>
+        </h3>
+        {lists?.approved.map((person) => (
+          <div className="prow" key={person.id}>
+            <div className="item">
+              <span className="av">{person.username.charAt(0)}</span>
+              <div className="what">
+                <b>{person.username}</b>
+                <small>Signed up {signedUpAt.format(new Date(person.created_at))}</small>
+              </div>
+            </div>
+            <div className="acts">
+              <div className="seg" role="group" aria-label={`Role for ${person.username}`}>
+                {approvedRoles.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    aria-pressed={person.role === role}
+                    onClick={() =>
+                      void change(
+                        () => setRole(person.id, role),
+                        `Couldn’t change the role of ${person.username}. Please try again.`,
+                      )
+                    }
+                  >
+                    {roleLabel(role)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+        <div className="note">
+          Forgotten password: remove the account, they sign up again, you approve.
+        </div>
       </div>
     </div>
   );
