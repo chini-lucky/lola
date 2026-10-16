@@ -36,5 +36,11 @@ Deno.serve(async (req) => {
   if (roleError !== null) return json(500, { error: roleError.message });
   if (role !== "admin") return json(403, { error: "only an admin can remove people" });
 
+  const { data: caller, error: callerError } = await asCaller.auth.getUser(token);
+  if (callerError !== null) return json(401, { error: callerError.message });
+  const { userId } = (await req.json()) as { userId?: unknown };
+  if (typeof userId !== "string") return json(400, { error: "userId is required" });
+  if (userId === caller.user.id) return json(400, { error: "you cannot remove yourself" });
+
   return json(500, { error: "not built yet" });
 });
