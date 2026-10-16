@@ -23,6 +23,15 @@ export interface PeriodOverride {
   note: string | null;
 }
 
+/** Money paid to the nanny, recorded for a pay period it chooses (not the one its date falls in). */
+export interface Payment {
+  id: string;
+  period_end: string;
+  paid_on: string;
+  amount: number;
+  note: string | null;
+}
+
 function iso(year: number, month: number, day: number): string {
   return new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10);
 }
@@ -118,4 +127,27 @@ export function dayKind(date: string, holidays: string[]): DayKind {
 /** Pay day: the 28th, the day after the pay period ends. */
 export function payDayOf(period: Period): string {
   return addDays(period.end, 1);
+}
+
+/** A pay period's money: total owed and paid. */
+export interface Totals {
+  salary: number;
+  total: number;
+  paid: number;
+}
+
+/** What the totals are worked out from. */
+export interface TotalsFacts {
+  rates: Rate[];
+  overrides: PeriodOverride[];
+  payments: Payment[];
+}
+
+export function totalsOf(period: Period, facts: TotalsFacts): Totals {
+  const salary = salaryOf(period, facts.rates, facts.overrides);
+  const total = salary;
+  const paid = facts.payments
+    .filter((p) => p.period_end === period.end)
+    .reduce((sum, p) => sum + p.amount, 0);
+  return { salary, total, paid };
 }

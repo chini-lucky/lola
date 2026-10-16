@@ -8,10 +8,17 @@ import {
   periodOf,
   prevPeriod,
   salaryOf,
+  totalsOf,
+  type Payment,
   type Rate,
 } from "./pay";
 
 const firstRate: Rate = { effective_from: "2026-09-14", salary: 20000, ot_rate: 150 };
+const octPay = { start: "2026-09-28", end: "2026-10-27" };
+
+function payment(period_end: string, paid_on: string, amount: number): Payment {
+  return { id: `${paid_on}-${amount.toString()}`, period_end, paid_on, amount, note: null };
+}
 
 describe("pay period", () => {
   test("27 Oct is the last day of Oct pay (28 Sep – 27 Oct)", () => {
@@ -136,5 +143,14 @@ describe("day kind", () => {
 
   test("a holiday on a weekend shows as a holiday", () => {
     expect(dayKind("2026-12-05", ["2026-12-05"])).toBe("holiday");
+  });
+});
+
+describe("paid and balance", () => {
+  test("a payment counts in the pay period it was recorded for, not the one its date paid falls in", () => {
+    const paidLate = payment("2026-10-27", "2026-10-28", 20000);
+    expect(totalsOf(octPay, { rates: [firstRate], overrides: [], payments: [paidLate] }).paid).toBe(
+      20000,
+    );
   });
 });
