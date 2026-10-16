@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { nanny } from "./logins";
+import { admin, nanny } from "./logins";
 import { pdfLines } from "./pdf";
 
 async function logInOn(page: Page, today: string, login: { username: string; password: string }) {
@@ -39,4 +39,18 @@ test("Lola downloads the Oct pay payslip with every payslip field", async ({ pag
       expect.stringMatching(/^Not yet confirmed by Lola Generated 16 Oct 2026 · /),
     ]),
   );
+});
+
+test("the Oct pay payslip is stamped DRAFT while the pay period is not over", async ({ page }) => {
+  await logInOn(page, "2026-10-16", nanny);
+  expect(await downloadPayslip(page)).toContain("DRAFT");
+});
+
+test("the admin's Sep pay payslip has no DRAFT stamp: the pay period is over and fully paid", async ({
+  page,
+}) => {
+  await logInOn(page, "2026-10-16", admin);
+  await page.getByRole("button", { name: "Previous pay period" }).click();
+  const lines = await downloadPayslip(page);
+  expect(lines.filter((line) => line.includes("DRAFT"))).toEqual([]);
 });

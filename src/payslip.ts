@@ -1,9 +1,10 @@
 // The payslip PDF, drawn with jsPDF. Loaded only when someone downloads a payslip (import()),
 // so jsPDF and the fonts stay out of the main app.
-import { jsPDF } from "jspdf";
+import { GState, jsPDF } from "jspdf";
 import {
   dayOt,
   daysIn,
+  isDraft,
   overrideOf,
   paymentsIn,
   summarize,
@@ -44,6 +45,7 @@ const LEAVE = "#fce3c9";
 const LEAVE_INK = "#7a4214";
 const OK = "#e0f2e4";
 const OK_INK = "#2f6b3f";
+const DANGER = "#c2554a";
 
 // A4 portrait in points.
 const PAGE_W = 595.28;
@@ -137,12 +139,18 @@ class Sheet {
   }
 
   /** A table row: cells at the given x positions; a negative x aligns that cell right of -x. */
-  row(cells: { text: string; x: number }[], options: { header?: boolean; bold?: boolean } = {}) {
+  row(
+    cells: { text: string; x: number }[],
+    options: { header?: boolean; bold?: boolean; muted?: boolean } = {},
+  ) {
     this.room(ROW);
     this.y += ROW;
     const header = options.header === true;
     if (header) this.font("Nunito", "bold", 7.5, MUTED);
-    else this.font("Nunito", options.bold === true ? "bold" : "normal", 10, INK);
+    else {
+      const style = options.bold === true ? "bold" : "normal";
+      this.font("Nunito", style, 10, options.muted === true ? MUTED : INK);
+    }
     for (const cell of cells) {
       const text = header ? cell.text.toUpperCase() : cell.text;
       if (cell.x < 0) this.doc.text(text, -cell.x, this.y - 5, { align: "right" });
@@ -155,10 +163,10 @@ class Sheet {
   }
 
   muted(text: string, amount?: string) {
-    this.row([
-      { text, x: MARGIN + 3 },
-      ...(amount === undefined ? [] : [{ text: amount, x: -RIGHT }]),
-    ]);
+    this.row(
+      [{ text, x: MARGIN + 3 }, ...(amount === undefined ? [] : [{ text: amount, x: -RIGHT }])],
+      { muted: true },
+    );
   }
 }
 
@@ -320,6 +328,46 @@ function drawTotalsAndFooter(sheet: Sheet, slip: Payslip) {
   doc.text(`Generated ${fullDate(slip.today)} · ${slip.site}`, RIGHT, footerY, { align: "right" });
 }
 
+/** "DRAFT" across the top third of the first page, tilted, faint, in a frame. */
+function drawDraftStamp(doc: jsPDF) {
+  doc.setPage(1);
+  const size = 84;
+  const pad = 14;
+  const tilt = (18 * Math.PI) / 180;
+  const center = { x: PAGE_W / 2, y: PAGE_H * 0.34 };
+  doc.setFont("Baloo", "bold");
+  doc.setFontSize(size);
+  const halfW = doc.getTextWidth("DRAFT") / 2;
+  const halfH = size * 0.3;
+  // A point given from the stamp's centre, tilted up to the right like the design's stamp.
+  const at = (dx: number, dy: number) => ({
+    x: center.x + dx * Math.cos(tilt) + dy * Math.sin(tilt),
+    y: center.y - dx * Math.sin(tilt) + dy * Math.cos(tilt),
+  });
+  doc.saveGraphicsState();
+  doc.setGState(new GState({ opacity: 0.16, "stroke-opacity": 0.16 }));
+  doc.setTextColor(DANGER);
+  const origin = at(-halfW, halfH);
+  doc.text("DRAFT", origin.x, origin.y, { angle: 18 });
+  const corners = [
+    at(-halfW - pad, -halfH - pad),
+    at(halfW + pad, -halfH - pad),
+    at(halfW + pad, halfH + pad),
+    at(-halfW - pad, halfH + pad),
+  ];
+  const [first] = corners;
+  if (first !== undefined) {
+    const steps = corners.slice(1).map((corner, i): [number, number] => {
+      const from = corners[i] ?? first;
+      return [corner.x - from.x, corner.y - from.y];
+    });
+    doc.setDrawColor(DANGER);
+    doc.setLineWidth(5);
+    doc.lines(steps, first.x, first.y, [1, 1], "S", true);
+  }
+  doc.restoreGraphicsState();
+}
+
 /** Builds the pay period's payslip and hands it to the browser as a download. */
 export async function downloadPayslip(slip: Payslip): Promise<void> {
   const [bear, fonts] = await Promise.all([
@@ -343,6 +391,8 @@ export async function downloadPayslip(slip: Payslip): Promise<void> {
   drawLeaveAndHolidays(sheet, slip);
   drawPayments(sheet, slip);
   drawTotalsAndFooter(sheet, slip);
+  const { balance } = summarize(slip.period, slip.facts);
+  if (isDraft(slip.period, balance, slip.today)) drawDraftStamp(doc);
 
   doc.save(`Lola payslip ${periodName(slip.period)} ${slip.period.end.slice(0, 4)}.pdf`);
 }
