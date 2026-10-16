@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "confirmations": {
+            "audit_log": {
+                  Row: {
+                    "actor": string | null,"at": string,"id": number,"new": Json | null,"old": Json | null,"op": string,"tbl": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"op": string,"tbl": string
+                  }
+                  Update: {
+                    "actor"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"op"?: string,"tbl"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"confirmations": {
                   Row: {
                     "confirmed_at": string,"confirmed_by": string,"id": string,"period_end": string,"snapshot": NonNullable<Json>
                   }
