@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { DaySheet } from "./DaySheet";
+import { PaymentSheet } from "./PaymentSheet";
 import {
   currentPeriod,
   nextPeriod,
   payDayOf,
   prevPeriod,
   type PayFacts,
-  type Period,
+  type Payment,
 } from "../pay";
 import { payFacts, type Person } from "../supabase";
 import {
@@ -14,16 +15,13 @@ import {
   Calendar,
   dayMonth,
   ErrorAlert,
-  monthName,
   OtLeaveList,
+  Payments,
+  periodTitle,
+  Plus,
   Totals,
   weekdayName,
 } from "../ui";
-
-/** "Oct pay · 28 Sep – 27 Oct" */
-function periodTitle(period: Period): string {
-  return `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
-}
 
 function todayInBangkok(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
@@ -40,6 +38,8 @@ export function PeriodView({ person }: { person: Person }) {
   const [error, setError] = useState<string | null>(null);
   // The date in the day sheet, or no sheet.
   const [editing, setEditing] = useState<string | null>(null);
+  // The payment in the sheet: a new one, one to edit, or no sheet.
+  const [sheet, setSheet] = useState<{ payment: Payment | null } | null>(null);
 
   const load = useCallback(() => {
     payFacts().then(setFacts, () => {
@@ -114,6 +114,18 @@ export function PeriodView({ person }: { person: Person }) {
         {facts !== null && (
           <>
             <Totals period={period} facts={facts} />
+            {isAdmin && (
+              <button
+                className="btn pri"
+                type="button"
+                onClick={() => {
+                  setSheet({ payment: null });
+                }}
+              >
+                <Plus />
+                Add payment
+              </button>
+            )}
             <Calendar
               period={period}
               facts={facts}
@@ -121,6 +133,17 @@ export function PeriodView({ person }: { person: Person }) {
               onEditDay={isAdmin ? setEditing : null}
             />
             <OtLeaveList period={period} facts={facts} onEditDay={isAdmin ? setEditing : null} />
+            <Payments
+              period={period}
+              facts={facts}
+              onEdit={
+                isAdmin
+                  ? (payment) => {
+                      setSheet({ payment });
+                    }
+                  : null
+              }
+            />
           </>
         )}
       </section>
@@ -133,6 +156,20 @@ export function PeriodView({ person }: { person: Person }) {
           }}
           onSaved={() => {
             setEditing(null);
+            load();
+          }}
+        />
+      )}
+      {sheet !== null && facts !== null && (
+        <PaymentSheet
+          payment={sheet.payment}
+          today={today}
+          facts={facts}
+          onClose={() => {
+            setSheet(null);
+          }}
+          onSaved={() => {
+            setSheet(null);
             load();
           }}
         />

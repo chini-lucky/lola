@@ -5,10 +5,12 @@ import {
   daysIn,
   otReason,
   overrideOf,
+  paymentsIn,
   summarize,
   weekdayOf,
   type Day,
   type DayKind,
+  type Payment,
   type PayFacts,
   type Period,
 } from "./pay";
@@ -88,6 +90,14 @@ export function Field(props: {
   );
 }
 
+export function Plus() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /** Sub-page header: Back to home, then the page title. */
 export function BackBar({ title }: { title: string }) {
   return (
@@ -136,6 +146,9 @@ export const weekdayName = (date: string) => WEEKDAYS[weekdayOf(date)] ?? "";
 const dayOfMonth = (date: string) => Number(date.slice(8, 10));
 /** "28 Sep" */
 export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
+/** "Oct pay · 28 Sep – 27 Oct" */
+export const periodTitle = (period: Period) =>
+  `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** "Tue 20 Oct" */
@@ -152,7 +165,7 @@ function hoursMinutes(minutes: number): string {
 
 /** The pay period's totals card, with the bear peeking over it. */
 export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
-  const { salary, otMinutes, otPay, total } = summarize(period, facts);
+  const { salary, otMinutes, otPay, total, paid, balance } = summarize(period, facts);
   const agreed = overrideOf(period, facts.overrides)?.note ?? null;
   return (
     <div className="totals">
@@ -172,7 +185,77 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
         <div className="sep" />
         <dt>Total</dt>
         <dd>{money(total)}</dd>
+        <dt>Paid</dt>
+        <dd>{money(paid)}</dd>
       </dl>
+      {/* THB, not ฿: the self-hosted fonts are latin only. */}
+      <div className={balance === 0 ? "bal paid" : "bal"}>
+        <span>{balance === 0 ? "Fully paid" : "Balance to pay"}</span>
+        <span>{money(balance)} THB</span>
+      </div>
+    </div>
+  );
+}
+
+export function Pen() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+      <path d="M4 20h4L19 9l-4-4L4 16z" strokeLinejoin="round" />
+      <path d="M14 6l4 4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** The pay period's payments by date paid, each with an edit pen for the admin. */
+export function Payments(props: {
+  period: Period;
+  facts: PayFacts;
+  onEdit: ((payment: Payment) => void) | null;
+}) {
+  const { period, facts, onEdit } = props;
+  const payments = paymentsIn(period, facts.payments);
+  const { paid } = summarize(period, facts);
+  return (
+    <div className="list">
+      <h3>
+        Payments<small>{money(paid)} paid</small>
+      </h3>
+      {payments.length === 0 ? (
+        <div className="empty">
+          <b>No payments for {monthName(period.end)} pay yet</b>
+        </div>
+      ) : (
+        <ul className="items" aria-label="Payments">
+          {payments.map((payment) => (
+            <li className="item" key={payment.id}>
+              <div className="chip pay">
+                <small>{weekdayName(payment.paid_on)}</small>
+                <b>{dayOfMonth(payment.paid_on)}</b>
+              </div>
+              <div className="what">
+                <b>{payment.note ?? "Payment"}</b>
+                <small>Paid {dayMonth(payment.paid_on)}</small>
+              </div>
+              <div className="amt">
+                {money(payment.amount)}
+                <small>THB</small>
+              </div>
+              {onEdit !== null && (
+                <button
+                  className="pen"
+                  type="button"
+                  aria-label={`Edit payment ${money(payment.amount)} paid ${dayMonth(payment.paid_on)}`}
+                  onClick={() => {
+                    onEdit(payment);
+                  }}
+                >
+                  <Pen />
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -293,14 +376,6 @@ export function Cross() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true">
       <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-export function Plus() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
     </svg>
   );
 }

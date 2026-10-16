@@ -23,6 +23,15 @@ export interface PeriodOverride {
   note: string | null;
 }
 
+/** Money paid to the nanny, recorded for a pay period it chooses (not the one its date falls in). */
+export interface Payment {
+  id: string;
+  period_end: string;
+  paid_on: string;
+  amount: number;
+  note: string | null;
+}
+
 function iso(year: number, month: number, day: number): string {
   return new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10);
 }
@@ -73,6 +82,13 @@ export function prevPeriod(period: Period): Period | null {
 export function nextPeriod(period: Period): Period {
   const [year, month] = parts(period.end);
   return periodEnding(year, month + 1);
+}
+
+/** Every pay period from the first one through this one, in order. */
+export function periodsThrough(last: Period): Period[] {
+  const periods: Period[] = [];
+  for (let p = currentPeriod(START_DATE); p.end <= last.end; p = nextPeriod(p)) periods.push(p);
+  return periods;
 }
 
 /** The rate in effect on a date: the latest one starting on or before it. */
@@ -205,20 +221,26 @@ export function daysIn(period: Period, days: Day[]): Day[] {
   return days.filter((day) => day.date >= period.start && day.date <= period.end);
 }
 
-/** Everything the pay maths needs, as stored: rates, agreed overrides, holiday dates, exception days. */
+/**
+ * Everything the pay maths needs, as stored: rates, agreed overrides, holiday dates,
+ * exception days, payments.
+ */
 export interface PayFacts {
   rates: Rate[];
   overrides: PeriodOverride[];
   holidays: string[];
   days: Day[];
+  payments: Payment[];
 }
 
-/** A pay period's money: salary plus the OT of its days. */
+/** A pay period's money: total = salary plus the OT of its days; balance = total − paid. */
 export interface Summary {
   salary: number;
   otMinutes: number;
   otPay: number;
   total: number;
+  paid: number;
+  balance: number;
 }
 
 export function summarize(period: Period, facts: PayFacts): Summary {
@@ -230,5 +252,14 @@ export function summarize(period: Period, facts: PayFacts): Summary {
     otMinutes += ot.paidMinutes;
     otPay += ot.pay;
   }
-  return { salary, otMinutes, otPay, total: salary + otPay };
+  const total = salary + otPay;
+  const paid = paymentsIn(period, facts.payments).reduce((sum, p) => sum + p.amount, 0);
+  return { salary, otMinutes, otPay, total, paid, balance: total - paid };
+}
+
+/** The pay period's own payments, by date paid. */
+export function paymentsIn(period: Period, payments: Payment[]): Payment[] {
+  return payments
+    .filter((p) => p.period_end === period.end)
+    .sort((a, b) => a.paid_on.localeCompare(b.paid_on));
 }
