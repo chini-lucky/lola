@@ -1,4 +1,3 @@
-docs/design/
 src/db.types.ts
 supabase/config.toml
 package-lock.json

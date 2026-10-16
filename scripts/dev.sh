@@ -6,9 +6,10 @@ mkdir -p logs
 
 supabase start
 
+# Container names come from project_id = "lola" in supabase/config.toml.
 for svc in db auth rest; do
   docker logs -f "supabase_${svc}_lola" > "logs/supabase-${svc}.log" 2>&1 &
 done
 trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
 
-npx vite 2>&1 | tee logs/vite.log
+npx vite --port 5173 --strictPort 2>&1 | tee logs/vite.log

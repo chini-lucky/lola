@@ -19,7 +19,7 @@ Nanny hours and pay app: an admin records exceptions (OT, leave), payments and r
 - `npm run dev` (= `scripts/dev.sh`): starts local Supabase (Docker) + Vite at http://localhost:5173/lola/.
 - Logs: `logs/vite.log`, `logs/supabase-{db,auth,rest}.log` (gitignored). Playwright traces/screenshots: `test-results/`.
 - Local Supabase uses ports 554xx (see `supabase/config.toml`), e.g. API 55421, DB 55422, Studio 55423.
-- Test logins: see `supabase/seed.sql` (values are not repeated here).
+- Test logins: see `supabase/seed.sql` once it exists (values are not repeated here).
 - `npm run db:reset` re-applies migrations + seed; `npm run db:types` regenerates `src/db.types.ts`.
 
 ## Rules
