@@ -4,6 +4,7 @@ import {
   datesIn,
   dayKind,
   dayOt,
+  isStale,
   nextPeriod,
   otReason,
   payDayOf,
@@ -395,5 +396,31 @@ describe("paid on a day", () => {
       payment("2026-10-27", "2026-10-28", 20000),
     ];
     expect(paidOn("2026-09-28", payments)).toBe(13000);
+  });
+});
+
+describe("stale confirmation", () => {
+  const day = { date: "2026-10-05", ot: ["18:00-20:30"], leave: false, note: "dinner out" };
+  const facts = { rates: [firstRate], overrides: [], holidays: [], days: [day], payments: [] };
+  // What Lola confirmed: 20,000 salary + 375 OT, nothing paid yet.
+  const confirmed = { total: 20375, paid: 0 };
+
+  test("a confirmation is not stale while the money numbers are unchanged", () => {
+    expect(isStale(confirmed, summarize(octPay, facts))).toBe(false);
+  });
+
+  test("editing only a day's note does not make a confirmation stale", () => {
+    const noteEdited = { ...facts, days: [{ ...day, note: "late dinner" }] };
+    expect(isStale(confirmed, summarize(octPay, noteEdited))).toBe(false);
+  });
+
+  test("adding a payment makes a confirmation stale", () => {
+    const paid = { ...facts, payments: [payment("2026-10-27", "2026-10-16", 5000)] };
+    expect(isStale(confirmed, summarize(octPay, paid))).toBe(true);
+  });
+
+  test("changing a day's OT makes a confirmation stale", () => {
+    const otChanged = { ...facts, days: [{ ...day, ot: ["18:00-21:00"] }] };
+    expect(isStale(confirmed, summarize(octPay, otChanged))).toBe(true);
   });
 });

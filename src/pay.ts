@@ -270,3 +270,16 @@ export function paymentsIn(period: Period, payments: Payment[]): Payment[] {
 export function paidOn(date: string, payments: Payment[]): number {
   return payments.filter((p) => p.paid_on === date).reduce((sum, p) => sum + p.amount, 0);
 }
+
+/** The money numbers a confirmation stores: what the nanny saw when she confirmed. */
+export type Snapshot = Pick<Summary, "total" | "paid">;
+
+/** The money numbers to store when the nanny confirms. */
+export function snapshotOf(summary: Summary): Snapshot {
+  return { total: summary.total, paid: summary.paid };
+}
+
+/** A confirmation is stale once its money numbers (total, paid) no longer match. */
+export function isStale(snapshot: Snapshot, now: Summary): boolean {
+  return snapshot.total !== now.total || snapshot.paid !== now.paid;
+}
