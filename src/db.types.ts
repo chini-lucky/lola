@@ -45,6 +45,9 @@ export type Database = {
           Functions: {
             "my_role":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"set_role":
+{ Args: { "new_role": string,"target": string }; Returns: undefined
                            }
           }
           Enums: {
