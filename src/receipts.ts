@@ -19,3 +19,33 @@ export function receiptName(path: string): string {
 }
 
 export const isPdf = (name: string) => name.toLowerCase().endsWith(".pdf");
+
+const MAX_SIDE = 1600;
+const JPEG_QUALITY = 0.8;
+
+/** "slip.jpg" for "slip.png". */
+const asJpegName = (name: string) => `${name.replace(/\.[^.]*$/, "")}.jpg`;
+
+/**
+ * An image as a JPEG at most 1600 px on its longest side; a PDF, or an image the browser can't
+ * decode (HEIC outside Safari), as it is.
+ */
+export async function shrunk(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) return file;
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (bitmap === null) return file;
+  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const context = canvas.getContext("2d");
+  if (context === null) return file;
+  context.fillStyle = "#ffffff"; // JPEG has no transparency: see-through parts turn white
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const jpeg = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY);
+  });
+  return jpeg === null ? file : new File([jpeg], asJpegName(file.name), { type: "image/jpeg" });
+}

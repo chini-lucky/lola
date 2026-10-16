@@ -8,7 +8,7 @@ import {
   type PayFacts,
   type Payment,
 } from "../pay";
-import { RECEIPT_TYPES, receiptName, receiptPath } from "../receipts";
+import { RECEIPT_TYPES, receiptName, receiptPath, shrunk } from "../receipts";
 import { addPayment, deletePayment, editPayment, removeReceipts, uploadReceipt } from "../supabase";
 import { ErrorAlert, money, periodTitle, Plus, Receipt } from "../ui";
 
@@ -83,7 +83,8 @@ export function PaymentSheet(props: {
     try {
       const id = payment?.id ?? crypto.randomUUID();
       const uploaded = await Promise.all(
-        added.map(async (file) => {
+        added.map(async (picked) => {
+          const file = await shrunk(picked);
           const path = receiptPath(periodEnd, id, file.name);
           await uploadReceipt(path, file);
           return path;

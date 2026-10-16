@@ -1,4 +1,5 @@
 import { devices, expect, test, type Browser, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 import { admin, nanny } from "./logins";
 
 const today = "2026-10-16";
@@ -85,4 +86,54 @@ test("admin removes a receipt from a payment: it leaves the Payments row", async
   const payment = page.getByRole("listitem").filter({ hasText: "Two slips" });
   await expect(payment).toContainText("Paid 16 Oct · 1 receipt");
   await deletePayment(page, "Edit payment 1,200 paid 16 Oct");
+});
+
+/** A PNG of the given size, drawn in the browser. */
+async function pngOf(page: Page, name: string, width: number, height: number): Promise<Upload> {
+  const base64 = await page.evaluate(
+    ({ w, h }) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const context = canvas.getContext("2d");
+      if (context === null) throw new Error("no canvas");
+      context.fillStyle = "#4e9bd1";
+      context.fillRect(0, 0, w, h);
+      return canvas.toDataURL("image/png").split(",")[1] ?? "";
+    },
+    { w: width, h: height },
+  );
+  return { name, mimeType: "image/png", buffer: Buffer.from(base64, "base64") };
+}
+
+/** The type and size of an image file, as the browser decodes it. */
+async function imageOf(page: Page, file: Buffer) {
+  return page.evaluate(async (base64) => {
+    const blob = await (await fetch(`data:application/octet-stream;base64,${base64}`)).blob();
+    const bitmap = await createImageBitmap(blob);
+    const bytes = new Uint8Array(await blob.slice(0, 3).arrayBuffer());
+    const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    return { jpeg, width: bitmap.width, height: bitmap.height };
+  }, file.toString("base64"));
+}
+
+test("a receipt image is shrunk in the browser to a JPEG at most 1600 px wide", async ({
+  page,
+  browser,
+  baseURL,
+}) => {
+  await logInOn(page, admin);
+  await addPaymentWith(page, "1,300", "Big screenshot", [await pngOf(page, "big.png", 3200, 2000)]);
+
+  const lola = await nannyPhone(browser, baseURL);
+  const download = lola.waitForEvent("download");
+  await lola
+    .getByRole("listitem")
+    .filter({ hasText: "Big screenshot" })
+    .getByRole("button", { name: "Download big.jpg" })
+    .click();
+  const file = await readFile(await (await download).path());
+  expect(await imageOf(lola, file)).toEqual({ jpeg: true, width: 1600, height: 1000 });
+
+  await deletePayment(page, "Edit payment 1,300 paid 16 Oct");
 });
