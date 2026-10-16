@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { exportCsv } from "./csv";
-import type { PayFacts } from "./pay";
+import type { PayFacts, Payment } from "./pay";
 
 const sepPay = { start: "2026-09-14", end: "2026-09-27" };
 const octPay = { start: "2026-09-28", end: "2026-10-27" };
@@ -11,6 +11,15 @@ const noFacts: PayFacts = {
   holidays: [],
   days: [],
   payments: [],
+};
+
+const sepPayPaid: Payment = {
+  id: "p1",
+  period_end: "2026-09-27",
+  paid_on: "2026-09-28",
+  amount: 11000,
+  note: null,
+  receipts: [],
 };
 
 /** The CSV's line for a date. */
@@ -43,6 +52,12 @@ describe("CSV export", () => {
     const day = { date: "2026-10-19", ot: [], leave: true, note: "Doctor visit" };
     expect(rowOn("2026-10-19", { ...noFacts, days: [day] })).toBe(
       "2026-10-19,Mon,Leave,,,,Doctor visit,,",
+    );
+  });
+
+  test("a payment's amount shows on the day it was paid, not in the pay period it is for", () => {
+    expect(rowOn("2026-09-28", { ...noFacts, payments: [sepPayPaid] })).toBe(
+      "2026-09-28,Mon,Normal,,,,,11000,",
     );
   });
 });

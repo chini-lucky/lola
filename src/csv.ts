@@ -46,6 +46,7 @@ function rowOn(date: string, facts: PayFacts): string[] {
   const kind = dayKind(date, facts.holidays, day);
   const ot =
     day !== undefined && day.ot.length > 0 ? dayOt(day, facts.rates, facts.holidays) : null;
+  const paid = facts.payments.filter((p) => p.paid_on === date);
   return [
     date,
     weekdayName(date),
@@ -54,7 +55,7 @@ function rowOn(date: string, facts: PayFacts): string[] {
     ot === null ? "" : (ot.paidMinutes / 60).toString(),
     ot === null ? "" : ot.pay.toString(),
     day?.note ?? "",
-    "",
+    paid.length === 0 ? "" : paid.reduce((sum, p) => sum + p.amount, 0).toString(),
     "",
   ];
 }
