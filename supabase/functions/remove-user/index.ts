@@ -42,5 +42,8 @@ Deno.serve(async (req) => {
   if (typeof userId !== "string") return json(400, { error: "userId is required" });
   if (userId === caller.user.id) return json(400, { error: "you cannot remove yourself" });
 
-  return json(500, { error: "not built yet" });
+  const asService = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), noSession);
+  const { error: deleteError } = await asService.auth.admin.deleteUser(userId); // people row cascades
+  if (deleteError !== null) return json(500, { error: deleteError.message });
+  return json(200, { ok: true });
 });

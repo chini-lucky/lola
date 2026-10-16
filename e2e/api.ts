@@ -12,7 +12,7 @@ export function newUsername(prefix: string): string {
 }
 
 /** A supabase-js client logged in as the given user (no browser). */
-async function loggedIn(username: string, password: string): Promise<SupabaseClient> {
+export async function loggedIn(username: string, password: string): Promise<SupabaseClient> {
   const client = createClient(url, anonKey, { auth: { persistSession: false } });
   const { error } = await client.auth.signInWithPassword({
     email: `${username}@lola.invalid`,
