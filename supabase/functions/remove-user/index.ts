@@ -27,8 +27,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json(405, { error: "use POST" });
 
+  const url = env("SUPABASE_URL");
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
-  const asCaller = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"), {
+  const asCaller = createClient(url, env("SUPABASE_ANON_KEY"), {
     ...noSession,
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
@@ -38,11 +39,12 @@ Deno.serve(async (req) => {
 
   const { data: caller, error: callerError } = await asCaller.auth.getUser(token);
   if (callerError !== null) return json(401, { error: callerError.message });
-  const { userId } = (await req.json()) as { userId?: unknown };
+  const body: unknown = await req.json().catch(() => null);
+  const userId = typeof body === "object" && body !== null && "userId" in body ? body.userId : null;
   if (typeof userId !== "string") return json(400, { error: "userId is required" });
   if (userId === caller.user.id) return json(400, { error: "you cannot remove yourself" });
 
-  const asService = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), noSession);
+  const asService = createClient(url, env("SUPABASE_SERVICE_ROLE_KEY"), noSession);
   const { data: removed, error: readError } = await asService
     .from("people")
     .select()
@@ -56,6 +58,8 @@ Deno.serve(async (req) => {
   const { error: auditError } = await asService
     .from("audit_log")
     .insert({ actor: caller.user.id, tbl: "people", op: "delete", old: removed });
-  if (auditError !== null) return json(500, { error: auditError.message });
+  if (auditError !== null) {
+    return json(500, { error: `removed, but not logged: ${auditError.message}` });
+  }
   return json(200, { ok: true });
 });
