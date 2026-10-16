@@ -60,4 +60,11 @@ describe("CSV export", () => {
       "2026-09-28,Mon,Normal,,,,,11000,",
     );
   });
+
+  test("a payment's receipts show by the file names they were attached with", () => {
+    const receipts = ["2026-09-27/p1/1a2b3c4d-slip.jpg", "2026-09-27/p1/5e6f7a8b-transfer.pdf"];
+    expect(rowOn("2026-09-28", { ...noFacts, payments: [{ ...sepPayPaid, receipts }] })).toBe(
+      "2026-09-28,Mon,Normal,,,,,11000,slip.jpg; transfer.pdf",
+    );
+  });
 });

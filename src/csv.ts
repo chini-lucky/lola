@@ -8,6 +8,7 @@ import {
   type PayFacts,
   type Period,
 } from "./pay";
+import { receiptName } from "./receipts";
 import { weekdayName } from "./ui";
 
 const HEADER = [
@@ -56,7 +57,7 @@ function rowOn(date: string, facts: PayFacts): string[] {
     ot === null ? "" : ot.pay.toString(),
     day?.note ?? "",
     paid.length === 0 ? "" : paid.reduce((sum, p) => sum + p.amount, 0).toString(),
-    "",
+    paid.flatMap((p) => p.receipts.map(receiptName)).join("; "),
   ];
 }
 
