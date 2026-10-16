@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { datesIn, nextPeriod, periodOf, prevPeriod, salaryOf, type Rate } from "./pay";
+import { datesIn, dayKind, nextPeriod, periodOf, prevPeriod, salaryOf, type Rate } from "./pay";
 
 const firstRate: Rate = { effective_from: "2026-09-14", salary: 20000, ot_rate: 150 };
 
@@ -96,5 +96,23 @@ describe("days of a pay period", () => {
       "2026-09-26",
       "2026-09-27",
     ]);
+  });
+});
+
+describe("day kind", () => {
+  test("Saturday is a weekend", () => {
+    expect(dayKind("2026-10-17", [])).toBe("weekend");
+  });
+
+  test("a weekday is a normal day", () => {
+    expect(dayKind("2026-10-16", [])).toBe("normal");
+  });
+
+  test("a holiday on a weekday is a holiday", () => {
+    expect(dayKind("2026-10-13", ["2026-10-13"])).toBe("holiday");
+  });
+
+  test("a holiday on a weekend shows as a holiday", () => {
+    expect(dayKind("2026-12-05", ["2026-12-05"])).toBe("holiday");
   });
 });

@@ -85,3 +85,13 @@ export function datesIn(period: Period): string[] {
   for (let date = period.start; date <= period.end; date = addDays(date, 1)) dates.push(date);
   return dates;
 }
+
+export type DayKind = "holiday" | "weekend" | "normal";
+
+/** How a day shows on the calendar. */
+export function dayKind(date: string, holidays: string[]): DayKind {
+  if (holidays.includes(date)) return "holiday";
+  const [year, month, day] = parts(date);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return weekday === 0 || weekday === 6 ? "weekend" : "normal";
+}
