@@ -5,6 +5,8 @@ import {
   dayKind,
   dayOt,
   daysIn,
+  isStale,
+  snapshotOf,
   nextPeriod,
   otReason,
   overrideOf,
@@ -19,9 +21,11 @@ import {
   type PayFacts,
   type Period,
   type Rate,
+  type Snapshot,
+  type Summary,
 } from "./pay";
 import { isPdf, receiptName } from "./receipts";
-import type { Holiday, Role } from "./supabase";
+import type { Confirmation, Holiday, Role } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
@@ -162,9 +166,16 @@ export const periodName = (period: Period) => `${monthName(period.end)} pay`;
 /** "Oct pay · 28 Sep – 27 Oct" */
 export const periodTitle = (period: Period) =>
   `${periodName(period)} · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
+/** A moment's date in Bangkok, YYYY-MM-DD. */
+const bangkokDate = (at: Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(at);
 /** Today's date in Bangkok. */
-export const todayInBangkok = () =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
+export const todayInBangkok = () => bangkokDate(new Date());
+/** "16 Oct": the Bangkok day a confirmation was made. */
+const confirmedOn = (confirmation: Confirmation) =>
+  dayMonth(bangkokDate(new Date(confirmation.confirmed_at)));
+/** "total 22,250 · paid 0": the money numbers a confirmation checked, or as they are now. */
+const checked = ({ total, paid }: Snapshot) => `total ${money(total)} · paid ${money(paid)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** "Tue 20 Oct" */
@@ -603,6 +614,119 @@ export function OtLeaveList(props: { period: Period; facts: PayFacts; onEditDay:
   );
 }
 
+function Check() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Copy() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+      <rect x="8" y="8" width="12" height="12" rx="3" />
+      <path
+        d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Where a pay period's latest confirmation stands against its money numbers now. */
+type ConfirmationState =
+  { kind: "waiting" } | { kind: "confirmed" | "stale"; confirmation: Confirmation };
+
+function confirmationState(confirmation: Confirmation | null, summary: Summary): ConfirmationState {
+  if (confirmation === null) return { kind: "waiting" };
+  return { kind: isStale(confirmation.snapshot, summary) ? "stale" : "confirmed", confirmation };
+}
+
+/** The admin's view of the nanny's latest confirmation: waiting, confirmed, or changed since. */
+export function ConfirmationBadge(props: { confirmation: Confirmation | null; summary: Summary }) {
+  const state = confirmationState(props.confirmation, props.summary);
+  switch (state.kind) {
+    case "waiting":
+      return (
+        <span className="state">
+          <i />
+          Waiting for Lola’s ✓
+        </span>
+      );
+    case "confirmed":
+      return (
+        <span className="state ok">
+          <i />
+          Lola confirmed {confirmedOn(state.confirmation)}
+        </span>
+      );
+    case "stale":
+      return (
+        <div className="flag" role="note" aria-label="Changed since Lola confirmed">
+          <span className="ic" aria-hidden="true">
+            !
+          </span>
+          <span>
+            <b>Changed since Lola confirmed</b>
+            <small>
+              She checked {checked(state.confirmation.snapshot)} on{" "}
+              {confirmedOn(state.confirmation)}. Now {checked(snapshotOf(props.summary))}.
+            </small>
+          </span>
+        </div>
+      );
+    default: {
+      const unreachable: never = state;
+      return unreachable;
+    }
+  }
+}
+
+/** The nanny's "This looks right ✓", or that she confirmed the numbers as they are now. */
+export function ConfirmButton(props: {
+  confirmation: Confirmation | null;
+  summary: Summary;
+  saving: boolean;
+  onConfirm: () => void;
+}) {
+  const state = confirmationState(props.confirmation, props.summary);
+  if (state.kind === "confirmed") {
+    return (
+      <div className="done">
+        <Check />
+        You confirmed this on {confirmedOn(state.confirmation)}
+      </div>
+    );
+  }
+  return (
+    <>
+      <button className="btn pri" type="button" disabled={props.saving} onClick={props.onConfirm}>
+        This looks right
+        <Check />
+      </button>
+      {state.kind === "stale" && (
+        <div className="note">
+          You checked {checked(state.confirmation.snapshot)} on {confirmedOn(state.confirmation)}.
+          The numbers changed since then.
+        </div>
+      )}
+    </>
+  );
+}
+
+/** What "Copy summary" puts on the clipboard, to paste into Messenger. */
+export function summaryText(period: Period, summary: Summary, link: string): string {
+  return [
+    `Lola · ${periodName(period)} (${dayMonth(period.start)} – ${dayMonth(period.end)})`,
+    `Salary ${money(summary.salary)}`,
+    `OT ${hours(summary.otMinutes)} = ${money(summary.otPay)}`,
+    `Total ${money(summary.total)} · Paid ${money(summary.paid)}`,
+    `Balance ${money(summary.balance)} THB`,
+    link,
+  ].join("\n");
+}
 /** "Sep pay": the pay period a date falls in (the date itself before the start date). */
 function periodNameOf(date: string): string {
   const period = periodOf(date);
