@@ -111,10 +111,12 @@ function isWeekend(date: string): boolean {
   return weekday === 0 || weekday === 6;
 }
 
-export type DayKind = "holiday" | "weekend" | "normal";
+export type DayKind = "ot" | "leave" | "holiday" | "weekend" | "normal";
 
-/** How a day shows on the calendar. */
-export function dayKind(date: string, holidays: string[]): DayKind {
+/** How a day shows on the calendar: OT > leave > holiday > weekend > normal. */
+export function dayKind(date: string, holidays: string[], day?: Day): DayKind {
+  if (day !== undefined && day.ot.length > 0) return "ot";
+  if (day?.leave === true) return "leave";
   if (holidays.includes(date)) return "holiday";
   return isWeekend(date) ? "weekend" : "normal";
 }

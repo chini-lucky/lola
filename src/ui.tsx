@@ -133,6 +133,10 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
 /** CSS class of a calendar day cell for its kind. */
 function dayClass(kind: DayKind): string {
   switch (kind) {
+    case "ot":
+      return "d ot";
+    case "leave":
+      return "d lv";
     case "holiday":
       return "d hol";
     case "weekend":

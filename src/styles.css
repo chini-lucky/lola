@@ -31,6 +31,8 @@
   --day: #ffffff;
   --wkd: #f3eee4;
   --hol: #ffe9a8;
+  --ot: #bfe0f5;
+  --ot-ink: #1c5a86;
   --lv: #fce3c9;
   --lv-ink: #b8692a;
   --hol-ink: #8a6a00;
@@ -622,6 +624,16 @@ a:focus-visible {
 .d.wkd {
   background: var(--wkd);
   color: var(--muted);
+  box-shadow: none;
+}
+.d.ot {
+  background: var(--ot);
+  color: var(--ot-ink);
+  box-shadow: none;
+}
+.d.lv {
+  background: var(--lv);
+  color: var(--lv-ink);
   box-shadow: none;
 }
 .d.hol {

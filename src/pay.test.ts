@@ -124,6 +124,21 @@ describe("days of a pay period", () => {
 });
 
 describe("day kind", () => {
+  test("OT on a holiday shows as OT", () => {
+    const day = { date: "2026-10-13", ot: ["10:00-12:00"], leave: false, note: null };
+    expect(dayKind("2026-10-13", ["2026-10-13"], day)).toBe("ot");
+  });
+
+  test("a leave day with OT shows as OT", () => {
+    const day = { date: "2026-10-19", ot: ["18:00-19:00"], leave: true, note: null };
+    expect(dayKind("2026-10-19", [], day)).toBe("ot");
+  });
+
+  test("leave on a holiday shows as leave", () => {
+    const day = { date: "2026-10-13", ot: [], leave: true, note: null };
+    expect(dayKind("2026-10-13", ["2026-10-13"], day)).toBe("leave");
+  });
+
   test("Saturday is a weekend", () => {
     expect(dayKind("2026-10-17", [])).toBe("weekend");
   });
