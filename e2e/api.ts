@@ -66,3 +66,15 @@ export async function clearDays(from: string, to: string): Promise<void> {
   const { error } = await asAdmin.from("days").delete().gte("date", from).lte("date", to);
   if (error !== null) throw error;
 }
+
+/** Records an exception day, as the admin. */
+export async function addDay(day: {
+  date: string;
+  ot?: string[];
+  leave?: boolean;
+  note?: string;
+}): Promise<void> {
+  const asAdmin = await loggedIn(admin.username, admin.password);
+  const { error } = await asAdmin.from("days").insert(day);
+  if (error !== null) throw error;
+}

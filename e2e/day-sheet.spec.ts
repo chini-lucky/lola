@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { clearDays } from "./api";
+import { addDay, clearDays } from "./api";
 import { logIn } from "./login";
 import { admin } from "./logins";
 
@@ -39,4 +39,17 @@ test("an OT range that ends before it starts is refused", async ({ page }) => {
   await expect(sheet.getByRole("alert")).toHaveText(
     "Range 1 must start before it ends (a range can’t cross midnight).",
   );
+});
+
+test("an admin removes one of a day's OT ranges and edits the other: 3 h becomes 1 h", async ({
+  page,
+}) => {
+  await addDay({ date: "2026-11-17", ot: ["07:00-08:00", "18:00-20:00"] });
+  await adminOn16Nov(page);
+  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  const sheet = page.getByRole("dialog", { name: "Tue 17 Nov" });
+  await sheet.getByRole("button", { name: "Remove range 1" }).click();
+  await sheet.getByLabel("Range 1 to").fill("19:00");
+  await sheet.getByRole("button", { name: "Save day" }).click();
+  await expect(novPay(page)).toContainText(/Overtime 1 h\s*150\s*Total\s*20,150/);
 });

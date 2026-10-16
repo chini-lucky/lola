@@ -919,3 +919,18 @@ a:focus-visible {
   font-size: 1.1rem;
   white-space: nowrap;
 }
+.range .x {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--surface);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.range .x svg {
+  width: 14px;
+  height: 14px;
+}

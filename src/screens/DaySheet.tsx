@@ -132,6 +132,24 @@ export function DaySheet(props: {
                     setRange(i, { ...range, to: event.target.value });
                   }}
                 />
+                <button
+                  className="x"
+                  type="button"
+                  aria-label={`Remove range ${n}`}
+                  onClick={() => {
+                    setRanges(ranges.filter((_, j) => j !== i));
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.6"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                  </svg>
+                </button>
               </div>
             );
           })}
