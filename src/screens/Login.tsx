@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { logIn } from "../supabase";
-import { Bear } from "../ui";
+import { Bear, ErrorAlert, Field } from "../ui";
 
 export function Login() {
   const [username, setUsername] = useState("");
@@ -25,38 +25,22 @@ export function Login() {
           void submit();
         }}
       >
-        <div className="field">
-          <label htmlFor="li-u">Username</label>
-          <input
-            className="inp"
-            id="li-u"
-            autoComplete="username"
-            autoCapitalize="none"
-            spellCheck={false}
-            value={username}
-            onChange={(event) => {
-              setUsername(event.target.value);
-            }}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="li-p">Password</label>
-          <input
-            className="inp"
-            id="li-p"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
-            }}
-          />
-        </div>
-        {error !== null && (
-          <p className="err" role="alert">
-            {error}
-          </p>
-        )}
+        <Field
+          id="li-u"
+          label="Username"
+          autoComplete="username"
+          value={username}
+          onChange={setUsername}
+        />
+        <Field
+          id="li-p"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={setPassword}
+        />
+        <ErrorAlert message={error} />
         <button className="btn pri" type="submit" disabled={busy}>
           Log in
         </button>

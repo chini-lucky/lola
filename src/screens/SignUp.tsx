@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { signUp } from "../supabase";
-import { Bear } from "../ui";
+import { Bear, ErrorAlert, Field } from "../ui";
 
-function problem(username: string, password: string, repeat: string): string | null {
+function validationError(username: string, password: string, repeat: string): string | null {
   if (!/^[a-z0-9-]{3,20}$/.test(username))
     return "Username must be 3–20 characters: a–z, 0–9 and -";
   if (password.length < 10) return "Password must be at least 10 characters.";
@@ -18,16 +18,16 @@ export function SignUp() {
   const [busy, setBusy] = useState(false);
 
   async function submit() {
-    const found = problem(username, password, repeat);
-    if (found !== null) {
-      setError(found);
+    const invalid = validationError(username, password, repeat);
+    if (invalid !== null) {
+      setError(invalid);
       return;
     }
     setBusy(true);
-    const failed = await signUp(username, password);
+    const signUpError = await signUp(username, password);
     setBusy(false);
-    setError(failed);
-    if (failed === null) window.location.hash = "";
+    setError(signUpError);
+    if (signUpError === null) window.location.hash = "";
   }
 
   return (
@@ -42,53 +42,32 @@ export function SignUp() {
           void submit();
         }}
       >
-        <div className="field">
-          <label htmlFor="su-u">Username</label>
-          <input
-            className="inp"
-            id="su-u"
-            autoComplete="username"
-            autoCapitalize="none"
-            spellCheck={false}
-            value={username}
-            onChange={(event) => {
-              setUsername(event.target.value);
-            }}
-          />
-          <span className="help">3–20 characters: a–z, 0–9 and -</span>
-        </div>
-        <div className="field">
-          <label htmlFor="su-p">Password</label>
-          <input
-            className="inp"
-            id="su-p"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
-            }}
-          />
-          <span className="help">At least 10 characters. Save it in your password manager.</span>
-        </div>
-        <div className="field">
-          <label htmlFor="su-c">Repeat password</label>
-          <input
-            className="inp"
-            id="su-c"
-            type="password"
-            autoComplete="new-password"
-            value={repeat}
-            onChange={(event) => {
-              setRepeat(event.target.value);
-            }}
-          />
-        </div>
-        {error !== null && (
-          <p className="err" role="alert">
-            {error}
-          </p>
-        )}
+        <Field
+          id="su-u"
+          label="Username"
+          autoComplete="username"
+          value={username}
+          onChange={setUsername}
+          help="3–20 characters: a–z, 0–9 and -"
+        />
+        <Field
+          id="su-p"
+          label="Password"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={setPassword}
+          help="At least 10 characters. Save it in your password manager."
+        />
+        <Field
+          id="su-c"
+          label="Repeat password"
+          type="password"
+          autoComplete="new-password"
+          value={repeat}
+          onChange={setRepeat}
+        />
+        <ErrorAlert message={error} />
         <button className="btn pri" type="submit" disabled={busy}>
           Create account
         </button>

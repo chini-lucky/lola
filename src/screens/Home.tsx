@@ -1,5 +1,20 @@
-import { logOut, type Person } from "../supabase";
+import { logOut, type Person, type Role } from "../supabase";
 import { Bear } from "../ui";
+
+function roleLabel(role: Role): string {
+  switch (role) {
+    case "admin":
+      return "Admin";
+    case "nanny":
+      return "Nanny";
+    case "waiting":
+      return "Waiting";
+    default: {
+      const unreachable: never = role;
+      return unreachable;
+    }
+  }
+}
 
 // Placeholder until the pay period view (#5).
 export function Home({ person }: { person: Person }) {
@@ -11,7 +26,7 @@ export function Home({ person }: { person: Person }) {
           <h1>
             <b>Hi {person.username} 👋</b>
           </h1>
-          <small>{person.role === "admin" ? "Admin" : "Nanny"}</small>
+          <small>{roleLabel(person.role)}</small>
         </div>
       </div>
       <div className="empty">

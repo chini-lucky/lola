@@ -41,3 +41,42 @@ export function Bear({ className }: { className: string }) {
     </svg>
   );
 }
+
+/** A labelled text or password input, with optional help text under it. */
+export function Field(props: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: "text" | "password";
+  autoComplete: string;
+  help?: string;
+}) {
+  return (
+    <div className="field">
+      <label htmlFor={props.id}>{props.label}</label>
+      <input
+        className="inp"
+        id={props.id}
+        type={props.type ?? "text"}
+        autoComplete={props.autoComplete}
+        autoCapitalize="none"
+        spellCheck={false}
+        value={props.value}
+        onChange={(event) => {
+          props.onChange(event.target.value);
+        }}
+      />
+      {props.help !== undefined && <span className="help">{props.help}</span>}
+    </div>
+  );
+}
+
+export function ErrorAlert({ message }: { message: string | null }) {
+  if (message === null) return null;
+  return (
+    <p className="err" role="alert">
+      {message}
+    </p>
+  );
+}
