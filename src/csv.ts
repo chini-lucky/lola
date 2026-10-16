@@ -9,7 +9,7 @@ import {
   type Period,
 } from "./pay";
 import { receiptName } from "./receipts";
-import { weekdayName } from "./ui";
+import { weekdayName } from "./format";
 
 const HEADER = [
   "Date",

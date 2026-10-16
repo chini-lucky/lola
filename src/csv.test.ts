@@ -23,8 +23,10 @@ const sepPayPaid: Payment = {
 };
 
 /** The CSV's line for a date. */
-function rowOn(date: string, facts: PayFacts): string | undefined {
-  return rowsOf(exportCsv(octPay, octPay, facts)).find((row) => row.startsWith(date));
+function csvLineOn(date: string, facts: PayFacts): string {
+  const line = rowsOf(exportCsv(octPay, octPay, facts)).find((row) => row.startsWith(date));
+  if (line === undefined) throw new Error(`No line for ${date}`);
+  return line;
 }
 
 /** The CSV's lines, without the header. */
@@ -43,27 +45,27 @@ describe("CSV export", () => {
       leave: false,
       note: null,
     };
-    expect(rowOn("2026-10-20", { ...noFacts, days: [day] })).toBe(
+    expect(csvLineOn("2026-10-20", { ...noFacts, days: [day] })).toBe(
       "2026-10-20,Tue,OT,07:30-09:00; 18:00-19:10,3,450,,,",
     );
   });
 
   test("a leave day shows its type and note", () => {
     const day = { date: "2026-10-19", ot: [], leave: true, note: "Doctor visit" };
-    expect(rowOn("2026-10-19", { ...noFacts, days: [day] })).toBe(
+    expect(csvLineOn("2026-10-19", { ...noFacts, days: [day] })).toBe(
       "2026-10-19,Mon,Leave,,,,Doctor visit,,",
     );
   });
 
   test("a payment's amount shows on the day it was paid, not in the pay period it is for", () => {
-    expect(rowOn("2026-09-28", { ...noFacts, payments: [sepPayPaid] })).toBe(
+    expect(csvLineOn("2026-09-28", { ...noFacts, payments: [sepPayPaid] })).toBe(
       "2026-09-28,Mon,Normal,,,,,11000,",
     );
   });
 
   test("a payment's receipts show by the file names they were attached with", () => {
     const receipts = ["2026-09-27/p1/1a2b3c4d-slip.jpg", "2026-09-27/p1/5e6f7a8b-transfer.pdf"];
-    expect(rowOn("2026-09-28", { ...noFacts, payments: [{ ...sepPayPaid, receipts }] })).toBe(
+    expect(csvLineOn("2026-09-28", { ...noFacts, payments: [{ ...sepPayPaid, receipts }] })).toBe(
       "2026-09-28,Mon,Normal,,,,,11000,slip.jpg; transfer.pdf",
     );
   });
@@ -75,7 +77,7 @@ describe("CSV export", () => {
       leave: true,
       note: 'Took "Pooh" to the vet, then home',
     };
-    expect(rowOn("2026-10-19", { ...noFacts, days: [day] })).toBe(
+    expect(csvLineOn("2026-10-19", { ...noFacts, days: [day] })).toBe(
       '2026-10-19,Mon,Leave,,,,"Took ""Pooh"" to the vet, then home",,',
     );
   });

@@ -14,7 +14,7 @@ test("the admin exports Sep pay to Oct pay as one CSV with a row per day", async
   await exportCsv.getByRole("button", { name: "Download CSV" }).click();
   const lines = (await readFile(await (await download).path(), "utf8")).split("\r\n");
   expect({ header: lines[0], days: lines.slice(1, -1).length }).toEqual({
-    header: "﻿Date,Weekday,Type,OT times,OT hours,OT pay,Note,Payment,Receipts",
+    header: "\uFEFFDate,Weekday,Type,OT times,OT hours,OT pay,Note,Payment,Receipts",
     days: 44,
   });
 });

@@ -22,8 +22,11 @@ import {
   type Rate,
 } from "./pay";
 import { exportCsv } from "./csv";
+import { weekdayName } from "./format";
 import { isPdf, receiptName } from "./receipts";
 import type { Holiday, Role } from "./supabase";
+
+export { weekdayName };
 
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
@@ -148,12 +151,9 @@ export function roleLabel(role: Role): string {
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** "Oct" for any date in October. */
 export const monthName = (date: string) => MONTHS[Number(date.slice(5, 7)) - 1] ?? "";
-/** "Tue" for a Tuesday. */
-export const weekdayName = (date: string) => WEEKDAYS[weekdayOf(date)] ?? "";
 const dayOfMonth = (date: string) => Number(date.slice(8, 10));
 /** "28 Sep" */
 export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
@@ -891,7 +891,9 @@ function saveCsv(csv: string, fileName: string) {
   link.href = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv" }));
   link.download = fileName;
   link.click();
-  URL.revokeObjectURL(link.href);
+  setTimeout(() => {
+    URL.revokeObjectURL(link.href); // not at once: Safari may not have started the download
+  }, 1000);
 }
 
 /** Pick a range of pay periods (default: all through today's) and download it as one CSV. */
@@ -936,8 +938,8 @@ export function ExportCsv({ facts, today }: { facts: PayFacts; today: string }) 
     <section className="sec" aria-labelledby="export-csv">
       <h3 id="export-csv">Export CSV</h3>
       <div className="two">
-        {picker("st-a", "From", from, setFrom)}
-        {picker("st-b", "To", to, setTo)}
+        {picker("csv-from", "From", from, setFrom)}
+        {picker("csv-to", "To", to, setTo)}
       </div>
       <ErrorAlert message={error} />
       <button className="btn pri" type="button" onClick={download}>
