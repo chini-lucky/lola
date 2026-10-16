@@ -67,4 +67,16 @@ describe("CSV export", () => {
       "2026-09-28,Mon,Normal,,,,,11000,slip.jpg; transfer.pdf",
     );
   });
+
+  test("a note with quotes and commas is quoted, its quotes doubled", () => {
+    const day = {
+      date: "2026-10-19",
+      ot: [],
+      leave: true,
+      note: 'Took "Pooh" to the vet, then home',
+    };
+    expect(rowOn("2026-10-19", { ...noFacts, days: [day] })).toBe(
+      '2026-10-19,Mon,Leave,,,,"Took ""Pooh"" to the vet, then home",,',
+    );
+  });
 });

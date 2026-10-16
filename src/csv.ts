@@ -61,12 +61,15 @@ function rowOn(date: string, facts: PayFacts): string[] {
   ];
 }
 
+/** A field as CSV: quoted, its quotes doubled, if it holds a comma, quote or line break. */
+const field = (text: string) => (/[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text);
+
 /** One row per day from the first pay period through the last, CRLF line endings. */
 export function exportCsv(first: Period, last: Period, facts: PayFacts): string {
   const dates = periodsThrough(last)
     .filter((period) => period.start >= first.start)
     .flatMap(datesIn);
   return [HEADER, ...dates.map((date) => rowOn(date, facts))]
-    .map((row) => `${row.join(",")}\r\n`)
+    .map((row) => `${row.map(field).join(",")}\r\n`)
     .join("");
 }
