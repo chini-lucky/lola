@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { nextPeriod, periodOf, prevPeriod } from "./pay";
+import { nextPeriod, periodOf, prevPeriod, salaryOf, type Rate } from "./pay";
+
+const firstRate: Rate = { effective_from: "2026-09-14", salary: 20000, ot_rate: 150 };
 
 describe("pay period", () => {
   test("27 Oct is the last day of Oct pay (28 Sep – 27 Oct)", () => {
@@ -52,5 +54,26 @@ describe("moving between pay periods", () => {
       start: "2026-12-28",
       end: "2027-01-27",
     });
+  });
+});
+
+describe("salary", () => {
+  test("the first pay period's salary is the agreed 11,000 override", () => {
+    const sepPay = { start: "2026-09-14", end: "2026-09-27" };
+    expect(salaryOf(sepPay, [firstRate], [{ period_end: "2026-09-27", salary: 11000 }])).toBe(
+      11000,
+    );
+  });
+
+  test("a raise during a pay period applies from the next pay period", () => {
+    const raise: Rate = { effective_from: "2026-10-15", salary: 22000, ot_rate: 150 };
+    const octPay = { start: "2026-09-28", end: "2026-10-27" };
+    expect(salaryOf(octPay, [firstRate, raise], [])).toBe(20000);
+  });
+
+  test("a later pay period uses the salary in effect on its start", () => {
+    const raise: Rate = { effective_from: "2026-10-15", salary: 22000, ot_rate: 150 };
+    const novPay = { start: "2026-10-28", end: "2026-11-27" };
+    expect(salaryOf(novPay, [raise, firstRate], [])).toBe(22000);
   });
 });
