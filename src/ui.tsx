@@ -1,4 +1,13 @@
-import type { Role } from "./supabase";
+import {
+  datesIn,
+  dayKind,
+  overrideOf,
+  salaryOf,
+  weekdayOf,
+  type DayKind,
+  type Period,
+} from "./pay";
+import type { PayFacts, Role } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
@@ -110,4 +119,107 @@ export function roleLabel(role: Role): string {
       return unreachable;
     }
   }
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** "Oct" for any date in October. */
+export const monthName = (date: string) => MONTHS[Number(date.slice(5, 7)) - 1] ?? "";
+/** "Tue" for a Tuesday. */
+export const weekdayName = (date: string) => WEEKDAYS[weekdayOf(date)] ?? "";
+const dayOfMonth = (date: string) => Number(date.slice(8, 10));
+/** "28 Sep" */
+export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${monthName(date)}`;
+/** Whole baht with thousands separators: "20,000". */
+export const money = (amount: number) => amount.toLocaleString("en-US");
+
+/** The pay period's totals card, with the bear peeking over it. */
+export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
+  const salary = salaryOf(period, facts.rates, facts.overrides);
+  const agreed = overrideOf(period, facts.overrides)?.note ?? null;
+  return (
+    <div className="totals">
+      <Bear className="peek" />
+      <div>
+        <div className="lbl">{monthName(period.end)} pay total</div>
+        <div className="big">
+          {money(salary)}
+          <small>THB</small>
+        </div>
+      </div>
+      <dl className="rows">
+        <dt>{agreed === null ? "Salary" : `Salary (${agreed})`}</dt>
+        <dd>{money(salary)}</dd>
+        <div className="sep" />
+        <dt>Total</dt>
+        <dd>{money(salary)}</dd>
+      </dl>
+    </div>
+  );
+}
+
+/** CSS class of a calendar day cell for its kind. */
+function dayClass(kind: DayKind): string {
+  switch (kind) {
+    case "holiday":
+      return "d hol";
+    case "weekend":
+      return "d wkd";
+    case "normal":
+      return "d";
+    default: {
+      const unreachable: never = kind;
+      return unreachable;
+    }
+  }
+}
+
+/** The pay period's days in Monday-first weeks, coloured by kind. */
+export function Calendar(props: { period: Period; holidays: string[]; today: string }) {
+  const dates = datesIn(props.period);
+  const blanksBeforeFirstDay = (weekdayOf(props.period.start) + 6) % 7;
+  return (
+    <div className="card">
+      <div className="dow" aria-hidden="true">
+        {["M", "T", "W", "T", "F", "S", "S"].map((letter, i) => (
+          <span key={i}>{letter}</span>
+        ))}
+      </div>
+      <ol className="cal" aria-label="Days">
+        {Array.from({ length: blanksBeforeFirstDay }, (_, i) => (
+          <li className="d e" key={`blank-${i.toString()}`} aria-hidden="true" />
+        ))}
+        {dates.map((date, i) => {
+          const kind = dayKind(date, props.holidays);
+          const label = `${weekdayName(date)} ${dayMonth(date)}`;
+          return (
+            <li
+              key={date}
+              className={date === props.today ? `${dayClass(kind)} today` : dayClass(kind)}
+              aria-label={kind === "normal" ? label : `${label}, ${kind}`}
+            >
+              {(i === 0 || dayOfMonth(date) === 1) && <span className="m">{monthName(date)}</span>}
+              <span className="n">{dayOfMonth(date)}</span>
+              {kind === "holiday" && <span className="t">holiday</span>}
+            </li>
+          );
+        })}
+      </ol>
+      <div className="legend">
+        <span>
+          <i style={{ background: "var(--day)", boxShadow: "inset 0 0 0 1px var(--line)" }} />
+          Normal
+        </span>
+        <span>
+          <i style={{ background: "var(--hol)" }} />
+          Holiday
+        </span>
+        <span>
+          <i style={{ background: "var(--wkd)" }} />
+          Weekend
+        </span>
+      </div>
+    </div>
+  );
 }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Account } from "./screens/Account";
-import { Home } from "./screens/Home";
 import { Login } from "./screens/Login";
 import { People } from "./screens/People";
+import { PeriodView } from "./screens/Period";
 import { SignUp } from "./screens/SignUp";
 import { Waiting } from "./screens/Waiting";
 import type { Session } from "@supabase/supabase-js";
@@ -62,7 +62,7 @@ export function App() {
     case "nanny":
       if (hash === "#/account") return <Account person={person} />;
       if (hash === "#/people" && person.role === "admin") return <People me={person} />;
-      return <Home person={person} />;
+      return <PeriodView person={person} />;
     default: {
       const unreachable: never = person.role;
       return unreachable;

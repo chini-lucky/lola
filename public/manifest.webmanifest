@@ -1,0 +1,14 @@
+{
+  "name": "Lola",
+  "short_name": "Lola",
+  "description": "Pooh’s hours and pay, kept simple for Lola and the family.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffbf3",
+  "theme_color": "#ddeefa",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
