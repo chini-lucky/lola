@@ -4,6 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p logs
+: "${LOLA_PROJECT_ID:?run via npm run dev (scripts/slot.sh sets the slot)}"
 
 supabase start
 

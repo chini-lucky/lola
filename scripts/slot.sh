@@ -9,16 +9,23 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 max_slot=4
 
+# Taken = named in a worktree's .slot, or its stack still runs (worktree removed without a stop).
 claimed_slots() {
   git -C "$root" worktree list --porcelain | sed -n 's/^worktree //p' | while read -r tree; do
     if [[ -f "$tree/.slot" ]]; then cat "$tree/.slot"; fi
   done
+  docker ps --format '{{.Names}}' 2>/dev/null | sed -n 's/^supabase_db_lola-//p'
 }
 
 claim_slot() {
   local lock taken n
   lock="$(git -C "$root" rev-parse --path-format=absolute --git-common-dir)/lola-slot.lock"
-  until mkdir "$lock" 2>/dev/null; do sleep 0.1; done
+  local tries=0
+  until mkdir "$lock" 2>/dev/null; do
+    # A claim takes well under a second; a lock older than ~10 s was left by a killed run.
+    if ((++tries > 100)); then rmdir "$lock" 2>/dev/null || true; fi
+    sleep 0.1
+  done
   trap "rmdir '$lock'" EXIT
   taken="$(claimed_slots)"
   for ((n = 1; n <= max_slot; n++)); do
@@ -66,7 +73,8 @@ else
   export SUPABASE_ANALYTICS_PORT=$((base + 27))
   export SUPABASE_EDGE_RUNTIME_INSPECTOR_PORT=$((8083 + slot))
   export SUPABASE_AUTH_SITE_URL="http://127.0.0.1:$LOLA_DEV_PORT"
-  # Beats .env.development (Vite never overrides variables already in the environment).
+  # Beats .env.development (Vite never overrides variables already in the environment). The anon
+  # key there stays valid: every local stack signs with the same default JWT secret.
   export VITE_SUPABASE_URL="http://127.0.0.1:$SUPABASE_API_PORT"
 fi
 
