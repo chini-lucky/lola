@@ -59,10 +59,10 @@ export function App() {
     case "waiting":
       return <Waiting person={person} onCheckAgain={reload} />;
     case "admin":
-      if (hash === "#/people") return <People me={person} />;
-      return hash === "#/account" ? <Account person={person} /> : <Home person={person} />;
     case "nanny":
-      return hash === "#/account" ? <Account person={person} /> : <Home person={person} />;
+      if (hash === "#/account") return <Account person={person} />;
+      if (hash === "#/people" && person.role === "admin") return <People me={person} />;
+      return <Home person={person} />;
     default: {
       const unreachable: never = person.role;
       return unreachable;

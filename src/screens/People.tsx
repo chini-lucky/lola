@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { approvedPeople, removePerson, setRole, waitingPeople, type Person } from "../supabase";
+import {
+  approvedPeople,
+  removePerson,
+  setRole,
+  waitingPeople,
+  type ApprovedRole,
+  type Person,
+} from "../supabase";
 import { ErrorAlert, roleLabel } from "../ui";
 
 const signedUpAt = new Intl.DateTimeFormat("en-GB", {
@@ -10,7 +17,7 @@ const signedUpAt = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
 });
 
-const approvedRoles: readonly ("nanny" | "admin")[] = ["nanny", "admin"];
+const approvedRoles: readonly ApprovedRole[] = ["nanny", "admin"];
 
 interface Lists {
   waiting: Person[];

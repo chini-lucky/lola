@@ -9,6 +9,7 @@ export const supabase = createClient<Database>(
 );
 
 export type Role = "admin" | "nanny" | "waiting";
+export type ApprovedRole = Exclude<Role, "waiting">;
 
 export interface Person {
   id: string;
@@ -105,7 +106,7 @@ export async function approvedPeople(): Promise<Person[]> {
 }
 
 /** Admin only, never on yourself (set_role guards both). Approve = setRole(id, "nanny"). */
-export async function setRole(id: string, role: "admin" | "nanny"): Promise<void> {
+export async function setRole(id: string, role: ApprovedRole): Promise<void> {
   const { error } = await supabase.rpc("set_role", { target: id, new_role: role });
   if (error !== null) throw error;
 }
