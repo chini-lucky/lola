@@ -266,6 +266,11 @@ export function paymentsIn(period: Period, payments: Payment[]): Payment[] {
     .sort((a, b) => a.paid_on.localeCompare(b.paid_on));
 }
 
+/** The money paid on a date, whichever pay periods it was for. */
+export function paidOn(date: string, payments: Payment[]): number {
+  return payments.filter((p) => p.paid_on === date).reduce((sum, p) => sum + p.amount, 0);
+}
+
 /** The money numbers a confirmation stores: what the nanny saw when she confirmed. */
 export type Snapshot = Pick<Summary, "total" | "paid">;
 

@@ -9,6 +9,7 @@ import {
   nextPeriod,
   otReason,
   payDayOf,
+  paidOn,
   paymentsIn,
   periodsThrough,
   periodOf,
@@ -385,6 +386,17 @@ describe("paid and balance", () => {
     const first = payment("2026-10-27", "2026-10-16", 15000);
     const novPayment = payment("2026-11-27", "2026-10-20", 1000);
     expect(paymentsIn(octPay, [second, novPayment, first])).toEqual([first, second]);
+  });
+});
+
+describe("paid on a day", () => {
+  test("two payments paid the same day, for different pay periods, add up", () => {
+    const payments = [
+      payment("2026-09-27", "2026-09-28", 11000),
+      payment("2026-10-27", "2026-09-28", 2000),
+      payment("2026-10-27", "2026-10-28", 20000),
+    ];
+    expect(paidOn("2026-09-28", payments)).toBe(13000);
   });
 });
 
