@@ -7,7 +7,7 @@ import {
   type ApprovedRole,
   type Person,
 } from "../supabase";
-import { ErrorAlert, roleLabel } from "../ui";
+import { BackBar, ErrorAlert, roleLabel } from "../ui";
 
 const signedUpAt = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Bangkok",
@@ -55,14 +55,7 @@ export function People({ me }: { me: Person }) {
 
   return (
     <div className="screen">
-      <div className="bar">
-        <a className="iconbtn" href="#/" aria-label="Back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
-            <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-        <b>People</b>
-      </div>
+      <BackBar title="People" />
       <ErrorAlert message={error} />
       <div className="sec">
         <h3>

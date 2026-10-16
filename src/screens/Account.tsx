@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { changePassword, logOut, type Person } from "../supabase";
-import { ErrorAlert, Field, roleLabel } from "../ui";
+import { BackBar, ErrorAlert, Field, roleLabel } from "../ui";
 
 function validationError(next: string, repeat: string): string | null {
   if (next.length < 10) return "Password must be at least 10 characters.";
@@ -38,14 +38,7 @@ export function Account({ person }: { person: Person }) {
 
   return (
     <div className="screen">
-      <div className="bar">
-        <a className="iconbtn" href="#/" aria-label="Back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
-            <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-        <b>Account</b>
-      </div>
+      <BackBar title="Account" />
       <div className="sec">
         <div className="item">
           <span className="av">{person.username.charAt(0)}</span>
