@@ -166,3 +166,32 @@ export function dayOt(day: Day, rates: Rate[], holidays: string[]): DayOt {
   const minutes = Math.ceil(counted / 30) * 30;
   return { minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };
 }
+
+/** Everything the pay maths needs, as stored: rates, agreed overrides, holiday dates, exception days. */
+export interface PayFacts {
+  rates: Rate[];
+  overrides: PeriodOverride[];
+  holidays: string[];
+  days: Day[];
+}
+
+/** A pay period's money: salary plus the OT of its days. */
+export interface Summary {
+  salary: number;
+  otMinutes: number;
+  otPay: number;
+  total: number;
+}
+
+export function summarize(period: Period, facts: PayFacts): Summary {
+  const salary = salaryOf(period, facts.rates, facts.overrides);
+  let otMinutes = 0;
+  let otPay = 0;
+  for (const day of facts.days) {
+    if (day.date < period.start || day.date > period.end) continue;
+    const ot = dayOt(day, facts.rates, facts.holidays);
+    otMinutes += ot.minutes;
+    otPay += ot.pay;
+  }
+  return { salary, otMinutes, otPay, total: salary + otPay };
+}

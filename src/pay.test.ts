@@ -9,6 +9,7 @@ import {
   periodOf,
   prevPeriod,
   salaryOf,
+  summarize,
   type Rate,
 } from "./pay";
 
@@ -183,5 +184,21 @@ describe("OT", () => {
 
   test("a holiday on a weekend is counted once: Sat 10:00–14:00 is 240 min", () => {
     expect(otOn("2026-12-05", ["10:00-14:00"]).minutes).toBe(240);
+  });
+});
+
+describe("pay period totals", () => {
+  const octPay = { start: "2026-09-28", end: "2026-10-27" };
+  const otDay = (date: string, ot: string[]) => ({ date, ot, leave: false, note: null });
+
+  test("an OT rate change during a pay period pays each day at its own rate", () => {
+    const newOtRate: Rate = { effective_from: "2026-10-15", salary: 20000, ot_rate: 200 };
+    const facts = {
+      rates: [firstRate, newOtRate],
+      overrides: [],
+      holidays: [],
+      days: [otDay("2026-10-05", ["18:00-19:00"]), otDay("2026-10-20", ["18:00-19:00"])],
+    };
+    expect(summarize(octPay, facts).otPay).toBe(350);
   });
 });
