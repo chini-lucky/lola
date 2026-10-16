@@ -1,5 +1,6 @@
 import { devices, expect, test, type Browser, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { loggedIn } from "./api";
 import { admin, nanny } from "./logins";
 
 const today = "2026-10-16";
@@ -157,4 +158,20 @@ test("a HEIC receipt the browser can't decode is uploaded as it is", async ({
   expect((await readFile(await (await download).path())).toString()).toBe("ftypheic…");
 
   await deletePayment(page, "Edit payment 1,400 paid 16 Oct");
+});
+
+test("deleting a payment deletes its receipt files", async ({ page }) => {
+  await logInOn(page, admin);
+  await addPaymentWith(page, "1,500", "Sent twice by mistake", [kbankPdf]);
+  const asNanny = await loggedIn(nanny.username, nanny.password);
+  const { data: row } = await asNanny
+    .from("payments")
+    .select("receipts")
+    .eq("note", "Sent twice by mistake")
+    .single<{ receipts: string[] }>();
+  const path = row?.receipts[0] ?? "";
+
+  await deletePayment(page, "Edit payment 1,500 paid 16 Oct");
+  const { error } = await asNanny.storage.from("receipts").createSignedUrl(path, 60);
+  expect(error?.message).toBe("Object not found");
 });
