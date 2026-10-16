@@ -1,3 +1,3 @@
 export function App() {
-  return null;
+  return <h1>Hi Lola 👋</h1>;
 }
