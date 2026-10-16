@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Account } from "./screens/Account";
+import { ChangeLog } from "./screens/ChangeLog";
 import { Login } from "./screens/Login";
 import { People } from "./screens/People";
 import { PeriodView } from "./screens/Period";
@@ -64,6 +65,7 @@ export function App() {
       if (hash === "#/account") return <Account person={person} />;
       if (hash === "#/people" && person.role === "admin") return <People me={person} />;
       if (hash === "#/settings" && person.role === "admin") return <Settings />;
+      if (hash === "#/changes" && person.role === "admin") return <ChangeLog />;
       return <PeriodView person={person} />;
     default: {
       const unreachable: never = person.role;

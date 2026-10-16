@@ -1,5 +1,5 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
-import type { Database } from "./db.types";
+import type { Database, Json } from "./db.types";
 import type { Day, PayFacts, Payment, Rate, Snapshot } from "./pay";
 import { receiptType } from "./receipts";
 
@@ -69,6 +69,9 @@ export async function logOut(): Promise<void> {
 }
 
 const personColumns = "id, username, role, created_at";
+
+const roles: readonly Role[] = ["admin", "nanny", "waiting"];
+export const isRole = (value: unknown): value is Role => roles.some((role) => role === value);
 
 function toPerson(row: { id: string; username: string; role: string; created_at: string }): Person {
   return { ...row, role: row.role as Role }; // people.role is checked in the DB
@@ -261,4 +264,51 @@ export async function saveDay(day: Day): Promise<void> {
 export async function clearDay(date: string): Promise<void> {
   const { error } = await supabase.from("days").delete().eq("date", date);
   if (error !== null) throw error;
+}
+
+const loggedTables = [
+  "days",
+  "payments",
+  "rates",
+  "holidays",
+  "period_overrides",
+  "confirmations",
+  "people",
+] as const;
+
+/** The tables the change log covers. */
+export type LoggedTable = (typeof loggedTables)[number];
+
+const isLoggedTable = (tbl: string): tbl is LoggedTable => loggedTables.some((t) => t === tbl);
+
+/** One change log entry: who (null = setup, not a person) changed which row, and how. */
+export interface Change {
+  id: number;
+  at: string;
+  actor: string | null;
+  tbl: LoggedTable;
+  op: "insert" | "update" | "delete";
+  old: Json | null;
+  new: Json | null;
+}
+
+/** The API returns at most this many rows per request (supabase/config.toml max_rows). */
+const PAGE = 1000;
+
+/** Admin only (RLS): the whole change log, newest first. Rows of tables it doesn't know are left out. */
+export async function changeLog(): Promise<Change[]> {
+  const changes: Change[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from("audit_log")
+      .select("id, at, actor, tbl, op, old, new")
+      .order("id", { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (error !== null) throw error;
+    for (const { tbl, ...row } of data) {
+      // op is checked in the DB.
+      if (isLoggedTable(tbl)) changes.push({ ...row, tbl, op: row.op as Change["op"] });
+    }
+    if (data.length < PAGE) return changes;
+  }
 }

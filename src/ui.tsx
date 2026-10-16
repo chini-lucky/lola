@@ -169,7 +169,7 @@ export const periodName = (period: Period) => `${monthName(period.end)} pay`;
 export const periodTitle = (period: Period) =>
   `${periodName(period)} · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
 /** A moment's date in Bangkok, YYYY-MM-DD. */
-const bangkokDate = (at: Date) =>
+export const bangkokDate = (at: Date) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(at);
 /** Today's date in Bangkok. */
 export const todayInBangkok = () => bangkokDate(new Date());
