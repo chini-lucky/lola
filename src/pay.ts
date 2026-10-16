@@ -31,6 +31,12 @@ function parts(date: string): [number, number, number] {
   return [year, month, day];
 }
 
+/** Day of the week: 0 = Sunday … 6 = Saturday. */
+export function weekdayOf(date: string): number {
+  const [year, month, day] = parts(date);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
 /** The pay period ending on the 27th of this month (month may run past 12). */
 function periodEnding(year: number, month: number): Period {
   const start = iso(year, month - 1, 28);
@@ -99,8 +105,7 @@ export type DayKind = "holiday" | "weekend" | "normal";
 /** How a day shows on the calendar. */
 export function dayKind(date: string, holidays: string[]): DayKind {
   if (holidays.includes(date)) return "holiday";
-  const [year, month, day] = parts(date);
-  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const weekday = weekdayOf(date);
   return weekday === 0 || weekday === 6 ? "weekend" : "normal";
 }
 

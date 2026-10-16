@@ -25,7 +25,12 @@
   --accent-on: #ffffff;
   --accent-ink: #2d6e9e;
   --accent-soft: #ddeefa;
+  --t-bg: #cfe6f7;
+  --t-ink: #1f3b52;
   --t-line: #a9cde6;
+  --day: #ffffff;
+  --wkd: #f3eee4;
+  --hol: #ffe9a8;
   --lv: #fce3c9;
   --lv-ink: #b8692a;
   --hol-ink: #8a6a00;
@@ -37,6 +42,7 @@
   --cheek: #f2a79e;
   --bow: #4e9bd1;
   --r-card: 26px;
+  --r-day: 14px;
   --r-item: 18px;
   --r-btn: 999px;
   --font-d: "Baloo 2", "Nunito", system-ui, sans-serif;
@@ -80,6 +86,10 @@ body {
   flex: 1;
   min-width: 0;
 }
+.top .hi h1 {
+  margin: 0;
+  font-size: inherit;
+}
 .top .hi b {
   display: block;
   font-family: var(--font-d);
@@ -89,6 +99,16 @@ body {
 .top .hi small {
   color: var(--muted);
   font-size: 0.8rem;
+}
+.pill {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
 }
 .iconbtn {
   width: 36px;
@@ -401,4 +421,203 @@ a:focus-visible {
   50% {
     transform: translateY(-6px) rotate(-2deg);
   }
+}
+
+/* pay period: ‹ Oct pay · 28 Sep – 27 Oct ›, totals card, calendar */
+.periodview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.period div {
+  text-align: center;
+  line-height: 1.15;
+}
+.period b {
+  display: block;
+  font-family: var(--font-d);
+  font-size: 1.15rem;
+}
+.period small {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+.period button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  flex: none;
+}
+.period button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.totals {
+  border-radius: var(--r-card);
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  background: var(--t-bg);
+  color: var(--t-ink);
+  margin-top: 14px;
+}
+.totals .peek {
+  position: absolute;
+  right: 12px;
+  top: -30px;
+  width: 70px;
+  height: 70px;
+}
+.totals .lbl {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  opacity: 0.75;
+}
+.totals .big {
+  font-family: var(--font-d);
+  font-size: 2.3rem;
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.totals .big small {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-left: 4px;
+}
+.rows {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 12px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  margin: 0;
+}
+.rows dt {
+  opacity: 0.8;
+}
+.rows dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 800;
+}
+.rows .sep {
+  grid-column: 1/-1;
+  height: 1px;
+  background: var(--t-line);
+  margin: 3px 0;
+}
+.card {
+  background: var(--surface);
+  border-radius: var(--r-card);
+  padding: 14px;
+  box-shadow: 0 1px 0 var(--line);
+}
+.dow,
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.cal {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dow span {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  padding-bottom: 4px;
+}
+.d {
+  aspect-ratio: 1/1.08;
+  max-width: 100%;
+  border-radius: var(--r-day);
+  background: var(--day);
+  box-shadow: inset 0 0 0 1px var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+}
+.d .n {
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+.d .t {
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.d .m {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+.d.e {
+  background: transparent;
+  box-shadow: none;
+}
+.d.wkd {
+  background: var(--wkd);
+  color: var(--muted);
+  box-shadow: none;
+}
+.d.hol {
+  background: var(--hol);
+  color: var(--hol-ink);
+  box-shadow: none;
+}
+.d.today {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 12px;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 4px;
+  display: block;
 }
