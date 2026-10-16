@@ -265,3 +265,8 @@ export function paymentsIn(period: Period, payments: Payment[]): Payment[] {
     .filter((p) => p.period_end === period.end)
     .sort((a, b) => a.paid_on.localeCompare(b.paid_on));
 }
+
+/** The money paid on a date, whichever pay periods it was for. */
+export function paidOn(date: string, payments: Payment[]): number {
+  return payments.filter((p) => p.paid_on === date).reduce((sum, p) => sum + p.amount, 0);
+}

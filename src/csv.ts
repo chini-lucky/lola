@@ -3,6 +3,7 @@ import {
   datesIn,
   dayKind,
   dayOt,
+  paidOn,
   periodsThrough,
   type DayKind,
   type PayFacts,
@@ -56,7 +57,7 @@ function rowOn(date: string, facts: PayFacts): string[] {
     ot === null ? "" : (ot.paidMinutes / 60).toString(),
     ot === null ? "" : ot.pay.toString(),
     day?.note ?? "",
-    paid.length === 0 ? "" : paid.reduce((sum, p) => sum + p.amount, 0).toString(),
+    paid.length === 0 ? "" : paidOn(date, facts.payments).toString(),
     paid.flatMap((p) => p.receipts.map(receiptName)).join("; "),
   ];
 }
