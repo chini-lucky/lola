@@ -167,4 +167,12 @@ describe("OT", () => {
   test("weekday OT inside 09:00–18:00 is no OT: 10:00–17:00 is 0 min", () => {
     expect(otOn("2026-10-05", ["10:00-17:00"]).minutes).toBe(0);
   });
+
+  test("all hours on a Saturday are OT: 10:00–14:00 is 240 min", () => {
+    expect(otOn("2026-10-10", ["10:00-14:00"]).minutes).toBe(240);
+  });
+
+  test("all hours on a Sunday are OT: 09:00–09:10 rounds up to 30 min", () => {
+    expect(otOn("2026-10-11", ["09:00-09:10"]).minutes).toBe(30);
+  });
 });

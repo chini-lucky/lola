@@ -106,13 +106,17 @@ export function datesIn(period: Period): string[] {
   return dates;
 }
 
+function isWeekend(date: string): boolean {
+  const weekday = weekdayOf(date);
+  return weekday === 0 || weekday === 6;
+}
+
 export type DayKind = "holiday" | "weekend" | "normal";
 
 /** How a day shows on the calendar. */
 export function dayKind(date: string, holidays: string[]): DayKind {
   if (holidays.includes(date)) return "holiday";
-  const weekday = weekdayOf(date);
-  return weekday === 0 || weekday === 6 ? "weekend" : "normal";
+  return isWeekend(date) ? "weekend" : "normal";
 }
 
 /** Pay day: the 28th, the day after the pay period ends. */
@@ -143,9 +147,13 @@ const toMinutes = (time: string) => {
 const DAY_START = toMinutes("09:00");
 const DAY_END = toMinutes("18:00");
 
-/** Minutes of a range ("07:00-19:00") that count as OT on a weekday: before 09:00 or after 18:00. */
-function weekdayOtMinutes(range: string): number {
+/**
+ * Minutes of a range ("07:00-19:00") that count as OT: all of it on an off day,
+ * else only before 09:00 or after 18:00.
+ */
+function otMinutesOf(range: string, offDay: boolean): number {
   const [from = 0, to = 0] = range.split("-").map(toMinutes);
+  if (offDay) return to - from;
   const before = Math.max(0, Math.min(to, DAY_START) - from);
   const after = Math.max(0, to - Math.max(from, DAY_END));
   return before + after;
@@ -153,7 +161,8 @@ function weekdayOtMinutes(range: string): number {
 
 /** The day's OT, paid at the OT rate in effect that day, in whole baht. */
 export function dayOt(day: Day, rates: Rate[]): DayOt {
-  const counted = day.ot.reduce((sum, range) => sum + weekdayOtMinutes(range), 0);
+  const offDay = isWeekend(day.date);
+  const counted = day.ot.reduce((sum, range) => sum + otMinutesOf(range, offDay), 0);
   const minutes = Math.ceil(counted / 30) * 30;
   return { minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };
 }
