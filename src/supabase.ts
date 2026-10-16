@@ -84,7 +84,7 @@ export async function approve(id: string): Promise<void> {
 /** The facts the pay maths needs that rarely change: rates, agreed overrides, holiday dates. */
 export interface PayFacts {
   rates: Rate[];
-  overrides: (PeriodOverride & { note: string | null })[];
+  overrides: PeriodOverride[];
   holidays: string[];
 }
 

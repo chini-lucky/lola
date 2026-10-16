@@ -82,9 +82,9 @@ describe("moving between pay periods", () => {
 describe("salary", () => {
   test("the first pay period's salary is the agreed 11,000 override", () => {
     const sepPay = { start: "2026-09-14", end: "2026-09-27" };
-    expect(salaryOf(sepPay, [firstRate], [{ period_end: "2026-09-27", salary: 11000 }])).toBe(
-      11000,
-    );
+    expect(
+      salaryOf(sepPay, [firstRate], [{ period_end: "2026-09-27", salary: 11000, note: null }]),
+    ).toBe(11000);
   });
 
   test("a raise during a pay period applies from the next pay period", () => {

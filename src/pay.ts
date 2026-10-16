@@ -7,7 +7,7 @@ export interface Period {
 }
 
 /** The nanny's first day. Nothing exists before it. */
-export const START_DATE = "2026-09-14";
+const START_DATE = "2026-09-14";
 
 /** Salary per pay period and OT per hour, in effect from a date until the next rate. */
 export interface Rate {
@@ -20,6 +20,7 @@ export interface Rate {
 export interface PeriodOverride {
   period_end: string;
   salary: number;
+  note: string | null;
 }
 
 function iso(year: number, month: number, day: number): string {
@@ -75,7 +76,7 @@ export function nextPeriod(period: Period): Period {
 }
 
 /** The rate in effect on a date: the latest one starting on or before it. */
-export function rateOn(date: string, rates: Rate[]): Rate {
+function rateOn(date: string, rates: Rate[]): Rate {
   let inEffect: Rate | undefined;
   for (const rate of rates) {
     if (rate.effective_from <= date && rate.effective_from > (inEffect?.effective_from ?? "")) {
@@ -86,10 +87,15 @@ export function rateOn(date: string, rates: Rate[]): Rate {
   return inEffect;
 }
 
+/** The pay period's agreed salary override, if there is one. */
+export function overrideOf(period: Period, overrides: PeriodOverride[]): PeriodOverride | null {
+  return overrides.find((o) => o.period_end === period.end) ?? null;
+}
+
 /** The pay period's salary: its override if agreed, else the salary in effect on its start. */
 export function salaryOf(period: Period, rates: Rate[], overrides: PeriodOverride[]): number {
-  const override = overrides.find((o) => o.period_end === period.end);
-  if (override !== undefined) return override.salary;
+  const override = overrideOf(period, overrides);
+  if (override !== null) return override.salary;
   return rateOn(period.start, rates).salary;
 }
 
