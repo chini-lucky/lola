@@ -103,3 +103,8 @@ export function dayKind(date: string, holidays: string[]): DayKind {
   const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
   return weekday === 0 || weekday === 6 ? "weekend" : "normal";
 }
+
+/** Pay day: the 28th, the day after the pay period ends. */
+export function payDayOf(period: Period): string {
+  return addDays(period.end, 1);
+}

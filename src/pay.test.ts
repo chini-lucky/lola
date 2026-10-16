@@ -4,6 +4,7 @@ import {
   datesIn,
   dayKind,
   nextPeriod,
+  payDayOf,
   periodOf,
   prevPeriod,
   salaryOf,
@@ -49,6 +50,12 @@ describe("pay period", () => {
 describe("current pay period", () => {
   test("before the start date the current pay period is the first one", () => {
     expect(currentPeriod("2026-09-01")).toEqual({ start: "2026-09-14", end: "2026-09-27" });
+  });
+});
+
+describe("pay day", () => {
+  test("Oct pay is paid on 28 Oct", () => {
+    expect(payDayOf({ start: "2026-09-28", end: "2026-10-27" })).toBe("2026-10-28");
   });
 });
 
