@@ -157,6 +157,9 @@ export const bangkokDate = (at: Date) =>
 /** "16 Oct": the Bangkok day a confirmation was made. */
 const confirmedOn = (confirmation: Confirmation) =>
   dayMonth(bangkokDate(new Date(confirmation.confirmed_at)));
+/** "total 22,250 · paid 0": the money numbers a confirmation checked, or as they are now. */
+const checked = ({ total, paid }: { total: number; paid: number }) =>
+  `total ${money(total)} · paid ${money(paid)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** OT minutes as hours: "2.5 h". */
@@ -482,8 +485,8 @@ export function ConfirmationBadge(props: { confirmation: Confirmation | null; su
       <span>
         <b>Changed since Lola confirmed</b>
         <small>
-          She checked {money(confirmation.snapshot.total)} on {confirmedOn(confirmation)}. Now{" "}
-          {money(summary.total)}.
+          She checked {checked(confirmation.snapshot)} on {confirmedOn(confirmation)}. Now{" "}
+          {checked(summary)}.
         </small>
       </span>
     </div>
@@ -514,8 +517,8 @@ export function ConfirmButton(props: {
       </button>
       {confirmation !== null && (
         <div className="note">
-          You checked {money(confirmation.snapshot.total)} on {confirmedOn(confirmation)}. The
-          numbers changed since then.
+          You checked {checked(confirmation.snapshot)} on {confirmedOn(confirmation)}. The numbers
+          changed since then.
         </div>
       )}
     </>

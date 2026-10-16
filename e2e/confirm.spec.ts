@@ -64,7 +64,9 @@ test("the admin changing OT after Lola confirmed shows Changed since Lola confir
   const adminPage = await browser.newPage();
   await openDecPay(adminPage, admin);
   const flag = adminPage.getByRole("note", { name: "Changed since Lola confirmed" });
-  await expect(flag).toContainText(/She checked 20,000 on \d+ \w+\. Now 20,300\./);
+  await expect(flag).toContainText(
+    /She checked total 20,000 · paid [\d,]+ on \d+ \w+\. Now total 20,300 · paid [\d,]+\./,
+  );
 });
 
 test("Copy summary puts the pay period summary and a link on the clipboard", async ({
