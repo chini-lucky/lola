@@ -41,6 +41,8 @@ const ranges = (value: Json | undefined) =>
   Array.isArray(value) && value.length > 0
     ? value.map((range) => (text(range) ?? "").replace("-", "–")).join(", ")
     : null;
+const count = (value: Json | undefined) =>
+  Array.isArray(value) && value.length > 0 ? value.length.toString() : null;
 const yes = (value: Json | undefined) => (value === true ? "yes" : null);
 const role = (value: Json | undefined) => {
   switch (value) {
@@ -81,12 +83,13 @@ function describe(tbl: LoggedTable, row: Json | null): { subject: string; fields
       };
     case "payments":
       return {
-        subject: `Payment for ${periodOfEnd(get(row, "period_end")) ?? "?"}`,
+        subject: "Payment",
         fields: [
           field("Amount", "amount", amount),
           field("Paid on", "paid_on", date),
           field("For", "period_end", periodOfEnd),
           field("Note", "note", text),
+          field("Receipts", "receipts", count),
         ],
       };
     case "rates":
