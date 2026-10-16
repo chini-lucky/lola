@@ -1,6 +1,6 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database } from "./db.types";
-import type { PayFacts, Payment } from "./pay";
+import type { PayFacts, Payment, Snapshot } from "./pay";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
@@ -158,5 +158,29 @@ export async function editPayment(id: string, fields: PaymentFields): Promise<vo
 /** Admin only (RLS). */
 export async function deletePayment(id: string): Promise<void> {
   const { error } = await supabase.from("payments").delete().eq("id", id);
+  if (error !== null) throw error;
+}
+
+/** The nanny's "This looks right ✓" on a pay period, with the money numbers she saw. */
+export interface Confirmation {
+  period_end: string;
+  snapshot: Snapshot;
+  confirmed_at: string;
+}
+
+/** Every confirmation, newest first: the first one for a pay period is the one that counts. */
+export async function confirmations(): Promise<Confirmation[]> {
+  const { data, error } = await supabase
+    .from("confirmations")
+    .select("period_end, snapshot, confirmed_at")
+    .order("confirmed_at", { ascending: false });
+  if (error !== null) throw error;
+  // snapshot is jsonb; only confirm() below writes it, always as a Snapshot.
+  return data.map((row) => ({ ...row, snapshot: row.snapshot as unknown as Snapshot }));
+}
+
+/** Nanny only (RLS), in her own name. */
+export async function confirm(period_end: string, snapshot: Snapshot): Promise<void> {
+  const { error } = await supabase.from("confirmations").insert({ period_end, snapshot });
   if (error !== null) throw error;
 }

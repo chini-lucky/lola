@@ -3,6 +3,7 @@ import {
   dayKind,
   dayOt,
   daysIn,
+  isStale,
   otReason,
   overrideOf,
   paymentsIn,
@@ -13,8 +14,9 @@ import {
   type Payment,
   type PayFacts,
   type Period,
+  type Summary,
 } from "./pay";
-import type { Role } from "./supabase";
+import type { Confirmation, Role } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
 export function Bear({ className }: { className: string }) {
@@ -149,6 +151,12 @@ export const dayMonth = (date: string) => `${dayOfMonth(date).toString()} ${mont
 /** "Oct pay · 28 Sep – 27 Oct" */
 export const periodTitle = (period: Period) =>
   `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
+/** A moment's date in Bangkok, YYYY-MM-DD. */
+export const bangkokDate = (at: Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(at);
+/** "16 Oct": the Bangkok day a confirmation was made. */
+const confirmedOn = (confirmation: Confirmation) =>
+  dayMonth(bangkokDate(new Date(confirmation.confirmed_at)));
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
 /** OT minutes as hours: "2.5 h". */
@@ -421,4 +429,107 @@ export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts
       )}
     </section>
   );
+}
+
+function Check() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Copy() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+      <rect x="8" y="8" width="12" height="12" rx="3" />
+      <path
+        d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * The admin's view of the nanny's latest confirmation: waiting for it, confirmed, or
+ * changed since (stale).
+ */
+export function ConfirmationBadge(props: { confirmation: Confirmation | null; summary: Summary }) {
+  const { confirmation, summary } = props;
+  if (confirmation === null) {
+    return (
+      <span className="state">
+        <i />
+        Waiting for Lola’s ✓
+      </span>
+    );
+  }
+  if (!isStale(confirmation.snapshot, summary)) {
+    return (
+      <span className="state ok">
+        <i />
+        Lola confirmed {confirmedOn(confirmation)}
+      </span>
+    );
+  }
+  return (
+    <div className="flag" role="note" aria-label="Changed since Lola confirmed">
+      <span className="ic" aria-hidden="true">
+        !
+      </span>
+      <span>
+        <b>Changed since Lola confirmed</b>
+        <small>
+          She checked {money(confirmation.snapshot.total)} on {confirmedOn(confirmation)}. Now{" "}
+          {money(summary.total)}.
+        </small>
+      </span>
+    </div>
+  );
+}
+
+/** The nanny's "This looks right ✓", or that she confirmed the numbers as they are now. */
+export function ConfirmButton(props: {
+  confirmation: Confirmation | null;
+  summary: Summary;
+  saving: boolean;
+  onConfirm: () => void;
+}) {
+  const { confirmation, summary } = props;
+  if (confirmation !== null && !isStale(confirmation.snapshot, summary)) {
+    return (
+      <div className="done">
+        <Check />
+        You confirmed this on {confirmedOn(confirmation)}
+      </div>
+    );
+  }
+  return (
+    <>
+      <button className="btn pri" type="button" disabled={props.saving} onClick={props.onConfirm}>
+        This looks right
+        <Check />
+      </button>
+      {confirmation !== null && (
+        <div className="note">
+          You checked {money(confirmation.snapshot.total)} on {confirmedOn(confirmation)}. The
+          numbers changed since then.
+        </div>
+      )}
+    </>
+  );
+}
+
+/** What "Copy summary" puts on the clipboard, to paste into Messenger. */
+export function summaryText(period: Period, summary: Summary, link: string): string {
+  return [
+    `Lola · ${monthName(period.end)} pay (${dayMonth(period.start)} – ${dayMonth(period.end)})`,
+    `Salary ${money(summary.salary)}`,
+    `OT ${hours(summary.otMinutes)} = ${money(summary.otPay)}`,
+    `Total ${money(summary.total)} · Paid ${money(summary.paid)}`,
+    `Balance ${money(summary.balance)} THB`,
+    link,
+  ].join("\n");
 }

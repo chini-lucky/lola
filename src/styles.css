@@ -328,6 +328,11 @@ body {
   background: var(--accent);
   color: var(--accent-on);
 }
+.btn.sec {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
 .btn.bad {
   background: var(--surface);
   color: var(--danger);
@@ -384,6 +389,72 @@ a:focus-visible {
   border-radius: 50%;
   background: var(--hol-ink);
   display: block;
+}
+
+.periodview > .state {
+  align-self: center;
+}
+.state.ok {
+  background: var(--ok);
+  color: var(--ok-ink);
+}
+.state.ok i {
+  background: var(--ok-ink);
+}
+.flag {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--lv);
+  color: #7a4214;
+  border-radius: var(--r-item);
+  padding: 10px 12px;
+}
+.flag .ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--lv-ink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  flex: none;
+}
+.flag b {
+  display: block;
+  font-size: 0.86rem;
+}
+.flag small {
+  font-size: 0.75rem;
+}
+.done {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--ok);
+  color: var(--ok-ink);
+  border-radius: var(--r-btn);
+  padding: 13px 16px;
+  font-weight: 800;
+  justify-content: center;
+}
+.done svg {
+  width: 18px;
+  height: 18px;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* forms */

@@ -5,45 +5,99 @@ import {
   nextPeriod,
   payDayOf,
   prevPeriod,
+  summarize,
   type PayFacts,
   type Payment,
 } from "../pay";
-import { payFacts, type Person } from "../supabase";
+import { confirm, confirmations, payFacts, type Confirmation, type Person } from "../supabase";
 import {
+  bangkokDate,
   Bear,
   Calendar,
+  ConfirmationBadge,
+  ConfirmButton,
+  Copy,
   dayMonth,
   ErrorAlert,
   OtLeaveList,
   Payments,
   periodTitle,
   Plus,
+  summaryText,
   Totals,
   weekdayName,
 } from "../ui";
-
-function todayInBangkok(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
-}
 
 const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
 
 /** The main screen for admin and nanny: one pay period at a time, ‹ › to move. */
 export function PeriodView({ person }: { person: Person }) {
   const isAdmin = person.role === "admin";
-  const [today] = useState(todayInBangkok);
+  const [today] = useState(() => bangkokDate(new Date()));
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
+  // Newest first: the first one for a pay period is the one that counts.
+  const [confirmed, setConfirmed] = useState<Confirmation[]>([]);
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   // The payment in the sheet: a new one, one to edit, or no sheet.
   const [sheet, setSheet] = useState<{ payment: Payment | null } | null>(null);
 
   const load = useCallback(() => {
-    payFacts().then(setFacts, () => {
-      setError("Couldn’t load the pay data. Check your connection and reload.");
-    });
+    Promise.all([payFacts(), confirmations()]).then(
+      ([loadedFacts, loadedConfirmations]) => {
+        setFacts(loadedFacts);
+        setConfirmed(loadedConfirmations);
+      },
+      () => {
+        setError("Couldn’t load the pay data. Check your connection and reload.");
+      },
+    );
   }, []);
   useEffect(load, [load]);
+
+  useEffect(() => {
+    if (toast === null) return;
+    const timer = setTimeout(() => {
+      setToast(null);
+    }, 1800);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [toast]);
+
+  const summary = facts === null ? null : summarize(period, facts);
+  const confirmation = confirmed.find((c) => c.period_end === period.end) ?? null;
+
+  function onConfirm() {
+    if (summary === null) return;
+    setConfirming(true);
+    setError(null);
+    confirm(period.end, { total: summary.total, paid: summary.paid }).then(
+      () => {
+        setConfirming(false);
+        load();
+      },
+      () => {
+        setConfirming(false);
+        setError("Couldn’t save your confirmation. Check your connection and try again.");
+      },
+    );
+  }
+
+  function onCopySummary() {
+    if (summary === null) return;
+    const link = `${window.location.origin}${window.location.pathname}`;
+    navigator.clipboard.writeText(summaryText(period, summary, link)).then(
+      () => {
+        setToast("Summary copied");
+      },
+      () => {
+        setToast("Couldn’t copy the summary");
+      },
+    );
+  }
 
   const prev = prevPeriod(period);
   const payDay = payDayOf(period);
@@ -108,20 +162,29 @@ export function PeriodView({ person }: { person: Person }) {
           </button>
         </div>
         <ErrorAlert message={error} />
-        {facts !== null && (
+        {facts !== null && summary !== null && (
           <>
             <Totals period={period} facts={facts} />
             {isAdmin && (
-              <button
-                className="btn pri"
-                type="button"
-                onClick={() => {
-                  setSheet({ payment: null });
-                }}
-              >
-                <Plus />
-                Add payment
-              </button>
+              <>
+                <ConfirmationBadge confirmation={confirmation} summary={summary} />
+                <div className="duo">
+                  <button className="btn sec" type="button" onClick={onCopySummary}>
+                    <Copy />
+                    Copy summary
+                  </button>
+                  <button
+                    className="btn pri"
+                    type="button"
+                    onClick={() => {
+                      setSheet({ payment: null });
+                    }}
+                  >
+                    <Plus />
+                    Add payment
+                  </button>
+                </div>
+              </>
             )}
             <Calendar period={period} facts={facts} today={today} />
             <OtLeaveList period={period} facts={facts} />
@@ -136,9 +199,22 @@ export function PeriodView({ person }: { person: Person }) {
                   : null
               }
             />
+            {!isAdmin && (
+              <ConfirmButton
+                confirmation={confirmation}
+                summary={summary}
+                saving={confirming}
+                onConfirm={onConfirm}
+              />
+            )}
           </>
         )}
       </section>
+      {toast !== null && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
       {sheet !== null && facts !== null && (
         <PaymentSheet
           payment={sheet.payment}
