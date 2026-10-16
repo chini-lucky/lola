@@ -67,3 +67,18 @@ test("an admin marks a day as leave with a note; the list shows it with no deduc
     page.getByRole("list", { name: "Overtime & leave" }).getByRole("listitem"),
   ).toHaveText([/^Tue17.*Leave.*Sick day · no deduction/]);
 });
+
+test("clearing a day returns it to a normal day", async ({ page }) => {
+  await addDay({ date: "2026-11-17", ot: ["18:00-20:30"], leave: true, note: "Dinner out" });
+  await adminOn16Nov(page);
+  await page.getByRole("button", { name: "Edit Tue 17 Nov" }).click();
+  await page
+    .getByRole("dialog", { name: "Tue 17 Nov" })
+    .getByRole("button", { name: "Clear this day" })
+    .click();
+  await expect(
+    page
+      .getByRole("list", { name: "Days" })
+      .getByRole("listitem", { name: "Tue 17 Nov", exact: true }),
+  ).toBeVisible();
+});

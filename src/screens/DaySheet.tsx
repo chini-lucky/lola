@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { dayKind, dayOt, rateOn, type Day, type PayFacts } from "../pay";
-import { saveDay } from "../supabase";
+import { clearDay, saveDay } from "../supabase";
 import { dayLabel, ErrorAlert, hours, money, Plus } from "../ui";
 
 /** One OT range as typed: two HH:MM times, either may still be empty. */
@@ -80,6 +80,17 @@ export function DaySheet(props: {
       props.onSaved();
     } catch {
       setError("Couldn’t save the day. Check your connection and try again.");
+      setSaving(false);
+    }
+  }
+
+  async function clear() {
+    setSaving(true);
+    try {
+      await clearDay(date);
+      props.onSaved();
+    } catch {
+      setError("Couldn’t clear the day. Check your connection and try again.");
       setSaving(false);
     }
   }
@@ -209,6 +220,11 @@ export function DaySheet(props: {
         <button className="btn pri" type="submit" disabled={saving}>
           Save day
         </button>
+        {day !== undefined && (
+          <button className="del" type="button" disabled={saving} onClick={() => void clear()}>
+            Clear this day
+          </button>
+        )}
       </form>
     </dialog>
   );
