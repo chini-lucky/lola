@@ -201,4 +201,47 @@ describe("pay period totals", () => {
     };
     expect(summarize(octPay, facts).otPay).toBe(350);
   });
+
+  test("leave never deducts from salary", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: [],
+      days: [{ date: "2026-10-19", ot: [], leave: true, note: "Sick day" }],
+    };
+    expect(summarize(octPay, facts).total).toBe(20000);
+  });
+
+  test("seeded Oct pay: 15 h OT = 2,250, total 22,250", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: ["2026-10-13", "2026-10-23"],
+      days: [
+        otDay("2026-09-30", ["18:00-20:15"]),
+        otDay("2026-10-05", ["18:00-20:30"]),
+        otDay("2026-10-07", ["18:00-19:10"]),
+        otDay("2026-10-10", ["10:00-14:00"]),
+        otDay("2026-10-15", ["07:30-09:00"]),
+        { date: "2026-10-19", ot: [], leave: true, note: "Sick day" },
+        otDay("2026-10-20", ["07:00-08:00", "18:00-20:00"]),
+      ],
+    };
+    expect(summarize(octPay, facts)).toEqual({
+      salary: 20000,
+      otMinutes: 900,
+      otPay: 2250,
+      total: 22250,
+    });
+  });
+
+  test("OT on 28 Oct counts in Nov pay, not Oct pay", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: [],
+      days: [otDay("2026-10-28", ["18:00-19:00"])],
+    };
+    expect(summarize(octPay, facts).otPay).toBe(0);
+  });
 });
