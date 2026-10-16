@@ -1,6 +1,6 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database } from "./db.types";
-import type { PayFacts, Payment } from "./pay";
+import type { PayFacts, Payment, Rate } from "./pay";
 import { receiptType } from "./receipts";
 
 export const supabase = createClient<Database>(
@@ -195,4 +195,34 @@ export async function receiptDownloadLink(path: string, name: string): Promise<s
   const { data, error } = await receipts().createSignedUrl(path, 60, { download: name });
   if (error !== null) throw error;
   return data.signedUrl;
+}
+
+/** Admin only (RLS): adds a rate, or replaces the one starting on the same date. */
+export async function saveRate(rate: Rate): Promise<void> {
+  const { error } = await supabase.from("rates").upsert(rate);
+  if (error !== null) throw error;
+}
+
+export interface Holiday {
+  date: string;
+  name: string;
+}
+
+/** Every holiday, by date. */
+export async function holidays(): Promise<Holiday[]> {
+  const { data, error } = await supabase.from("holidays").select("date, name").order("date");
+  if (error !== null) throw error;
+  return data;
+}
+
+/** Admin only (RLS): adds a holiday, or renames the one on the same date. */
+export async function saveHoliday(holiday: Holiday): Promise<void> {
+  const { error } = await supabase.from("holidays").upsert(holiday);
+  if (error !== null) throw error;
+}
+
+/** Admin only (RLS). */
+export async function removeHoliday(date: string): Promise<void> {
+  const { error } = await supabase.from("holidays").delete().eq("date", date);
+  if (error !== null) throw error;
 }

@@ -94,7 +94,7 @@ export function periodsThrough(last: Period): Period[] {
 }
 
 /** The rate in effect on a date: the latest one starting on or before it. */
-function rateOn(date: string, rates: Rate[]): Rate {
+export function rateOn(date: string, rates: Rate[]): Rate {
   let inEffect: Rate | undefined;
   for (const rate of rates) {
     if (rate.effective_from <= date && rate.effective_from > (inEffect?.effective_from ?? "")) {
