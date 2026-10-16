@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { PaymentSheet } from "./PaymentSheet";
-import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Period } from "../pay";
+import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Payment, type Period } from "../pay";
 import { logOut, payFacts, type PayFacts, type Person } from "../supabase";
 import {
   Bear,
@@ -31,7 +31,8 @@ export function PeriodView({ person }: { person: Person }) {
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
+  // The payment in the sheet: a new one, one to edit, or no sheet.
+  const [sheet, setSheet] = useState<{ payment: Payment | null } | null>(null);
 
   const load = useCallback(() => {
     payFacts().then(setFacts, () => {
@@ -105,7 +106,7 @@ export function PeriodView({ person }: { person: Person }) {
                 className="btn pri"
                 type="button"
                 onClick={() => {
-                  setAdding(true);
+                  setSheet({ payment: null });
                 }}
               >
                 <Plus />
@@ -113,19 +114,30 @@ export function PeriodView({ person }: { person: Person }) {
               </button>
             )}
             <Calendar period={period} holidays={facts.holidays} today={today} />
-            <Payments period={period} facts={facts} />
+            <Payments
+              period={period}
+              facts={facts}
+              onEdit={
+                person.role === "admin"
+                  ? (payment) => {
+                      setSheet({ payment });
+                    }
+                  : null
+              }
+            />
           </>
         )}
       </section>
-      {adding && facts !== null && (
+      {sheet !== null && facts !== null && (
         <PaymentSheet
+          payment={sheet.payment}
           today={today}
           facts={facts}
           onClose={() => {
-            setAdding(false);
+            setSheet(null);
           }}
           onSaved={() => {
-            setAdding(false);
+            setSheet(null);
             load();
           }}
         />

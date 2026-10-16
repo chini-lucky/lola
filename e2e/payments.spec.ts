@@ -58,3 +58,15 @@ test("the nanny has no Add payment button", async ({ page }) => {
   await expect(page.getByRole("region", { name: octPay })).toBeVisible();
   await expect(page.getByRole("button", { name: "Add payment" })).toHaveCount(0);
 });
+
+test("admin edits a payment's amount", async ({ page }) => {
+  await logInOn(page, "2026-10-16", admin);
+  await addPayment(page, "700", "Snacks");
+  await page.getByRole("button", { name: "Edit payment 700 paid 16 Oct" }).click();
+  const sheet = page.getByRole("dialog", { name: "Edit payment" });
+  await sheet.getByLabel("Amount").fill("900");
+  await sheet.getByRole("button", { name: "Save payment" }).click();
+  await expect(page.getByRole("list", { name: "Payments" })).toContainText(
+    "Fri16SnacksPaid 16 Oct900THB",
+  );
+});

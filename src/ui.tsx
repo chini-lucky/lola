@@ -6,6 +6,7 @@ import {
   totalsOf,
   weekdayOf,
   type DayKind,
+  type Payment,
   type Period,
 } from "./pay";
 import type { PayFacts } from "./supabase";
@@ -146,8 +147,22 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
   );
 }
 
-/** The pay period's payments by date paid. */
-export function Payments({ period, facts }: { period: Period; facts: PayFacts }) {
+export function Pen() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+      <path d="M4 20h4L19 9l-4-4L4 16z" strokeLinejoin="round" />
+      <path d="M14 6l4 4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** The pay period's payments by date paid, each with an edit pen for the admin. */
+export function Payments(props: {
+  period: Period;
+  facts: PayFacts;
+  onEdit: ((payment: Payment) => void) | null;
+}) {
+  const { period, facts, onEdit } = props;
   const payments = paymentsIn(period, facts.payments);
   const { paid } = totalsOf(period, facts);
   return (
@@ -175,6 +190,18 @@ export function Payments({ period, facts }: { period: Period; facts: PayFacts })
                 {money(payment.amount)}
                 <small>THB</small>
               </div>
+              {onEdit !== null && (
+                <button
+                  className="pen"
+                  type="button"
+                  aria-label={`Edit payment ${money(payment.amount)} paid ${dayMonth(payment.paid_on)}`}
+                  onClick={() => {
+                    onEdit(payment);
+                  }}
+                >
+                  <Pen />
+                </button>
+              )}
             </li>
           ))}
         </ul>

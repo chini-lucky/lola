@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { currentPeriod, nextPeriod, periodsThrough, totalsOf, type Period } from "../pay";
-import { addPayment, type PayFacts } from "../supabase";
+import {
+  currentPeriod,
+  nextPeriod,
+  periodOf,
+  periodsThrough,
+  totalsOf,
+  type Payment,
+  type Period,
+} from "../pay";
+import { addPayment, editPayment, type PayFacts, type PaymentFields } from "../supabase";
 import { dayMonth, ErrorAlert, money, monthName } from "../ui";
 
 /** "Oct pay · 28 Sep – 27 Oct" */
@@ -15,20 +23,27 @@ function wholeBaht(text: string): number | null {
   return amount > 0 ? amount : null;
 }
 
-/** Admin only: a bottom sheet to record money already sent to the nanny. */
+/** Admin only: a bottom sheet to record money already sent to the nanny, or edit a payment. */
 export function PaymentSheet(props: {
+  payment: Payment | null;
   today: string;
   facts: PayFacts;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const { payment } = props;
+  const title = payment === null ? "Add payment" : "Edit payment";
   const current = currentPeriod(props.today);
-  const periods = periodsThrough(nextPeriod(current));
-  const [paidOn, setPaidOn] = useState(props.today);
-  const [amount, setAmount] = useState("");
-  const [periodEnd, setPeriodEnd] = useState(current.end);
-  const [note, setNote] = useState("");
+  const next = nextPeriod(current);
+  const paymentPeriod = payment === null ? null : periodOf(payment.period_end);
+  const periods = periodsThrough(
+    paymentPeriod !== null && paymentPeriod.end > next.end ? paymentPeriod : next,
+  );
+  const [paidOn, setPaidOn] = useState(payment?.paid_on ?? props.today);
+  const [amount, setAmount] = useState(payment === null ? "" : money(payment.amount));
+  const [periodEnd, setPeriodEnd] = useState(payment?.period_end ?? current.end);
+  const [note, setNote] = useState(payment?.note ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -51,12 +66,13 @@ export function PaymentSheet(props: {
     }
     setSaving(true);
     try {
-      await addPayment({
+      const fields: PaymentFields = {
         period_end: periodEnd,
         paid_on: paidOn,
         amount: baht,
         note: note.trim() === "" ? null : note.trim(),
-      });
+      };
+      await (payment === null ? addPayment(fields) : editPayment(payment.id, fields));
       props.onSaved();
     } catch {
       setError("Couldn’t save the payment. Check your connection and try again.");
@@ -68,7 +84,7 @@ export function PaymentSheet(props: {
     <dialog
       ref={dialog}
       className="sheet"
-      aria-label="Add payment"
+      aria-label={title}
       onClose={props.onClose}
       onClick={(event) => {
         if (event.target === dialog.current) dialog.current.close(); // tap outside the sheet
@@ -82,7 +98,7 @@ export function PaymentSheet(props: {
       >
         <div className="grab" />
         <div>
-          <h4>Add payment</h4>
+          <h4>{title}</h4>
           <div className="sub">Record money already sent to Lola</div>
         </div>
         <div className="two">
@@ -115,7 +131,7 @@ export function PaymentSheet(props: {
             </div>
           </div>
         </div>
-        {balance > 0 && (
+        {payment === null && balance > 0 && (
           <div className="quick">
             <button
               type="button"

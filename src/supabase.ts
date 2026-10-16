@@ -116,3 +116,9 @@ export async function addPayment(fields: PaymentFields): Promise<void> {
   const { error } = await supabase.from("payments").insert(fields);
   if (error !== null) throw error;
 }
+
+/** Admin only (RLS). */
+export async function editPayment(id: string, fields: PaymentFields): Promise<void> {
+  const { error } = await supabase.from("payments").update(fields).eq("id", id);
+  if (error !== null) throw error;
+}
