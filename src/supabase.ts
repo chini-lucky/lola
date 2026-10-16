@@ -10,6 +10,7 @@ export const supabase = createClient<Database>(
 );
 
 export type Role = "admin" | "nanny" | "waiting";
+export type ApprovedRole = Exclude<Role, "waiting">;
 
 export interface Person {
   id: string;
@@ -25,6 +26,7 @@ const authMessages: Partial<Record<string, string>> = {
   weak_password: "Password must be at least 10 characters.",
   user_already_exists: "That username is taken. Pick another one.",
   invalid_credentials: "Wrong username or password.",
+  same_password: "The new password must be different from the current one.",
 };
 
 function authMessage(error: AuthError): string {
@@ -40,6 +42,24 @@ export async function logIn(username: string, password: string): Promise<string 
 /** Returns an error message, or null when signed up (and logged in as waiting). */
 export async function signUp(username: string, password: string): Promise<string | null> {
   const { error } = await supabase.auth.signUp({ email: emailOf(username), password });
+  return error === null ? null : authMessage(error);
+}
+
+/** Checks the current password, then sets the new one. Returns an error message, or null. */
+export async function changePassword(
+  username: string,
+  current: string,
+  next: string,
+): Promise<string | null> {
+  const check = await supabase.auth.signInWithPassword({
+    email: emailOf(username),
+    password: current,
+  });
+  if (check.error !== null)
+    return check.error.code === "invalid_credentials"
+      ? "Current password is wrong."
+      : authMessage(check.error);
+  const { error } = await supabase.auth.updateUser({ password: next });
   return error === null ? null : authMessage(error);
 }
 
@@ -75,10 +95,27 @@ export async function waitingPeople(): Promise<Person[]> {
   return data.map(toPerson);
 }
 
-/** Admin only: approving makes a waiting person a nanny. */
-export async function approve(id: string): Promise<void> {
-  const { error } = await supabase.rpc("set_role", { target: id, new_role: "nanny" });
+/** Admin only (RLS): approved people (admins and nannies), oldest first. */
+export async function approvedPeople(): Promise<Person[]> {
+  const { data, error } = await supabase
+    .from("people")
+    .select(personColumns)
+    .neq("role", "waiting")
+    .order("created_at");
   if (error !== null) throw error;
+  return data.map(toPerson);
+}
+
+/** Admin only, never on yourself (set_role guards both). Approve = setRole(id, "nanny"). */
+export async function setRole(id: string, role: ApprovedRole): Promise<void> {
+  const { error } = await supabase.rpc("set_role", { target: id, new_role: role });
+  if (error !== null) throw error;
+}
+
+/** Admin only: Reject a waiting sign-up or Remove an approved person (deletes the account). */
+export async function removePerson(id: string): Promise<void> {
+  const result = await supabase.functions.invoke("remove-user", { body: { userId: id } });
+  if (result.error !== null) throw result.error as Error; // typed any by supabase-js
 }
 
 export async function payFacts(): Promise<PayFacts> {

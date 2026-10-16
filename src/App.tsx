@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Account } from "./screens/Account";
 import { Login } from "./screens/Login";
 import { People } from "./screens/People";
 import { PeriodView } from "./screens/Period";
@@ -58,8 +59,9 @@ export function App() {
     case "waiting":
       return <Waiting person={person} onCheckAgain={reload} />;
     case "admin":
-      return hash === "#/people" ? <People /> : <PeriodView person={person} />;
     case "nanny":
+      if (hash === "#/account") return <Account person={person} />;
+      if (hash === "#/people" && person.role === "admin") return <People me={person} />;
       return <PeriodView person={person} />;
     default: {
       const unreachable: never = person.role;

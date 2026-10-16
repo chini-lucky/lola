@@ -11,6 +11,8 @@ Domain words used in code, tests, UI and PRs. Use these exact words.
 - **Admin** — a role that records and edits everything (days, payments, settings, people) and sees the change log. The first admin account is `chini-lucky`.
 - **Nanny** — a role that reads pay data (days, payments, receipts, rates, holidays) and can confirm a pay period; no edits, no change log. Lola's account.
 - **Waiting** — status of a new sign-up before an admin approves it; locked out, sees only "Waiting for approval".
+- **Approved** — an admin or a nanny: a person an admin has approved (Approve makes a waiting person a nanny).
+- **Reject / Remove** — an admin deleting an account: Reject for a waiting sign-up, Remove for an approved person. Never your own. A forgotten password = Remove, sign up again, Approve.
 - **Confirmation** — the nanny's "This looks right ✓" on a pay period; stores a snapshot of the money numbers at that moment.
 - **Stale** — a confirmation whose money numbers (total, paid) no longer match the current ones; shown as "Changed since Lola confirmed". Note-only edits don't make it stale.
 - **Receipt** — an image or PDF of a bank transfer, attached by the admin to a payment; the nanny can view and download it.
