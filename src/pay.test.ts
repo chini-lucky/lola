@@ -5,6 +5,7 @@ import {
   dayKind,
   nextPeriod,
   payDayOf,
+  paymentsIn,
   periodsThrough,
   periodOf,
   prevPeriod,
@@ -180,5 +181,12 @@ describe("paid and balance", () => {
       payments: [payment("2026-09-27", "2026-09-28", 11000)],
     };
     expect(totalsOf(sepPay, facts).balance).toBe(0);
+  });
+
+  test("a pay period lists its own payments by date paid", () => {
+    const second = payment("2026-10-27", "2026-10-28", 5000);
+    const first = payment("2026-10-27", "2026-10-16", 15000);
+    const novPayment = payment("2026-11-27", "2026-10-20", 1000);
+    expect(paymentsIn(octPay, [second, novPayment, first])).toEqual([first, second]);
   });
 });

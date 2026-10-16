@@ -136,6 +136,13 @@ export function payDayOf(period: Period): string {
   return addDays(period.end, 1);
 }
 
+/** The pay period's own payments, by date paid. */
+export function paymentsIn(period: Period, payments: Payment[]): Payment[] {
+  return payments
+    .filter((p) => p.period_end === period.end)
+    .sort((a, b) => a.paid_on.localeCompare(b.paid_on));
+}
+
 /** A pay period's money: total owed, paid, and balance (total − paid). */
 export interface Totals {
   salary: number;
@@ -154,8 +161,6 @@ export interface TotalsFacts {
 export function totalsOf(period: Period, facts: TotalsFacts): Totals {
   const salary = salaryOf(period, facts.rates, facts.overrides);
   const total = salary;
-  const paid = facts.payments
-    .filter((p) => p.period_end === period.end)
-    .reduce((sum, p) => sum + p.amount, 0);
+  const paid = paymentsIn(period, facts.payments).reduce((sum, p) => sum + p.amount, 0);
   return { salary, total, paid, balance: total - paid };
 }
