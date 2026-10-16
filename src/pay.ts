@@ -134,8 +134,12 @@ export interface Day {
   note: string | null;
 }
 
-/** A day's OT: the minutes paid (the day's total rounded up to the next 30 minutes) and their pay. */
+/**
+ * A day's OT: the minutes counted, the minutes paid (the day's total rounded up to the
+ * next 30 minutes) and their pay.
+ */
 export interface DayOt {
+  counted: number;
   minutes: number;
   pay: number;
 }
@@ -166,7 +170,7 @@ export function dayOt(day: Day, rates: Rate[], holidays: string[]): DayOt {
   const offDay = isWeekend(day.date) || holidays.includes(day.date);
   const counted = day.ot.reduce((sum, range) => sum + otMinutesOf(range, offDay), 0);
   const minutes = Math.ceil(counted / 30) * 30;
-  return { minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };
+  return { counted, minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };
 }
 
 /** Everything the pay maths needs, as stored: rates, agreed overrides, holiday dates, exception days. */

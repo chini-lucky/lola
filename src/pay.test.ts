@@ -165,6 +165,10 @@ describe("OT", () => {
     expect(otOn("2026-10-05", ["18:00-18:01"]).minutes).toBe(30);
   });
 
+  test("a day's OT keeps the minutes counted before rounding: 18:00–19:10 is 70 min", () => {
+    expect(otOn("2026-10-07", ["18:00-19:10"]).counted).toBe(70);
+  });
+
   test("18:00–18:31 rounds up to 60 min", () => {
     expect(otOn("2026-10-05", ["18:00-18:31"]).minutes).toBe(60);
   });
