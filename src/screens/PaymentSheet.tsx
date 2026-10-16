@@ -8,7 +8,13 @@ import {
   type Payment,
   type Period,
 } from "../pay";
-import { addPayment, editPayment, type PayFacts, type PaymentFields } from "../supabase";
+import {
+  addPayment,
+  deletePayment,
+  editPayment,
+  type PayFacts,
+  type PaymentFields,
+} from "../supabase";
 import { dayMonth, ErrorAlert, money, monthName } from "../ui";
 
 /** "Oct pay · 28 Sep – 27 Oct" */
@@ -76,6 +82,18 @@ export function PaymentSheet(props: {
       props.onSaved();
     } catch {
       setError("Couldn’t save the payment. Check your connection and try again.");
+      setSaving(false);
+    }
+  }
+
+  async function remove(id: string) {
+    if (!window.confirm("Delete this payment?")) return;
+    setSaving(true);
+    try {
+      await deletePayment(id);
+      props.onSaved();
+    } catch {
+      setError("Couldn’t delete the payment. Check your connection and try again.");
       setSaving(false);
     }
   }
@@ -176,6 +194,16 @@ export function PaymentSheet(props: {
         <button className="btn pri" type="submit" disabled={saving}>
           Save payment
         </button>
+        {payment !== null && (
+          <button
+            className="del"
+            type="button"
+            disabled={saving}
+            onClick={() => void remove(payment.id)}
+          >
+            Delete payment
+          </button>
+        )}
       </form>
     </dialog>
   );

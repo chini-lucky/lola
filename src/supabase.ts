@@ -122,3 +122,9 @@ export async function editPayment(id: string, fields: PaymentFields): Promise<vo
   const { error } = await supabase.from("payments").update(fields).eq("id", id);
   if (error !== null) throw error;
 }
+
+/** Admin only (RLS). */
+export async function deletePayment(id: string): Promise<void> {
+  const { error } = await supabase.from("payments").delete().eq("id", id);
+  if (error !== null) throw error;
+}

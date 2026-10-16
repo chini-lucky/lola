@@ -70,3 +70,15 @@ test("admin edits a payment's amount", async ({ page }) => {
     "Fri16SnacksPaid 16 Oct900THB",
   );
 });
+
+test("admin deletes a payment: it leaves the Payments list", async ({ page }) => {
+  await logInOn(page, "2026-10-16", admin);
+  await addPayment(page, "300", "Mistake");
+  await page.getByRole("button", { name: "Edit payment 300 paid 16 Oct" }).click();
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page
+    .getByRole("dialog", { name: "Edit payment" })
+    .getByRole("button", { name: "Delete payment" })
+    .click();
+  await expect(page.getByRole("listitem").filter({ hasText: "Mistake" })).toHaveCount(0);
+});
