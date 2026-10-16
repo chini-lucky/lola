@@ -11,7 +11,7 @@ import {
 } from "../supabase";
 import {
   BackBar,
-  bangkokDay,
+  bangkokDate,
   dayLabel,
   dayMonth,
   ErrorAlert,
@@ -167,7 +167,7 @@ function dayHeading(day: string, today: string): string {
 function byDay(changes: Change[]): [string, Change[]][] {
   const days = new Map<string, Change[]>();
   for (const change of changes) {
-    const day = bangkokDay(new Date(change.at));
+    const day = bangkokDate(new Date(change.at));
     days.set(day, [...(days.get(day) ?? []), change]);
   }
   return [...days];

@@ -1,6 +1,6 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database, Json } from "./db.types";
-import type { Day, PayFacts, Payment, Rate } from "./pay";
+import type { Day, PayFacts, Payment, Rate, Snapshot } from "./pay";
 import { receiptType } from "./receipts";
 
 export const supabase = createClient<Database>(
@@ -198,6 +198,30 @@ export async function receiptDownloadLink(path: string, name: string): Promise<s
   const { data, error } = await receipts().createSignedUrl(path, 60, { download: name });
   if (error !== null) throw error;
   return data.signedUrl;
+}
+
+/** The nanny's "This looks right ✓" on a pay period, with the money numbers she saw. */
+export interface Confirmation {
+  period_end: string;
+  snapshot: Snapshot;
+  confirmed_at: string;
+}
+
+/** Every confirmation, newest first: the first one for a pay period is the one that counts. */
+export async function confirmations(): Promise<Confirmation[]> {
+  const { data, error } = await supabase
+    .from("confirmations")
+    .select("period_end, snapshot, confirmed_at")
+    .order("confirmed_at", { ascending: false });
+  if (error !== null) throw error;
+  // snapshot is jsonb; only confirm() below writes it, always as a Snapshot.
+  return data.map((row) => ({ ...row, snapshot: row.snapshot as unknown as Snapshot }));
+}
+
+/** Nanny only (RLS), in her own name. */
+export async function confirm(period_end: string, snapshot: Snapshot): Promise<void> {
+  const { error } = await supabase.from("confirmations").insert({ period_end, snapshot });
+  if (error !== null) throw error;
 }
 
 /** Admin only (RLS): adds a rate, or replaces the one starting on the same date. */
