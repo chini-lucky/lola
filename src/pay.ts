@@ -218,8 +218,8 @@ export function otReason(day: Day, holidays: string[]): string {
   return reasons.filter((reason) => reason !== null).join(" + ");
 }
 
-/** The exception days that fall in the pay period. */
-export function daysIn(period: Period, days: Day[]): Day[] {
+/** The exception days (or holidays, or anything dated) that fall in the pay period. */
+export function daysIn<Dated extends { date: string }>(period: Period, days: Dated[]): Dated[] {
   return days.filter((day) => day.date >= period.start && day.date <= period.end);
 }
 

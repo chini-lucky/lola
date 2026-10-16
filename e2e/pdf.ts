@@ -10,7 +10,8 @@ export async function pdfLines(path: string): Promise<string[]> {
     const byHeight = new Map<number, { x: number; text: string }[]>();
     for (const item of (await page.getTextContent()).items) {
       if (!("str" in item) || item.str.trim() === "") continue;
-      const [, , , , x = 0, y = 0] = item.transform as number[];
+      // transform is the text's matrix [a, b, c, d, x, y]; pdf.js types it as any[].
+      const [, , , , x = 0, y = 0] = item.transform.map(Number);
       const height = Math.round(y);
       byHeight.set(height, [...(byHeight.get(height) ?? []), { x, text: item.str.trim() }]);
     }

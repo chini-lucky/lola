@@ -8,8 +8,10 @@ import {
   overrideOf,
   paymentsIn,
   summarize,
+  NORMAL_HOURS,
   type PayFacts,
   type Period,
+  type Summary,
 } from "./pay";
 import type { Confirmation, Holiday } from "./supabase";
 import {
@@ -20,6 +22,7 @@ import {
   fullDate,
   hours,
   money,
+  otTimes,
   periodName,
 } from "./ui";
 
@@ -33,6 +36,9 @@ export interface Payslip {
   /** Where the app lives, for the footer: "chini-lucky.github.io/lola". */
   site: string;
 }
+
+/** A payslip with its pay period's money, worked out once. */
+type Slip = Payslip & { summary: Summary };
 
 // Option A colours (docs/design/final.html).
 const INK = "#24384a";
@@ -76,6 +82,10 @@ function base64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+/** "Leave · Sick day", or just "Leave" without a note. */
+const withNote = (text: string, note: string | null) =>
+  note === null || note === "" ? text : `${text} · ${note}`;
+
 /** "(28 Sep – 27 Oct 2026)" */
 const span = (period: Period) =>
   `(${dayMonth(period.start)} – ${dayMonth(period.end)} ${period.end.slice(0, 4)})`;
@@ -84,9 +94,8 @@ const span = (period: Period) =>
 const titleOf = (period: Period) => `Payslip · ${periodName(period)} ${span(period)}`;
 
 /** The confirmation line in the footer, with its pill colours. */
-function confirmationLine(slip: Payslip): { text: string; fill: string; ink: string } {
-  const summary = summarize(slip.period, slip.facts);
-  const state = confirmationState(slip.confirmation, summary);
+function confirmationLine(slip: Slip): { text: string; fill: string; ink: string } {
+  const state = confirmationState(slip.confirmation, slip.summary);
   switch (state.kind) {
     case "waiting":
       return { text: "Not yet confirmed by Lola", fill: LEAVE, ink: LEAVE_INK };
@@ -110,6 +119,13 @@ function confirmationLine(slip: Payslip): { text: string; fill: string; ink: str
       return unreachable;
     }
   }
+}
+
+/** A table cell: its text and where it starts, or ends when right-aligned. */
+interface Cell {
+  text: string;
+  x: number;
+  align?: "right";
 }
 
 /** Draws the payslip top to bottom, adding a page when a row would run off the end. */
@@ -138,11 +154,8 @@ class Sheet {
     this.y += 6;
   }
 
-  /** A table row: cells at the given x positions; a negative x aligns that cell right of -x. */
-  row(
-    cells: { text: string; x: number }[],
-    options: { header?: boolean; bold?: boolean; muted?: boolean } = {},
-  ) {
+  /** A table row: cells at their x positions, a right-aligned cell ending at its x. */
+  row(cells: Cell[], options: { header?: boolean; bold?: boolean; muted?: boolean } = {}) {
     this.room(ROW);
     this.y += ROW;
     const header = options.header === true;
@@ -153,8 +166,7 @@ class Sheet {
     }
     for (const cell of cells) {
       const text = header ? cell.text.toUpperCase() : cell.text;
-      if (cell.x < 0) this.doc.text(text, -cell.x, this.y - 5, { align: "right" });
-      else this.doc.text(text, cell.x, this.y - 5);
+      this.doc.text(text, cell.x, this.y - 5, { align: cell.align ?? "left" });
     }
     if (options.bold === true) return;
     this.doc.setDrawColor(LINE);
@@ -162,15 +174,19 @@ class Sheet {
     this.doc.line(MARGIN, this.y, RIGHT, this.y);
   }
 
-  muted(text: string, amount?: string) {
+  /** The row a table shows when it has nothing to list. */
+  emptyRow(text: string, amount?: string) {
     this.row(
-      [{ text, x: MARGIN + 3 }, ...(amount === undefined ? [] : [{ text: amount, x: -RIGHT }])],
+      [
+        { text, x: MARGIN + 3 },
+        ...(amount === undefined ? [] : [{ text: amount, x: RIGHT, align: "right" as const }]),
+      ],
       { muted: true },
     );
   }
 }
 
-function drawHeader(sheet: Sheet, slip: Payslip, bear: Uint8Array) {
+function drawHeader(sheet: Sheet, slip: Slip, bear: Uint8Array) {
   const { doc } = sheet;
   const size = 46;
   doc.saveGraphicsState();
@@ -206,68 +222,74 @@ function drawWho(sheet: Sheet) {
   sheet.y = top + 40;
 }
 
-function drawSalary(sheet: Sheet, slip: Payslip) {
+function drawSalary(sheet: Sheet, slip: Slip) {
   const override = overrideOf(slip.period, slip.facts.overrides);
   const label =
     override === null
-      ? "Monthly salary (Mon–Fri 09:00–18:00)"
+      ? `Monthly salary (Mon–Fri ${NORMAL_HOURS.from}–${NORMAL_HOURS.to})`
       : `Salary (${override.note ?? "agreed amount"})`;
-  const { salary } = summarize(slip.period, slip.facts);
+  const { salary } = slip.summary;
   sheet.heading("Salary");
   sheet.row([
     { text: label, x: MARGIN + 3 },
-    { text: money(salary), x: -RIGHT },
+    { text: money(salary), x: RIGHT, align: "right" },
   ]);
 }
 
-function drawOvertime(sheet: Sheet, slip: Payslip) {
+function drawOvertime(sheet: Sheet, slip: Slip) {
   const { facts, period } = slip;
   const days = daysIn(period, facts.days)
     .filter((day) => day.ot.length > 0)
     .sort((a, b) => a.date.localeCompare(b.date));
-  const { otMinutes, otPay } = summarize(period, facts);
-  const columns = [MARGIN + 3, MARGIN + 110, -(RIGHT - 80), -RIGHT];
-  const at = (i: number) => columns[i] ?? MARGIN;
+  const { otMinutes, otPay } = slip.summary;
+  const columns: Omit<Cell, "text">[] = [
+    { x: MARGIN + 3 },
+    { x: MARGIN + 110 },
+    { x: RIGHT - 80, align: "right" },
+    { x: RIGHT, align: "right" },
+  ];
+  const at = (i: number) => columns[i] ?? { x: MARGIN };
   sheet.heading("Overtime");
   sheet.row(
-    ["Day", "Times", "Hours", "Pay"].map((text, i) => ({ text, x: at(i) })),
+    ["Day", "Times", "Hours", "Pay"].map((text, i) => ({ text, ...at(i) })),
     { header: true },
   );
-  if (days.length === 0) sheet.muted("No overtime this period");
+  if (days.length === 0) sheet.emptyRow("No overtime this period");
   for (const day of days) {
     const ot = dayOt(day, facts.rates, facts.holidays);
-    const times = day.ot.map((range) => range.replace("-", "–")).join(", ");
+    const times = otTimes(day, ", ");
     sheet.row(
       [dayLabel(day.date), times, hours(ot.paidMinutes), money(ot.pay)].map((text, i) => ({
         text,
-        x: at(i),
+        ...at(i),
       })),
     );
   }
   sheet.row(
     [
-      { text: "Total overtime", x: at(0) },
-      { text: hours(otMinutes), x: at(2) },
-      { text: money(otPay), x: at(3) },
+      { text: "Total overtime", ...at(0) },
+      { text: hours(otMinutes), ...at(2) },
+      { text: money(otPay), ...at(3) },
     ],
     { bold: true },
   );
 }
 
-function drawLeaveAndHolidays(sheet: Sheet, slip: Payslip) {
+function drawLeaveAndHolidays(sheet: Sheet, slip: Slip) {
   const { period, facts } = slip;
   const leave = daysIn(period, facts.days)
     .filter((day) => day.leave)
     .map((day) => ({
       date: day.date,
-      text: day.note === null || day.note === "" ? "Leave" : `Leave · ${day.note}`,
+      text: withNote("Leave", day.note),
     }));
-  const holidays = slip.holidays
-    .filter((holiday) => holiday.date >= period.start && holiday.date <= period.end)
-    .map((holiday) => ({ date: holiday.date, text: `Holiday · ${holiday.name}` }));
+  const holidays = daysIn(period, slip.holidays).map((holiday) => ({
+    date: holiday.date,
+    text: `Holiday · ${holiday.name}`,
+  }));
   const rows = [...leave, ...holidays].sort((a, b) => a.date.localeCompare(b.date));
   sheet.heading("Leave and holidays (no deduction)");
-  if (rows.length === 0) sheet.muted("None this period");
+  if (rows.length === 0) sheet.emptyRow("None this period");
   for (const row of rows) {
     sheet.row([
       { text: dayLabel(row.date), x: MARGIN + 3 },
@@ -276,28 +298,27 @@ function drawLeaveAndHolidays(sheet: Sheet, slip: Payslip) {
   }
 }
 
-function drawPayments(sheet: Sheet, slip: Payslip) {
+function drawPayments(sheet: Sheet, slip: Slip) {
   const payments = paymentsIn(slip.period, slip.facts.payments);
   sheet.heading("Payments");
-  if (payments.length === 0) sheet.muted("No payments yet", "0");
+  if (payments.length === 0) sheet.emptyRow("No payments yet", "0");
   for (const payment of payments) {
     const paidOn = `${dayLabel(payment.paid_on)} ${payment.paid_on.slice(0, 4)}`;
-    const note = payment.note === null || payment.note === "" ? "" : ` · ${payment.note}`;
     sheet.row([
-      { text: `${paidOn}${note}`, x: MARGIN + 3 },
-      { text: money(payment.amount), x: -RIGHT },
+      { text: withNote(paidOn, payment.note), x: MARGIN + 3 },
+      { text: money(payment.amount), x: RIGHT, align: "right" },
     ]);
   }
 }
 
 /** The totals box and the footer, at the foot of the last page. */
-function drawTotalsAndFooter(sheet: Sheet, slip: Payslip) {
+function drawTotalsAndFooter(sheet: Sheet, slip: Slip) {
   const { doc } = sheet;
   const boxHeight = 74;
   const footerHeight = 30;
   sheet.room(boxHeight + footerHeight + 16);
   const top = BOTTOM - footerHeight - boxHeight;
-  const { total, paid, balance } = summarize(slip.period, slip.facts);
+  const { total, paid, balance } = slip.summary;
   doc.setFillColor(TOTALS);
   doc.roundedRect(MARGIN, top, WIDTH, boxHeight, 10, 10, "F");
   const lines = [
@@ -369,7 +390,7 @@ function drawDraftStamp(doc: jsPDF) {
 }
 
 /** Builds the pay period's payslip and hands it to the browser as a download. */
-export async function downloadPayslip(slip: Payslip): Promise<void> {
+export async function downloadPayslip(payslip: Payslip): Promise<void> {
   const [bear, fonts] = await Promise.all([
     bytesOf("icon-192.png"),
     Promise.all(
@@ -381,8 +402,9 @@ export async function downloadPayslip(slip: Payslip): Promise<void> {
     doc.addFileToVFS(font.file, base64(font.data));
     doc.addFont(font.file, font.name, font.style);
   }
-  doc.setProperties({ title: titleOf(slip.period), author: "Chini Lucky" });
+  doc.setProperties({ title: titleOf(payslip.period), author: "Chini Lucky" });
 
+  const slip: Slip = { ...payslip, summary: summarize(payslip.period, payslip.facts) };
   const sheet = new Sheet(doc);
   drawHeader(sheet, slip, bear);
   drawWho(sheet);
@@ -391,8 +413,7 @@ export async function downloadPayslip(slip: Payslip): Promise<void> {
   drawLeaveAndHolidays(sheet, slip);
   drawPayments(sheet, slip);
   drawTotalsAndFooter(sheet, slip);
-  const { balance } = summarize(slip.period, slip.facts);
-  if (isDraft(slip.period, balance, slip.today)) drawDraftStamp(doc);
+  if (isDraft(slip.period, slip.summary.balance, slip.today)) drawDraftStamp(doc);
 
   doc.save(`Lola payslip ${periodName(slip.period)} ${slip.period.end.slice(0, 4)}.pdf`);
 }

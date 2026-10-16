@@ -53,6 +53,7 @@ export function PeriodView({ person }: { person: Person }) {
   // Newest first: the first one for a pay period is the one that counts.
   const [allConfirmations, setAllConfirmations] = useState<Confirmation[]>([]);
   const [confirming, setConfirming] = useState(false);
+  const [makingPayslip, setMakingPayslip] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   // The date in the day sheet, or no sheet.
@@ -145,6 +146,7 @@ export function PeriodView({ person }: { person: Person }) {
   function downloadPayslip() {
     if (facts === null) return;
     setError(null);
+    setMakingPayslip(true);
     // The footer names the app as the address bar shows it: "chini-lucky.github.io/lola".
     const site = `${window.location.host}${window.location.pathname}`.replace(/\/$/, "");
     Promise.all([import("../payslip"), holidays()])
@@ -160,6 +162,9 @@ export function PeriodView({ person }: { person: Person }) {
       )
       .catch(() => {
         setError("Couldn’t make the payslip. Check your connection and try again.");
+      })
+      .finally(() => {
+        setMakingPayslip(false);
       });
   }
 
@@ -279,7 +284,12 @@ export function PeriodView({ person }: { person: Person }) {
                   : null
               }
             />
-            <button className="btn sec" type="button" onClick={downloadPayslip}>
+            <button
+              className="btn sec"
+              type="button"
+              disabled={makingPayslip}
+              onClick={downloadPayslip}
+            >
               <Download />
               Download payslip
             </button>
