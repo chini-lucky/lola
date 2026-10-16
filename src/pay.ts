@@ -139,8 +139,8 @@ export interface Day {
  * next 30 minutes) and their pay.
  */
 export interface DayOt {
-  counted: number;
-  minutes: number;
+  countedMinutes: number;
+  paidMinutes: number;
   pay: number;
 }
 
@@ -168,9 +168,13 @@ function otMinutesOf(range: string, offDay: boolean): number {
 /** The day's OT, paid at the OT rate in effect that day, in whole baht. */
 export function dayOt(day: Day, rates: Rate[], holidays: string[]): DayOt {
   const offDay = isWeekend(day.date) || holidays.includes(day.date);
-  const counted = day.ot.reduce((sum, range) => sum + otMinutesOf(range, offDay), 0);
-  const minutes = Math.ceil(counted / 30) * 30;
-  return { counted, minutes, pay: Math.round((minutes * rateOn(day.date, rates).ot_rate) / 60) };
+  const countedMinutes = day.ot.reduce((sum, range) => sum + otMinutesOf(range, offDay), 0);
+  const paidMinutes = Math.ceil(countedMinutes / 30) * 30;
+  return {
+    countedMinutes,
+    paidMinutes,
+    pay: Math.round((paidMinutes * rateOn(day.date, rates).ot_rate) / 60),
+  };
 }
 
 /** Everything the pay maths needs, as stored: rates, agreed overrides, holiday dates, exception days. */
@@ -196,7 +200,7 @@ export function summarize(period: Period, facts: PayFacts): Summary {
   for (const day of facts.days) {
     if (day.date < period.start || day.date > period.end) continue;
     const ot = dayOt(day, facts.rates, facts.holidays);
-    otMinutes += ot.minutes;
+    otMinutes += ot.paidMinutes;
     otPay += ot.pay;
   }
   return { salary, otMinutes, otPay, total: salary + otPay };

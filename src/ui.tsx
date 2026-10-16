@@ -153,7 +153,7 @@ const KINDS: Record<DayKind, { className: string; name: string }> = {
 /** What a calendar cell says under the date: OT hours, "leave" or "holiday". */
 function cellText(kind: DayKind, day: Day | undefined, facts: PayFacts): string | null {
   if (kind === "ot" && day !== undefined) {
-    return hours(dayOt(day, facts.rates, facts.holidays).minutes).replace(" ", "");
+    return hours(dayOt(day, facts.rates, facts.holidays).paidMinutes).replace(" ", "");
   }
   if (kind === "leave" || kind === "holiday") return kind;
   return null;
@@ -246,7 +246,9 @@ function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
   const details = [
     offDayName(day.date, facts.holidays),
     day.leave ? "Leave" : null,
-    ot.counted === ot.minutes ? null : `rounded up from ${hoursMinutes(ot.counted)}`,
+    ot.countedMinutes === ot.paidMinutes
+      ? null
+      : `rounded up from ${hoursMinutes(ot.countedMinutes)}`,
     day.note,
   ].filter((detail) => detail !== null);
   return (
@@ -258,7 +260,7 @@ function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
       </div>
       <div className="amt">
         {money(ot.pay)}
-        <small>{hours(ot.minutes)}</small>
+        <small>{hours(ot.paidMinutes)}</small>
       </div>
     </li>
   );

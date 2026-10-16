@@ -162,47 +162,63 @@ describe("OT", () => {
     dayOt({ date, ot, leave: false, note: null }, [firstRate], holidays);
 
   test("a day's OT is rounded up to the next 30 minutes: 18:00–18:01 is 30 min", () => {
-    expect(otOn("2026-10-05", ["18:00-18:01"]).minutes).toBe(30);
+    expect(otOn("2026-10-05", ["18:00-18:01"]).paidMinutes).toBe(30);
   });
 
   test("a day's OT keeps the minutes counted before rounding: 18:00–19:10 is 70 min", () => {
-    expect(otOn("2026-10-07", ["18:00-19:10"]).counted).toBe(70);
+    expect(otOn("2026-10-07", ["18:00-19:10"]).countedMinutes).toBe(70);
+  });
+
+  test("exactly half an hour stays as is: 18:00–18:30 is 30 min", () => {
+    expect(otOn("2026-10-05", ["18:00-18:30"]).paidMinutes).toBe(30);
   });
 
   test("18:00–18:31 rounds up to 60 min", () => {
-    expect(otOn("2026-10-05", ["18:00-18:31"]).minutes).toBe(60);
+    expect(otOn("2026-10-05", ["18:00-18:31"]).paidMinutes).toBe(60);
   });
 
   test("18:00–20:30 is 150 min, paid 375 THB at 150 THB/h", () => {
-    expect(otOn("2026-10-05", ["18:00-20:30"])).toMatchObject({ minutes: 150, pay: 375 });
+    expect(otOn("2026-10-05", ["18:00-20:30"])).toMatchObject({ paidMinutes: 150, pay: 375 });
   });
 
   test("several ranges add up before the day is rounded: 07:00–08:10 + 18:00–18:20 is 90 min", () => {
-    expect(otOn("2026-10-05", ["07:00-08:10", "18:00-18:20"]).minutes).toBe(90);
+    expect(otOn("2026-10-05", ["07:00-08:10", "18:00-18:20"]).paidMinutes).toBe(90);
   });
 
   test("weekday OT counts only time before 09:00 or after 18:00: 08:00–19:00 is 120 min", () => {
-    expect(otOn("2026-10-05", ["08:00-19:00"]).minutes).toBe(120);
+    expect(otOn("2026-10-05", ["08:00-19:00"]).paidMinutes).toBe(120);
+  });
+
+  test("rounding is per day, not per range: 07:30–08:00 + 18:00–18:10 is 40 → 60 min", () => {
+    expect(otOn("2026-10-05", ["07:30-08:00", "18:00-18:10"]).paidMinutes).toBe(60);
+  });
+
+  test("weekday OT counts only the part before 09:00: 08:00–10:00 is 60 min", () => {
+    expect(otOn("2026-10-05", ["08:00-10:00"]).paidMinutes).toBe(60);
+  });
+
+  test("weekday OT counts only the part after 18:00: 17:00–19:00 is 60 min", () => {
+    expect(otOn("2026-10-05", ["17:00-19:00"]).paidMinutes).toBe(60);
   });
 
   test("weekday OT inside 09:00–18:00 is no OT: 10:00–17:00 is 0 min", () => {
-    expect(otOn("2026-10-05", ["10:00-17:00"]).minutes).toBe(0);
+    expect(otOn("2026-10-05", ["10:00-17:00"]).paidMinutes).toBe(0);
   });
 
   test("all hours on a Saturday are OT: 10:00–14:00 is 240 min", () => {
-    expect(otOn("2026-10-10", ["10:00-14:00"]).minutes).toBe(240);
+    expect(otOn("2026-10-10", ["10:00-14:00"]).paidMinutes).toBe(240);
   });
 
   test("all hours on a Sunday are OT: 09:00–09:10 rounds up to 30 min", () => {
-    expect(otOn("2026-10-11", ["09:00-09:10"]).minutes).toBe(30);
+    expect(otOn("2026-10-11", ["09:00-09:10"]).paidMinutes).toBe(30);
   });
 
   test("all hours on a weekday holiday are OT: 09:00–18:00 is 540 min", () => {
-    expect(otOn("2026-10-13", ["09:00-18:00"]).minutes).toBe(540);
+    expect(otOn("2026-10-13", ["09:00-18:00"]).paidMinutes).toBe(540);
   });
 
   test("a holiday on a weekend is counted once: Sat 10:00–14:00 is 240 min", () => {
-    expect(otOn("2026-12-05", ["10:00-14:00"]).minutes).toBe(240);
+    expect(otOn("2026-12-05", ["10:00-14:00"]).paidMinutes).toBe(240);
   });
 });
 
@@ -252,6 +268,21 @@ describe("pay period totals", () => {
       otPay: 2250,
       total: 22250,
     });
+  });
+
+  test("a holiday with no OT leaves the salary unchanged", () => {
+    const facts = { rates: [firstRate], overrides: [], holidays: ["2026-10-13"], days: [] };
+    expect(summarize(octPay, facts).total).toBe(20000);
+  });
+
+  test("OT on a leave day is still paid", () => {
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      holidays: [],
+      days: [{ date: "2026-10-19", ot: ["18:00-19:00"], leave: true, note: null }],
+    };
+    expect(summarize(octPay, facts).otPay).toBe(150);
   });
 
   test("OT on 28 Oct counts in Nov pay, not Oct pay", () => {
