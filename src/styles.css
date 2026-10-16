@@ -236,6 +236,16 @@ body {
   background: var(--accent);
   color: var(--accent-on);
 }
+.del {
+  background: none;
+  border: 0;
+  color: var(--danger);
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 4px;
+  cursor: pointer;
+}
 .duo {
   display: grid;
   grid-template-columns: 1fr 1fr;

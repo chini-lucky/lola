@@ -137,6 +137,19 @@ export function People() {
                   </button>
                 ))}
               </div>
+              <button
+                className="del"
+                type="button"
+                aria-label={`Remove ${person.username}`}
+                onClick={() =>
+                  void change(
+                    () => removePerson(person.id),
+                    `Couldn’t remove ${person.username}. Please try again.`,
+                  )
+                }
+              >
+                Remove
+              </button>
             </div>
           </div>
         ))}
