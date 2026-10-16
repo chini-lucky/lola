@@ -22,8 +22,8 @@ async function fetchLists(): Promise<Lists> {
   return { waiting, approved };
 }
 
-// Admin only.
-export function People() {
+// Admin only. No role or Remove controls on your own row, so nobody locks themselves out.
+export function People({ me }: { me: Person }) {
   const [lists, setLists] = useState<Lists | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,49 +110,62 @@ export function People() {
         <h3>
           Approved<small>{lists?.approved.length}</small>
         </h3>
-        {lists?.approved.map((person) => (
-          <div className="prow" key={person.id}>
-            <div className="item">
-              <span className="av">{person.username.charAt(0)}</span>
-              <div className="what">
-                <b>{person.username}</b>
-                <small>Signed up {signedUpAt.format(new Date(person.created_at))}</small>
+        {lists?.approved.map((person) =>
+          person.id === me.id ? (
+            <div className="prow" key={person.id}>
+              <div className="item">
+                <span className="av">{person.username.charAt(0)}</span>
+                <div className="what">
+                  <b>{person.username}</b>
+                  <small>You · {person.role}</small>
+                </div>
+                <span className="pill">{roleLabel(person.role)}</span>
               </div>
             </div>
-            <div className="acts">
-              <div className="seg" role="group" aria-label={`Role for ${person.username}`}>
-                {approvedRoles.map((role) => (
-                  <button
-                    key={role}
-                    type="button"
-                    aria-pressed={person.role === role}
-                    onClick={() =>
-                      void change(
-                        () => setRole(person.id, role),
-                        `Couldn’t change the role of ${person.username}. Please try again.`,
-                      )
-                    }
-                  >
-                    {roleLabel(role)}
-                  </button>
-                ))}
+          ) : (
+            <div className="prow" key={person.id}>
+              <div className="item">
+                <span className="av">{person.username.charAt(0)}</span>
+                <div className="what">
+                  <b>{person.username}</b>
+                  <small>Signed up {signedUpAt.format(new Date(person.created_at))}</small>
+                </div>
               </div>
-              <button
-                className="del"
-                type="button"
-                aria-label={`Remove ${person.username}`}
-                onClick={() =>
-                  void change(
-                    () => removePerson(person.id),
-                    `Couldn’t remove ${person.username}. Please try again.`,
-                  )
-                }
-              >
-                Remove
-              </button>
+              <div className="acts">
+                <div className="seg" role="group" aria-label={`Role for ${person.username}`}>
+                  {approvedRoles.map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      aria-pressed={person.role === role}
+                      onClick={() =>
+                        void change(
+                          () => setRole(person.id, role),
+                          `Couldn’t change the role of ${person.username}. Please try again.`,
+                        )
+                      }
+                    >
+                      {roleLabel(role)}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  className="del"
+                  type="button"
+                  aria-label={`Remove ${person.username}`}
+                  onClick={() =>
+                    void change(
+                      () => removePerson(person.id),
+                      `Couldn’t remove ${person.username}. Please try again.`,
+                    )
+                  }
+                >
+                  Remove
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
         <div className="note">
           Forgotten password: remove the account, they sign up again, you approve.
         </div>

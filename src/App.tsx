@@ -58,7 +58,7 @@ export function App() {
     case "waiting":
       return <Waiting person={person} onCheckAgain={reload} />;
     case "admin":
-      return hash === "#/people" ? <People /> : <Home person={person} />;
+      return hash === "#/people" ? <People me={person} /> : <Home person={person} />;
     case "nanny":
       return <Home person={person} />;
     default: {

@@ -35,3 +35,11 @@ test("remove deletes an approved person", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Approved" })).toBeVisible();
   await expect(page.getByText(username)).toBeHidden();
 });
+
+test("an admin sees no role or Remove controls for themselves", async ({ page }) => {
+  await logIn(page, admin);
+  await page.getByRole("link", { name: "People" }).click();
+  await expect(page.getByText("You · admin")).toBeVisible();
+  await expect(page.getByRole("group", { name: `Role for ${admin.username}` })).toBeHidden();
+  await expect(page.getByRole("button", { name: `Remove ${admin.username}` })).toBeHidden();
+});
