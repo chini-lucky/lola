@@ -10,6 +10,7 @@ import {
   overrideOf,
   paymentsIn,
   periodOf,
+  periodsThrough,
   rateOn,
   summarize,
   weekdayOf,
@@ -20,6 +21,7 @@ import {
   type Period,
   type Rate,
 } from "./pay";
+import { exportCsv } from "./csv";
 import { isPdf, receiptName } from "./receipts";
 import type { Holiday, Role } from "./supabase";
 
@@ -876,6 +878,76 @@ export function Holidays(props: {
           Add holiday
         </button>
       )}
+    </section>
+  );
+}
+
+/** "Oct pay 2026": a pay period in a list that spans years. */
+const periodNameWithYear = (period: Period) => `${periodName(period)} ${period.end.slice(0, 4)}`;
+
+/** Saves the CSV as a file; the byte order mark makes Excel read Thai notes as UTF-8. */
+function saveCsv(csv: string, fileName: string) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv" }));
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+/** Pick a range of pay periods (default: all through today's) and download it as one CSV. */
+export function ExportCsv({ facts, today }: { facts: PayFacts; today: string }) {
+  const periods = periodsThrough(currentPeriod(today));
+  const [from, setFrom] = useState(periods[0]?.end ?? "");
+  const [to, setTo] = useState(periods.at(-1)?.end ?? "");
+  const [error, setError] = useState<string | null>(null);
+
+  function download() {
+    const first = periods.find((period) => period.end === from);
+    const last = periods.find((period) => period.end === to);
+    if (first === undefined || last === undefined || from > to) {
+      setError("Pick a From pay period on or before the To one.");
+      return;
+    }
+    setError(null);
+    saveCsv(exportCsv(first, last, facts), `lola-${first.start}-to-${last.end}.csv`);
+  }
+
+  const picker = (id: string, label: string, value: string, onChange: (end: string) => void) => (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <select
+        className="inp"
+        id={id}
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+        }}
+      >
+        {periods.map((period) => (
+          <option key={period.end} value={period.end}>
+            {periodNameWithYear(period)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  return (
+    <section className="sec" aria-labelledby="export-csv">
+      <h3 id="export-csv">Export CSV</h3>
+      <div className="two">
+        {picker("st-a", "From", from, setFrom)}
+        {picker("st-b", "To", to, setTo)}
+      </div>
+      <ErrorAlert message={error} />
+      <button className="btn pri" type="button" onClick={download}>
+        <Download />
+        Download CSV
+      </button>
+      <div className="note">
+        One file, one row per day: date, weekday, type, OT times, OT hours, OT pay, note, payment,
+        receipt names.
+      </div>
     </section>
   );
 }
