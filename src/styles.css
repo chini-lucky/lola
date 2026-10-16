@@ -793,6 +793,147 @@ a:focus-visible {
   border-radius: var(--r-item);
   padding: 10px 12px;
 }
+/* a payment with its receipts */
+.list .payment {
+  background: var(--surface);
+  border-radius: var(--r-item);
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.list .payment .item {
+  padding: 0;
+}
+.rcs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.rcw {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 66px;
+}
+.rcw > span {
+  font-size: 0.62rem;
+  color: var(--muted);
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rc {
+  width: 66px;
+  height: 84px;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  position: relative;
+}
+.rc .face {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.rc,
+.rc .face {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 9px;
+}
+.rc i {
+  height: 4px;
+  border-radius: 3px;
+  background: var(--line);
+}
+.rc i:nth-child(1) {
+  width: 60%;
+  background: var(--ok-ink);
+  opacity: 0.5;
+}
+.rc i:nth-child(3) {
+  width: 70%;
+}
+.rc i:nth-child(4) {
+  width: 45%;
+  height: 7px;
+  background: var(--accent);
+  opacity: 0.5;
+  margin-top: 4px;
+}
+.rc img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.rc .tag {
+  position: absolute;
+  left: 7px;
+  bottom: 7px;
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-radius: 5px;
+  padding: 1px 4px;
+}
+.rc .dl,
+.rc .x {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  background: var(--accent);
+  color: var(--accent-on);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.rc .x {
+  top: -6px;
+  bottom: auto;
+  background: var(--ink);
+}
+.rc .dl svg,
+.rc .x svg {
+  width: 13px;
+  height: 13px;
+}
+.rc.add {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--t-line);
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-ink);
+  font-size: 0.62rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.rc.add svg {
+  width: 20px;
+  height: 20px;
+}
+.rc.add input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.rc.add:focus-within {
+  outline: 2px solid var(--accent);
+}
 .num {
   font-variant-numeric: tabular-nums;
 }

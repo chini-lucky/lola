@@ -8,8 +8,9 @@ import {
   type PayFacts,
   type Payment,
 } from "../pay";
-import { addPayment, deletePayment, editPayment, type PaymentFields } from "../supabase";
-import { ErrorAlert, money, periodTitle } from "../ui";
+import { RECEIPT_TYPES, receiptName, receiptPath, shrunk } from "../receipts";
+import { addPayment, deletePayment, editPayment, removeReceipts, uploadReceipt } from "../supabase";
+import { ErrorAlert, money, periodTitle, Plus, Receipt, RemoveReceipt } from "../ui";
 
 /** Whole baht, commas allowed ("22,250"); null if it is not a whole number above 0. */
 function wholeBaht(text: string): number | null {
@@ -40,6 +41,8 @@ export function PaymentSheet(props: {
   const [amount, setAmount] = useState(payment === null ? "" : money(payment.amount));
   const [periodEnd, setPeriodEnd] = useState(payment?.period_end ?? current.end);
   const [note, setNote] = useState(payment?.note ?? "");
+  const [stored, setStored] = useState(payment?.receipts ?? []); // receipts already saved
+  const [added, setAdded] = useState<File[]>([]); // files picked, not uploaded yet
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -61,26 +64,44 @@ export function PaymentSheet(props: {
       return;
     }
     setSaving(true);
+    const id = payment?.id ?? crypto.randomUUID();
+    const uploaded: string[] = [];
     try {
-      const fields: PaymentFields = {
+      await Promise.all(
+        added.map(async (picked) => {
+          const file = await shrunk(picked);
+          const path = receiptPath(periodEnd, id, file.name);
+          await uploadReceipt(path, file);
+          uploaded.push(path);
+        }),
+      );
+      const saved: Payment = {
+        id,
         period_end: periodEnd,
         paid_on: paidOn,
         amount: baht,
         note: note.trim() === "" ? null : note.trim(),
+        receipts: [...stored, ...uploaded],
       };
-      await (payment === null ? addPayment(fields) : editPayment(payment.id, fields));
-      props.onSaved();
+      await (payment === null ? addPayment(saved) : editPayment(saved));
     } catch {
+      // Nothing lists the files uploaded so far: take them away again (best effort).
+      await removeReceipts(uploaded).catch(() => undefined);
       setError("Couldn’t save the payment. Check your connection and try again.");
       setSaving(false);
+      return;
     }
+    const unlisted = (payment?.receipts ?? []).filter((path) => !stored.includes(path));
+    // The payment no longer lists them, so a file left behind by a failed remove is harmless.
+    await removeReceipts(unlisted).catch(() => undefined);
+    props.onSaved();
   }
 
-  async function remove(id: string) {
+  async function remove(saved: Payment) {
     if (!window.confirm("Delete this payment?")) return;
     setSaving(true);
     try {
-      await deletePayment(id);
+      await deletePayment(saved);
       props.onSaved();
     } catch {
       setError("Couldn’t delete the payment. Check your connection and try again.");
@@ -180,6 +201,49 @@ export function PaymentSheet(props: {
             }}
           />
         </div>
+        <div className="field" role="group" aria-labelledby="pay-receipts">
+          <span id="pay-receipts">Receipts</span>
+          <div className="rcs">
+            {[
+              ...stored.map((path) => ({
+                key: path,
+                name: receiptName(path),
+                onRemove: () => {
+                  setStored((paths) => paths.filter((p) => p !== path));
+                },
+              })),
+              ...added.map((file, i) => ({
+                key: `${i.toString()}-${file.name}`,
+                name: file.name,
+                onRemove: () => {
+                  setAdded((files) => files.filter((f) => f !== file));
+                },
+              })),
+            ].map(({ key, name, onRemove }) => (
+              <Receipt key={key} name={name} link={null}>
+                <RemoveReceipt name={name} onClick={onRemove} />
+              </Receipt>
+            ))}
+            <div className="rcw">
+              <label className="rc add">
+                <Plus />
+                Add
+                <input
+                  type="file"
+                  multiple
+                  accept={RECEIPT_TYPES}
+                  aria-label="Add receipts"
+                  onChange={(event) => {
+                    const picked = Array.from(event.target.files ?? []);
+                    setAdded((files) => [...files, ...picked]);
+                    event.target.value = ""; // the same file can be picked again
+                  }}
+                />
+              </label>
+              <span>JPG PNG HEIC PDF</span>
+            </div>
+          </div>
+        </div>
         <ErrorAlert message={error} />
         <button className="btn pri" type="submit" disabled={saving}>
           Save payment
@@ -189,7 +253,7 @@ export function PaymentSheet(props: {
             className="del"
             type="button"
             disabled={saving}
-            onClick={() => void remove(payment.id)}
+            onClick={() => void remove(payment)}
           >
             Delete payment
           </button>
