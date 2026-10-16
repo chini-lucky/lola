@@ -3,6 +3,7 @@ import { Account } from "./screens/Account";
 import { Login } from "./screens/Login";
 import { People } from "./screens/People";
 import { PeriodView } from "./screens/Period";
+import { Settings } from "./screens/Settings";
 import { SignUp } from "./screens/SignUp";
 import { Waiting } from "./screens/Waiting";
 import type { Session } from "@supabase/supabase-js";
@@ -62,6 +63,7 @@ export function App() {
     case "nanny":
       if (hash === "#/account") return <Account person={person} />;
       if (hash === "#/people" && person.role === "admin") return <People me={person} />;
+      if (hash === "#/settings" && person.role === "admin") return <Settings />;
       return <PeriodView person={person} />;
     default: {
       const unreachable: never = person.role;

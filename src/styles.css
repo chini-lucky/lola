@@ -815,3 +815,11 @@ a:focus-visible {
   font-weight: 600;
   font-size: 0.72rem;
 }
+.count {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: var(--lv);
+  color: var(--lv-ink);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
