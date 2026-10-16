@@ -1,6 +1,6 @@
 -- Access to the pay data tables: admin all, nanny read, waiting and anonymous nothing.
 begin;
-select plan(61);
+select plan(81);
 
 insert into auth.users (id, email, aud, role) values
   ('00000000-0000-0000-0000-0000000000a1', 'boss@lola.invalid', 'authenticated', 'authenticated'),
@@ -52,14 +52,24 @@ select isnt_empty($$select 1 from public.confirmations$$, 'a nanny reads confirm
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
 select is_empty($$select 1 from public.days$$, 'a waiting person sees no days');
 select throws_ok($$insert into public.days (date, leave) values ('2030-01-08', true)$$, '42501', null, 'a waiting person cannot add a day');
+select is_empty($$update public.days set note = 'late dinner' where date = '2030-01-07' returning 1$$, 'a waiting person cannot edit a day');
+select is_empty($$delete from public.days where date = '2030-01-07' returning 1$$, 'a waiting person cannot delete a day');
 select is_empty($$select 1 from public.payments$$, 'a waiting person sees no payments');
 select throws_ok($$insert into public.payments (period_end, paid_on, amount) values ('2030-01-27', '2030-01-28', 1)$$, '42501', null, 'a waiting person cannot add a payment');
+select is_empty($$update public.payments set note = 'cash' where period_end = '2030-01-27' returning 1$$, 'a waiting person cannot edit a payment');
+select is_empty($$delete from public.payments where period_end = '2030-01-27' returning 1$$, 'a waiting person cannot delete a payment');
 select is_empty($$select 1 from public.rates$$, 'a waiting person sees no rates');
 select throws_ok($$insert into public.rates (effective_from, salary, ot_rate) values ('2030-02-28', 99000, 999)$$, '42501', null, 'a waiting person cannot add a rate');
+select is_empty($$update public.rates set ot_rate = 170 where effective_from = '2030-01-28' returning 1$$, 'a waiting person cannot edit a rate');
+select is_empty($$delete from public.rates where effective_from = '2030-01-28' returning 1$$, 'a waiting person cannot delete a rate');
 select is_empty($$select 1 from public.holidays$$, 'a waiting person sees no holidays');
 select throws_ok($$insert into public.holidays (date, name) values ('2030-01-02', 'Day off')$$, '42501', null, 'a waiting person cannot add a holiday');
+select is_empty($$update public.holidays set name = 'New Year' where date = '2030-01-01' returning 1$$, 'a waiting person cannot edit a holiday');
+select is_empty($$delete from public.holidays where date = '2030-01-01' returning 1$$, 'a waiting person cannot delete a holiday');
 select is_empty($$select 1 from public.period_overrides$$, 'a waiting person sees no period overrides');
 select throws_ok($$insert into public.period_overrides (period_end, salary) values ('2030-02-27', 1)$$, '42501', null, 'a waiting person cannot add a period override');
+select is_empty($$update public.period_overrides set salary = 12000 where period_end = '2030-01-27' returning 1$$, 'a waiting person cannot edit a period override');
+select is_empty($$delete from public.period_overrides where period_end = '2030-01-27' returning 1$$, 'a waiting person cannot delete a period override');
 select is_empty($$select 1 from public.confirmations$$, 'a waiting person sees no confirmations');
 
 -- an anonymous visitor
@@ -68,14 +78,24 @@ set local role anon;
 set local request.jwt.claims = '{"role":"anon"}';
 select is_empty($$select 1 from public.days$$, 'an anonymous visitor sees no days');
 select throws_ok($$insert into public.days (date, leave) values ('2030-01-08', true)$$, '42501', null, 'an anonymous visitor cannot add a day');
+select is_empty($$update public.days set note = 'late dinner' where date = '2030-01-07' returning 1$$, 'an anonymous visitor cannot edit a day');
+select is_empty($$delete from public.days where date = '2030-01-07' returning 1$$, 'an anonymous visitor cannot delete a day');
 select is_empty($$select 1 from public.payments$$, 'an anonymous visitor sees no payments');
 select throws_ok($$insert into public.payments (period_end, paid_on, amount) values ('2030-01-27', '2030-01-28', 1)$$, '42501', null, 'an anonymous visitor cannot add a payment');
+select is_empty($$update public.payments set note = 'cash' where period_end = '2030-01-27' returning 1$$, 'an anonymous visitor cannot edit a payment');
+select is_empty($$delete from public.payments where period_end = '2030-01-27' returning 1$$, 'an anonymous visitor cannot delete a payment');
 select is_empty($$select 1 from public.rates$$, 'an anonymous visitor sees no rates');
 select throws_ok($$insert into public.rates (effective_from, salary, ot_rate) values ('2030-02-28', 99000, 999)$$, '42501', null, 'an anonymous visitor cannot add a rate');
+select is_empty($$update public.rates set ot_rate = 170 where effective_from = '2030-01-28' returning 1$$, 'an anonymous visitor cannot edit a rate');
+select is_empty($$delete from public.rates where effective_from = '2030-01-28' returning 1$$, 'an anonymous visitor cannot delete a rate');
 select is_empty($$select 1 from public.holidays$$, 'an anonymous visitor sees no holidays');
 select throws_ok($$insert into public.holidays (date, name) values ('2030-01-02', 'Day off')$$, '42501', null, 'an anonymous visitor cannot add a holiday');
+select is_empty($$update public.holidays set name = 'New Year' where date = '2030-01-01' returning 1$$, 'an anonymous visitor cannot edit a holiday');
+select is_empty($$delete from public.holidays where date = '2030-01-01' returning 1$$, 'an anonymous visitor cannot delete a holiday');
 select is_empty($$select 1 from public.period_overrides$$, 'an anonymous visitor sees no period overrides');
 select throws_ok($$insert into public.period_overrides (period_end, salary) values ('2030-02-27', 1)$$, '42501', null, 'an anonymous visitor cannot add a period override');
+select is_empty($$update public.period_overrides set salary = 12000 where period_end = '2030-01-27' returning 1$$, 'an anonymous visitor cannot edit a period override');
+select is_empty($$delete from public.period_overrides where period_end = '2030-01-27' returning 1$$, 'an anonymous visitor cannot delete a period override');
 select is_empty($$select 1 from public.confirmations$$, 'an anonymous visitor sees no confirmations');
 
 -- admin edits and deletes

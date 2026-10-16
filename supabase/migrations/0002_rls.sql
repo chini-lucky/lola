@@ -53,3 +53,6 @@ end $$;
 alter table public.confirmations enable row level security;
 create policy "admin and nanny read" on public.confirmations for select to authenticated
   using ((select public.my_role()) in ('admin', 'nanny'));
+
+-- TRUNCATE skips RLS and row triggers (so the change log); API roles never need it.
+revoke truncate on all tables in schema public from anon, authenticated;

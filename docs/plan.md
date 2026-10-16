@@ -67,7 +67,7 @@ lola/
 
 ## 3. Data model (Postgres, all access via RLS)
 
-- **people:** `id uuid pk → auth.users on delete cascade`, `username unique` (regex check), `role text check in ('admin','nanny','waiting') default 'waiting'`, `created_at`. Trigger on `auth.users` insert creates the row as `waiting`, username from signup metadata (bad username → sign-up fails).
+- **people:** `id uuid pk → auth.users on delete cascade`, `username unique` (regex check), `role text check in ('admin','nanny','waiting') default 'waiting'`, `created_at`. Trigger on `auth.users` insert creates the row as `waiting`, username = the hidden email before `@` (bad username → sign-up fails).
 - **days:** `date date pk`, `ot text[] default '{}'` (each `"HH:MM-HH:MM"`, regex check), `leave bool default false`, `note text`, `updated_at`. Rows only for exception days.
 - **payments:** `id uuid pk`, `period_end date` (check day = 27), `paid_on date`, `amount int > 0` (whole THB), `note`, `receipts text[] default '{}'` (storage paths), `created_at`.
 - **rates:** `effective_from date pk`, `salary int`, `ot_rate int`.
