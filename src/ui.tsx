@@ -65,6 +65,7 @@ export function Field(props: {
   value: string;
   onChange: (value: string) => void;
   type?: "text" | "password";
+  inputMode?: "numeric";
   autoComplete: string;
   help?: string;
 }) {
@@ -75,6 +76,7 @@ export function Field(props: {
         className="inp"
         id={props.id}
         type={props.type ?? "text"}
+        inputMode={props.inputMode}
         autoComplete={props.autoComplete}
         autoCapitalize="none"
         spellCheck={false}

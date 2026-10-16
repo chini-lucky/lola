@@ -1,6 +1,6 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database } from "./db.types";
-import type { PayFacts } from "./pay";
+import type { PayFacts, Rate } from "./pay";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
@@ -135,4 +135,10 @@ export async function payFacts(): Promise<PayFacts> {
     holidays: holidays.data.map((holiday) => holiday.date),
     days: days.data,
   };
+}
+
+/** Admin only (RLS): adds a rate, or replaces the one starting on the same date. */
+export async function saveRate(rate: Rate): Promise<void> {
+  const { error } = await supabase.from("rates").upsert(rate);
+  if (error !== null) throw error;
 }

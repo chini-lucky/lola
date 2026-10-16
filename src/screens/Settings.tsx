@@ -1,7 +1,24 @@
-import { useEffect, useState } from "react";
-import { periodOf, rateOn, type PayFacts } from "../pay";
-import { payFacts, waitingPeople } from "../supabase";
-import { BackBar, dayMonth, ErrorAlert, money, periodName, todayInBangkok } from "../ui";
+import { useCallback, useEffect, useState } from "react";
+import {
+  currentPeriod,
+  nextPeriod,
+  periodOf,
+  rateOn,
+  type PayFacts,
+  type Period,
+  type Rate,
+} from "../pay";
+import { payFacts, saveRate, waitingPeople } from "../supabase";
+import {
+  BackBar,
+  dayMonth,
+  ErrorAlert,
+  Field,
+  money,
+  periodName,
+  periodTitle,
+  todayInBangkok,
+} from "../ui";
 
 const personIcon = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -19,8 +36,104 @@ function periodNameOf(date: string): string {
 /** "Sep pay (14 Sep 2026)" */
 const fromLabel = (date: string) => `${periodNameOf(date)} (${dayMonth(date)} ${date.slice(0, 4)})`;
 
+/** The pay periods a new rate can start from: the next twelve after today's. */
+function upcomingPeriods(today: string): Period[] {
+  const periods: Period[] = [];
+  let period = currentPeriod(today);
+  for (let i = 0; i < 12; i++) {
+    period = nextPeriod(period);
+    periods.push(period);
+  }
+  return periods;
+}
+
+/** Whole baht typed by the admin ("20,000"), or null if it isn't a positive whole number. */
+function bahtOf(text: string): number | null {
+  const amount = Number(text.replaceAll(",", "").trim());
+  return Number.isInteger(amount) && amount > 0 ? amount : null;
+}
+
+/** A new salary and OT rate, starting from an upcoming pay period (never the current one). */
+function NewRate(props: { current: Rate; today: string; onSaved: () => void }) {
+  const periods = upcomingPeriods(props.today);
+  const [salary, setSalary] = useState(money(props.current.salary));
+  const [otRate, setOtRate] = useState(money(props.current.ot_rate));
+  const [from, setFrom] = useState(periods[0]?.start ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    const newSalary = bahtOf(salary);
+    const newOtRate = bahtOf(otRate);
+    if (newSalary === null || newOtRate === null) {
+      setError("Salary and OT rate must be whole baht above 0.");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await saveRate({ effective_from: from, salary: newSalary, ot_rate: newOtRate });
+      props.onSaved();
+    } catch {
+      setError("Couldn’t save the new rate. Please try again.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <form
+      className="rateform"
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        void save();
+      }}
+    >
+      <div className="two">
+        <Field
+          id="st-s"
+          label="New salary"
+          inputMode="numeric"
+          autoComplete="off"
+          value={salary}
+          onChange={setSalary}
+        />
+        <Field
+          id="st-o"
+          label="New OT rate"
+          inputMode="numeric"
+          autoComplete="off"
+          value={otRate}
+          onChange={setOtRate}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="st-f">Starts from</label>
+        <select
+          id="st-f"
+          value={from}
+          onChange={(event) => {
+            setFrom(event.target.value);
+          }}
+        >
+          {periods.map((period) => (
+            <option key={period.start} value={period.start}>
+              {periodTitle(period)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <ErrorAlert message={error} />
+      <button className="btn sec" type="submit" disabled={busy}>
+        Save new rate
+      </button>
+    </form>
+  );
+}
+
 /** The rates in effect today, then every rate and agreed salary override. */
-function PayRates({ facts, today }: { facts: PayFacts; today: string }) {
+function PayRates(props: { facts: PayFacts; today: string; onSaved: () => void }) {
+  const { facts, today } = props;
   const current = rateOn(today, facts.rates);
   const rates = facts.rates.toSorted((a, b) => a.effective_from.localeCompare(b.effective_from));
   return (
@@ -66,6 +179,7 @@ function PayRates({ facts, today }: { facts: PayFacts; today: string }) {
           ))}
         </tbody>
       </table>
+      <NewRate current={current} today={today} onSaved={props.onSaved} />
     </section>
   );
 }
@@ -77,7 +191,7 @@ export function Settings() {
   const [waiting, setWaiting] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     Promise.all([payFacts(), waitingPeople()]).then(
       ([loaded, people]) => {
         setFacts(loaded);
@@ -89,6 +203,8 @@ export function Settings() {
     );
   }, []);
 
+  useEffect(load, [load]);
+
   return (
     <div className="screen">
       <BackBar title="Settings" />
@@ -99,7 +215,7 @@ export function Settings() {
         {waiting !== null && waiting > 0 && <b className="count">{waiting} waiting</b>}
         <i>›</i>
       </a>
-      {facts !== null && <PayRates facts={facts} today={today} />}
+      {facts !== null && <PayRates facts={facts} today={today} onSaved={load} />}
       <a className="navrow" href="#/account">
         {personIcon}
         <span>Account</span>

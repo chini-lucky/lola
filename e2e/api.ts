@@ -59,3 +59,10 @@ export async function signUpNanny(username: string, password: string): Promise<s
   if (error !== null) throw error;
   return id;
 }
+
+/** Deletes the rate starting on a date, as the admin (undoes a test's rate change). */
+export async function deleteRate(effectiveFrom: string): Promise<void> {
+  const asAdmin = await loggedIn(admin.username, admin.password);
+  const { error } = await asAdmin.from("rates").delete().eq("effective_from", effectiveFrom);
+  if (error !== null) throw error;
+}
