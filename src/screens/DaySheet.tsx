@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { dayKind, dayOt, rateOn, type Day, type PayFacts } from "../pay";
+import { dayKind, dayOt, NORMAL_HOURS, type Day, type DayKind, type PayFacts } from "../pay";
 import { clearDay, saveDay } from "../supabase";
-import { dayLabel, ErrorAlert, hours, money, Plus } from "../ui";
+import { Cross, dayLabel, ErrorAlert, hours, money, Plus } from "../ui";
 
 /** One OT range as typed: two HH:MM times, either may still be empty. */
 interface Range {
@@ -9,7 +9,7 @@ interface Range {
   to: string;
 }
 
-const rangeOf = (range: string): Range => {
+const typedRange = (range: string): Range => {
   const [from = "", to = ""] = range.split("-");
   return { from, to };
 };
@@ -29,6 +29,25 @@ function rangesProblem(ranges: Range[]): string | null {
     : `Range ${n} must start before it ends (a range can’t cross midnight).`;
 }
 
+/** What kind of day it is, under the sheet's title. */
+function subtitle(kind: DayKind): string {
+  switch (kind) {
+    case "holiday":
+      return "Holiday · any time is overtime";
+    case "weekend":
+      return "Weekend · any time is overtime";
+    // An OT or leave day is still a normal day underneath; dayKind is asked without the day.
+    case "ot":
+    case "leave":
+    case "normal":
+      return `Normal day ${NORMAL_HOURS.from}–${NORMAL_HOURS.to} · add anything extra`;
+    default: {
+      const unreachable: never = kind;
+      return unreachable;
+    }
+  }
+}
+
 /** Admin only: a bottom sheet to record a day's OT ranges, leave and note. */
 export function DaySheet(props: {
   date: string;
@@ -39,7 +58,7 @@ export function DaySheet(props: {
   const dialog = useRef<HTMLDialogElement>(null);
   const { date, facts } = props;
   const day = facts.days.find((d) => d.date === date);
-  const [ranges, setRanges] = useState<Range[]>(() => day?.ot.map(rangeOf) ?? []);
+  const [ranges, setRanges] = useState<Range[]>(() => day?.ot.map(typedRange) ?? []);
   const [leave, setLeave] = useState(day?.leave ?? false);
   const [note, setNote] = useState(day?.note ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +95,9 @@ export function DaySheet(props: {
     }
     setSaving(true);
     try {
-      await saveDay(draft);
+      // A day with nothing on it is a normal day: no row.
+      const empty = draft.ot.length === 0 && !draft.leave && draft.note === null;
+      await (empty ? clearDay(date) : saveDay(draft));
       props.onSaved();
     } catch {
       setError("Couldn’t save the day. Check your connection and try again.");
@@ -114,11 +135,7 @@ export function DaySheet(props: {
         <div className="grab" />
         <div>
           <h4>{title}</h4>
-          <div className="sub">
-            {kind === "normal"
-              ? "Normal day 09:00–18:00 · add anything extra"
-              : `${kind === "holiday" ? "Holiday" : "Weekend"} · any time is overtime`}
-          </div>
+          <div className="sub">{subtitle(kind)}</div>
         </div>
         <div className="field">
           <span>Overtime</span>
@@ -153,15 +170,7 @@ export function DaySheet(props: {
                     setRanges(ranges.filter((_, j) => j !== i));
                   }}
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.6"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-                  </svg>
+                  <Cross />
                 </button>
               </div>
             );
@@ -181,7 +190,7 @@ export function DaySheet(props: {
           <div className="calc">
             {/* THB, not ฿: the self-hosted fonts are latin only. */}
             <span>
-              {hours(ot.paidMinutes)} × {money(rateOn(date, facts.rates).ot_rate)} THB
+              {hours(ot.paidMinutes)} × {money(ot.rate)} THB
               <br />
               <small>Day total rounded up to 30 min</small>
             </span>

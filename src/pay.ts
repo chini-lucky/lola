@@ -76,7 +76,7 @@ export function nextPeriod(period: Period): Period {
 }
 
 /** The rate in effect on a date: the latest one starting on or before it. */
-export function rateOn(date: string, rates: Rate[]): Rate {
+function rateOn(date: string, rates: Rate[]): Rate {
   let inEffect: Rate | undefined;
   for (const rate of rates) {
     if (rate.effective_from <= date && rate.effective_from > (inEffect?.effective_from ?? "")) {
@@ -141,6 +141,8 @@ export interface Day {
 export interface DayOt {
   countedMinutes: number;
   paidMinutes: number;
+  /** The OT rate in effect that day, per hour. */
+  rate: number;
   pay: number;
 }
 
@@ -150,8 +152,9 @@ const toMinutes = (time: string) => {
 };
 
 /** Normal hours on a weekday: 09:00–18:00. */
-const DAY_START = toMinutes("09:00");
-const DAY_END = toMinutes("18:00");
+export const NORMAL_HOURS = { from: "09:00", to: "18:00" };
+const DAY_START = toMinutes(NORMAL_HOURS.from);
+const DAY_END = toMinutes(NORMAL_HOURS.to);
 
 /** A range "07:00-19:00" as minutes since midnight. */
 function rangeOf(range: string): [number, number] {
@@ -179,11 +182,8 @@ export function dayOt(day: Day, rates: Rate[], holidays: string[]): DayOt {
     0,
   );
   const paidMinutes = Math.ceil(countedMinutes / 30) * 30;
-  return {
-    countedMinutes,
-    paidMinutes,
-    pay: Math.round((paidMinutes * rateOn(day.date, rates).ot_rate) / 60),
-  };
+  const rate = rateOn(day.date, rates).ot_rate;
+  return { countedMinutes, paidMinutes, rate, pay: Math.round((paidMinutes * rate) / 60) };
 }
 
 /** Why a day's OT counts: "Saturday", "Sunday", "Holiday", or "Before 09:00 + After 18:00". */
