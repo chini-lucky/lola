@@ -4,11 +4,13 @@ import {
   currentPeriod,
   nextPeriod,
   payDayOf,
+  paymentsIn,
   prevPeriod,
   type PayFacts,
   type Payment,
 } from "../pay";
-import { payFacts, type Person } from "../supabase";
+import { receiptName } from "../receipts";
+import { payFacts, receiptDownloadLink, receiptLinks, type Person } from "../supabase";
 import {
   Bear,
   Calendar,
@@ -44,6 +46,32 @@ export function PeriodView({ person }: { person: Person }) {
     });
   }, []);
   useEffect(load, [load]);
+
+  // Links to view the shown period's receipts, made again when its receipts change.
+  const [links, setLinks] = useState(new Map<string, string>());
+  const shownReceipts =
+    facts === null
+      ? ""
+      : paymentsIn(period, facts.payments)
+          .flatMap((p) => p.receipts)
+          .join("\n");
+  useEffect(() => {
+    if (shownReceipts === "") return;
+    receiptLinks(shownReceipts.split("\n")).then(setLinks, () => {
+      setError("Couldn’t load the receipts. Check your connection and reload.");
+    });
+  }, [shownReceipts]);
+
+  function download(path: string) {
+    receiptDownloadLink(path, receiptName(path)).then(
+      (link) => {
+        window.location.assign(link); // the link answers with a download, so the page stays
+      },
+      () => {
+        setError("Couldn’t download the receipt. Check your connection and try again.");
+      },
+    );
+  }
 
   const prev = prevPeriod(period);
   const payDay = payDayOf(period);
@@ -128,6 +156,8 @@ export function PeriodView({ person }: { person: Person }) {
             <Payments
               period={period}
               facts={facts}
+              links={links}
+              onDownload={download}
               onEdit={
                 isAdmin
                   ? (payment) => {

@@ -30,6 +30,8 @@ export interface Payment {
   paid_on: string;
   amount: number;
   note: string | null;
+  /** Storage paths of its receipt files. */
+  receipts: string[];
 }
 
 function iso(year: number, month: number, day: number): string {
