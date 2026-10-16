@@ -6,7 +6,7 @@ Nanny hours and pay app: an admin records exceptions (OT, leave), payments and r
 
 - Spec: `docs/decisions.md` (source of truth), `docs/plan.md`, `docs/tickets.md`. Domain words: `docs/GLOSSARY.md`.
 - Coding rules: `CODING_STANDARDS.md`.
-- Research notes and the build process: `/home/laki/personal/chini-lucky/docs/notes/` — follow `process.md` there (worktree per ticket, TDD at seams, two-axis review, PR format, never merge).
+- Research notes and the build process: `/home/laki/personal/chini-lucky/docs/notes/` — follow `process.md` there (worktree per ticket, TDD at seams, two-axis review, PR format; implementers never merge — the lead merges).
 
 ## Before every commit / push
 
@@ -33,3 +33,4 @@ Nanny hours and pay app: an admin records exceptions (OT, leave), payments and r
 - Keep it simple and minimal: no new dependency without a written reason in the PR.
 - Small PRs, one per ticket.
 - Never run Supabase commands against production (`link`, `db push`, `config push`, `functions deploy`) from a machine: production changes only through GitHub Actions on merge to main.
+  The one exception is the one-time `scripts/create-admin.ts` run (decisions.md, round 8).
