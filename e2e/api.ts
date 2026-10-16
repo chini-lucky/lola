@@ -60,9 +60,10 @@ export async function signUpNanny(username: string, password: string): Promise<s
   return id;
 }
 
-/** Deletes the rate starting on a date, as the admin (undoes a test's rate change). */
-export async function deleteRate(effectiveFrom: string): Promise<void> {
-  const asAdmin = await loggedIn(admin.username, admin.password);
-  const { error } = await asAdmin.from("rates").delete().eq("effective_from", effectiveFrom);
+/** Runs one table change as the admin (a test's setup or clean-up). */
+export async function asAdmin(
+  change: (client: SupabaseClient) => PromiseLike<{ error: Error | null }>,
+): Promise<void> {
+  const { error } = await change(await loggedIn(admin.username, admin.password));
   if (error !== null) throw error;
 }

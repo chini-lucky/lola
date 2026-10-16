@@ -64,7 +64,7 @@ export function Field(props: {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "password";
+  type?: "text" | "password" | "date";
   inputMode?: "numeric";
   autoComplete: string;
   help?: string;
@@ -267,7 +267,7 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
 }
 
 /** A day's date as a chip: "WED / 30", coloured like its calendar cell. */
-function DateChip({ date, className }: { date: string; className: string }) {
+export function DateChip({ date, className }: { date: string; className: string }) {
   return (
     <div className={`chip ${className}`}>
       <small>{weekdayName(date)}</small>

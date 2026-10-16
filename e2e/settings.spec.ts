@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { deleteRate } from "./api";
+import { asAdmin } from "./api";
 import { logIn } from "./login";
 import { admin } from "./logins";
 
@@ -25,7 +25,7 @@ test("Settings shows the rates in effect and the rate history with the agreed Se
 
 test.describe("a raise", () => {
   test.afterEach(async () => {
-    await deleteRate("2027-03-28");
+    await asAdmin((db) => db.from("rates").delete().eq("effective_from", "2027-03-28"));
   });
 
   test("a raise from Apr pay changes Apr pay's salary, not Mar pay's", async ({ page }) => {
@@ -43,6 +43,46 @@ test.describe("a raise", () => {
     await page.getByRole("button", { name: "Next pay period" }).click();
     await expect(page.getByRole("region", { name: "Apr pay · 28 Mar – 27 Apr" })).toContainText(
       "Salary25,000",
+    );
+  });
+});
+
+test.describe("holidays", () => {
+  test.afterEach(async () => {
+    await asAdmin((db) => db.from("days").delete().eq("date", "2027-03-17"));
+    await asAdmin((db) => db.from("holidays").delete().eq("date", "2027-03-17"));
+  });
+
+  async function addHoliday(page: Page) {
+    await page.getByRole("button", { name: "Add holiday" }).click();
+    await page.getByLabel("Date").fill("2027-03-17");
+    await page.getByLabel("Name").fill("Pooh day");
+    await page.getByRole("button", { name: "Save holiday" }).click();
+    await expect(page.getByRole("button", { name: "Remove Pooh day, 17 Mar 2027" })).toBeVisible();
+  }
+
+  test("an added holiday shows on the calendar; once removed it is a normal day again", async ({
+    page,
+  }) => {
+    await openSettingsOn(page, "2027-03-10");
+    await addHoliday(page);
+    await page.getByRole("link", { name: "Back" }).click();
+    await expect(page.getByRole("listitem", { name: "Wed 17 Mar, holiday" })).toBeVisible();
+
+    await page.getByRole("link", { name: "Settings" }).click();
+    await page.getByRole("button", { name: "Remove Pooh day, 17 Mar 2027" }).click();
+    await expect(page.getByText("Pooh day")).toBeHidden();
+    await page.getByRole("link", { name: "Back" }).click();
+    await expect(page.getByRole("listitem", { name: "Wed 17 Mar", exact: true })).toBeVisible();
+  });
+
+  test("work during normal hours on an added holiday counts as OT", async ({ page }) => {
+    await asAdmin((db) => db.from("days").insert({ date: "2027-03-17", ot: ["10:00-12:00"] }));
+    await openSettingsOn(page, "2027-03-10");
+    await addHoliday(page);
+    await page.getByRole("link", { name: "Back" }).click();
+    await expect(page.getByRole("region", { name: "Mar pay · 28 Feb – 27 Mar" })).toContainText(
+      "Overtime 2 h",
     );
   });
 });

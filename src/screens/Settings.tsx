@@ -8,9 +8,18 @@ import {
   type Period,
   type Rate,
 } from "../pay";
-import { payFacts, saveRate, waitingPeople } from "../supabase";
+import {
+  holidays,
+  payFacts,
+  removeHoliday,
+  saveHoliday,
+  saveRate,
+  waitingPeople,
+  type Holiday,
+} from "../supabase";
 import {
   BackBar,
+  DateChip,
   dayMonth,
   ErrorAlert,
   Field,
@@ -184,17 +193,127 @@ function PayRates(props: { facts: PayFacts; today: string; onSaved: () => void }
   );
 }
 
+/** "17 Mar 2027" */
+const fullDate = (date: string) => `${dayMonth(date)} ${date.slice(0, 4)}`;
+
+/** Holidays from today's pay period on, each removable, plus Add holiday. */
+function Holidays(props: { holidays: Holiday[]; today: string; onChanged: () => void }) {
+  const from = currentPeriod(props.today).start;
+  const [adding, setAdding] = useState(false);
+  const [date, setDate] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  async function change(action: () => Promise<void>, failed: string) {
+    setError(null);
+    try {
+      await action();
+      props.onChanged();
+    } catch {
+      setError(failed);
+    }
+  }
+
+  async function add() {
+    if (date === "" || name.trim() === "") {
+      setError("Pick a date and type the holiday’s name.");
+      return;
+    }
+    await change(() => saveHoliday({ date, name: name.trim() }), "Couldn’t add the holiday.");
+    setAdding(false);
+    setDate("");
+    setName("");
+  }
+
+  return (
+    <section className="sec" aria-labelledby="holidays">
+      <h3 id="holidays">
+        Holidays<small>Thai public holidays</small>
+      </h3>
+      <ul className="hols" aria-label="Holidays">
+        {props.holidays
+          .filter((holiday) => holiday.date >= from)
+          .map((holiday) => (
+            <li className="item" key={holiday.date}>
+              <DateChip date={holiday.date} className="hol" />
+              <div className="what">
+                <b>{holiday.name}</b>
+                <small>{fullDate(holiday.date)}</small>
+              </div>
+              <button
+                className="pen"
+                type="button"
+                aria-label={`Remove ${holiday.name}, ${fullDate(holiday.date)}`}
+                onClick={() =>
+                  void change(
+                    () => removeHoliday(holiday.date),
+                    `Couldn’t remove ${holiday.name}. Please try again.`,
+                  )
+                }
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+                  <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                </svg>
+              </button>
+            </li>
+          ))}
+      </ul>
+      <ErrorAlert message={error} />
+      {adding ? (
+        <form
+          className="rateform"
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void add();
+          }}
+        >
+          <div className="two">
+            <Field
+              id="hd-d"
+              label="Date"
+              type="date"
+              autoComplete="off"
+              value={date}
+              onChange={setDate}
+            />
+            <Field id="hd-n" label="Name" autoComplete="off" value={name} onChange={setName} />
+          </div>
+          <button className="btn sec" type="submit">
+            Save holiday
+          </button>
+        </form>
+      ) : (
+        <button
+          className="btn dash"
+          type="button"
+          onClick={() => {
+            setAdding(true);
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+          </svg>
+          Add holiday
+        </button>
+      )}
+    </section>
+  );
+}
+
 // Admin only: People, pay rates, holidays, Account.
 export function Settings() {
   const [today] = useState(todayInBangkok);
   const [facts, setFacts] = useState<PayFacts | null>(null);
+  const [holidayList, setHolidayList] = useState<Holiday[]>([]);
   const [waiting, setWaiting] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    Promise.all([payFacts(), waitingPeople()]).then(
-      ([loaded, people]) => {
+    Promise.all([payFacts(), holidays(), waitingPeople()]).then(
+      ([loaded, holidayRows, people]) => {
         setFacts(loaded);
+        setHolidayList(holidayRows);
         setWaiting(people.length);
       },
       () => {
@@ -216,6 +335,7 @@ export function Settings() {
         <i>›</i>
       </a>
       {facts !== null && <PayRates facts={facts} today={today} onSaved={load} />}
+      {facts !== null && <Holidays holidays={holidayList} today={today} onChanged={load} />}
       <a className="navrow" href="#/account">
         {personIcon}
         <span>Account</span>
