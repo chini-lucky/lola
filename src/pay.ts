@@ -84,6 +84,13 @@ export function nextPeriod(period: Period): Period {
   return periodEnding(year, month + 1);
 }
 
+/** Every pay period from the first one through this one, in order. */
+export function periodsThrough(last: Period): Period[] {
+  const periods: Period[] = [];
+  for (let p = currentPeriod(START_DATE); p.end <= last.end; p = nextPeriod(p)) periods.push(p);
+  return periods;
+}
+
 /** The rate in effect on a date: the latest one starting on or before it. */
 function rateOn(date: string, rates: Rate[]): Rate {
   let inEffect: Rate | undefined;

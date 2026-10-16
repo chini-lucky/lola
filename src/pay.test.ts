@@ -5,6 +5,7 @@ import {
   dayKind,
   nextPeriod,
   payDayOf,
+  periodsThrough,
   periodOf,
   prevPeriod,
   salaryOf,
@@ -83,6 +84,16 @@ describe("moving between pay periods", () => {
       start: "2026-12-28",
       end: "2027-01-27",
     });
+  });
+});
+
+describe("pay periods to pick from", () => {
+  test("through Nov pay are the first pay period, Oct pay and Nov pay", () => {
+    expect(periodsThrough({ start: "2026-10-28", end: "2026-11-27" })).toEqual([
+      { start: "2026-09-14", end: "2026-09-27" },
+      { start: "2026-09-28", end: "2026-10-27" },
+      { start: "2026-10-28", end: "2026-11-27" },
+    ]);
   });
 });
 
