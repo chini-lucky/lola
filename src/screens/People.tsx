@@ -138,6 +138,7 @@ export function People({ me }: { me: Person }) {
                       key={role}
                       type="button"
                       aria-pressed={person.role === role}
+                      disabled={person.role === role}
                       onClick={() =>
                         void change(
                           () => setRole(person.id, role),
