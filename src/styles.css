@@ -28,6 +28,9 @@
   --t-bg: #cfe6f7;
   --t-ink: #1f3b52;
   --t-line: #a9cde6;
+  --t-bal: #ffffff;
+  --ok: #e0f2e4;
+  --ok-ink: #2f6b3f;
   --day: #ffffff;
   --wkd: #f3eee4;
   --hol: #ffe9a8;
@@ -554,6 +557,24 @@ a:focus-visible {
   height: 1px;
   background: var(--t-line);
   margin: 3px 0;
+}
+.bal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 20px;
+  padding: 9px 12px;
+  background: var(--t-bal);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bal span:last-child {
+  font-family: var(--font-d);
+  font-size: 1.15rem;
+}
+.bal.paid {
+  background: var(--ok);
+  color: var(--ok-ink);
 }
 .card {
   background: var(--surface);

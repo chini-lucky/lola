@@ -144,7 +144,7 @@ export function paymentsIn(period: Period, payments: Payment[]): Payment[] {
 }
 
 /** A pay period's money: total owed, paid, and balance (total − paid). */
-export interface Totals {
+export interface PeriodTotals {
   salary: number;
   total: number;
   paid: number;
@@ -158,7 +158,7 @@ export interface TotalsFacts {
   payments: Payment[];
 }
 
-export function totalsOf(period: Period, facts: TotalsFacts): Totals {
+export function totalsOf(period: Period, facts: TotalsFacts): PeriodTotals {
   const salary = salaryOf(period, facts.rates, facts.overrides);
   const total = salary;
   const paid = paymentsIn(period, facts.payments).reduce((sum, p) => sum + p.amount, 0);

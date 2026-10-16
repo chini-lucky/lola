@@ -1,6 +1,6 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database } from "./db.types";
-import type { PeriodOverride, Rate } from "./pay";
+import type { Payment, PeriodOverride, Rate } from "./pay";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
@@ -81,25 +81,29 @@ export async function approve(id: string): Promise<void> {
   if (error !== null) throw error;
 }
 
-/** The facts the pay maths needs that rarely change: rates, agreed overrides, holiday dates. */
+/** The facts the pay maths needs: rates, agreed overrides, holiday dates, payments. */
 export interface PayFacts {
   rates: Rate[];
   overrides: PeriodOverride[];
   holidays: string[];
+  payments: Payment[];
 }
 
 export async function payFacts(): Promise<PayFacts> {
-  const [rates, overrides, holidays] = await Promise.all([
+  const [rates, overrides, holidays, payments] = await Promise.all([
     supabase.from("rates").select("effective_from, salary, ot_rate"),
     supabase.from("period_overrides").select("period_end, salary, note"),
     supabase.from("holidays").select("date"),
+    supabase.from("payments").select("id, period_end, paid_on, amount, note"),
   ]);
   if (rates.error !== null) throw rates.error;
   if (overrides.error !== null) throw overrides.error;
   if (holidays.error !== null) throw holidays.error;
+  if (payments.error !== null) throw payments.error;
   return {
     rates: rates.data,
     overrides: overrides.data,
     holidays: holidays.data.map((holiday) => holiday.date),
+    payments: payments.data,
   };
 }

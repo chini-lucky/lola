@@ -25,3 +25,7 @@ from users;
 
 update public.people set role = 'admin' where username = 'chini-lucky';
 update public.people set role = 'nanny' where username = 'lola';
+
+-- The first pay period's salary, paid in full on pay day.
+insert into public.payments (period_end, paid_on, amount, note)
+values ('2026-09-27', '2026-09-28', 11000, 'Bank transfer');

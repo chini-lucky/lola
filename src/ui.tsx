@@ -2,7 +2,7 @@ import {
   datesIn,
   dayKind,
   overrideOf,
-  salaryOf,
+  totalsOf,
   weekdayOf,
   type DayKind,
   type Period,
@@ -107,7 +107,7 @@ export const money = (amount: number) => amount.toLocaleString("en-US");
 
 /** The pay period's totals card, with the bear peeking over it. */
 export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
-  const salary = salaryOf(period, facts.rates, facts.overrides);
+  const { salary, total, paid, balance } = totalsOf(period, facts);
   const agreed = overrideOf(period, facts.overrides)?.note ?? null;
   return (
     <div className="totals">
@@ -115,7 +115,7 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
       <div>
         <div className="lbl">{monthName(period.end)} pay total</div>
         <div className="big">
-          {money(salary)}
+          {money(total)}
           <small>THB</small>
         </div>
       </div>
@@ -124,8 +124,15 @@ export function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
         <dd>{money(salary)}</dd>
         <div className="sep" />
         <dt>Total</dt>
-        <dd>{money(salary)}</dd>
+        <dd>{money(total)}</dd>
+        <dt>Paid</dt>
+        <dd>{money(paid)}</dd>
       </dl>
+      {/* THB, not ฿: the self-hosted fonts are latin only. */}
+      <div className={balance === 0 ? "bal paid" : "bal"}>
+        <span>{balance === 0 ? "Fully paid" : "Balance to pay"}</span>
+        <span>{money(balance)} THB</span>
+      </div>
     </div>
   );
 }
