@@ -1,6 +1,6 @@
 import { createClient, type AuthError } from "@supabase/supabase-js";
 import type { Database } from "./db.types";
-import type { PayFacts, Rate } from "./pay";
+import type { PayFacts, Payment, Rate } from "./pay";
 
 export const supabase = createClient<Database>(
   import.meta.env.VITE_SUPABASE_URL,
@@ -119,22 +119,46 @@ export async function removePerson(id: string): Promise<void> {
 }
 
 export async function payFacts(): Promise<PayFacts> {
-  const [rates, overrides, holidays, days] = await Promise.all([
+  const [rates, overrides, holidays, days, payments] = await Promise.all([
     supabase.from("rates").select("effective_from, salary, ot_rate"),
     supabase.from("period_overrides").select("period_end, salary, note"),
     supabase.from("holidays").select("date"),
     supabase.from("days").select("date, ot, leave, note").order("date"),
+    supabase.from("payments").select("id, period_end, paid_on, amount, note"),
   ]);
   if (rates.error !== null) throw rates.error;
   if (overrides.error !== null) throw overrides.error;
   if (holidays.error !== null) throw holidays.error;
   if (days.error !== null) throw days.error;
+  if (payments.error !== null) throw payments.error;
   return {
     rates: rates.data,
     overrides: overrides.data,
     holidays: holidays.data.map((holiday) => holiday.date),
     days: days.data,
+    payments: payments.data,
   };
+}
+
+/** A payment as the admin enters it; the DB gives it its id. */
+export type PaymentFields = Omit<Payment, "id">;
+
+/** Admin only (RLS). */
+export async function addPayment(fields: PaymentFields): Promise<void> {
+  const { error } = await supabase.from("payments").insert(fields);
+  if (error !== null) throw error;
+}
+
+/** Admin only (RLS). */
+export async function editPayment(id: string, fields: PaymentFields): Promise<void> {
+  const { error } = await supabase.from("payments").update(fields).eq("id", id);
+  if (error !== null) throw error;
+}
+
+/** Admin only (RLS). */
+export async function deletePayment(id: string): Promise<void> {
+  const { error } = await supabase.from("payments").delete().eq("id", id);
+  if (error !== null) throw error;
 }
 
 /** Admin only (RLS): adds a rate, or replaces the one starting on the same date. */

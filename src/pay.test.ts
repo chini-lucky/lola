@@ -7,14 +7,22 @@ import {
   nextPeriod,
   otReason,
   payDayOf,
+  paymentsIn,
+  periodsThrough,
   periodOf,
   prevPeriod,
   salaryOf,
   summarize,
+  type Payment,
   type Rate,
 } from "./pay";
 
 const firstRate: Rate = { effective_from: "2026-09-14", salary: 20000, ot_rate: 150 };
+const octPay = { start: "2026-09-28", end: "2026-10-27" };
+
+function payment(period_end: string, paid_on: string, amount: number): Payment {
+  return { id: `${paid_on}-${amount.toString()}`, period_end, paid_on, amount, note: null };
+}
 
 describe("pay period", () => {
   test("27 Oct is the last day of Oct pay (28 Sep – 27 Oct)", () => {
@@ -79,6 +87,16 @@ describe("moving between pay periods", () => {
       start: "2026-12-28",
       end: "2027-01-27",
     });
+  });
+});
+
+describe("pay periods to pick from", () => {
+  test("through Nov pay are the first pay period, Oct pay and Nov pay", () => {
+    expect(periodsThrough({ start: "2026-10-28", end: "2026-11-27" })).toEqual([
+      { start: "2026-09-14", end: "2026-09-27" },
+      { start: "2026-09-28", end: "2026-10-27" },
+      { start: "2026-10-28", end: "2026-11-27" },
+    ]);
   });
 });
 
@@ -232,6 +250,7 @@ describe("pay period totals", () => {
     const facts = {
       rates: [firstRate, newOtRate],
       overrides: [],
+      payments: [],
       holidays: [],
       days: [otDay("2026-10-05", ["18:00-19:00"]), otDay("2026-10-20", ["18:00-19:00"])],
     };
@@ -242,6 +261,7 @@ describe("pay period totals", () => {
     const facts = {
       rates: [firstRate],
       overrides: [],
+      payments: [],
       holidays: [],
       days: [{ date: "2026-10-19", ot: [], leave: true, note: "Sick day" }],
     };
@@ -252,6 +272,7 @@ describe("pay period totals", () => {
     const facts = {
       rates: [firstRate],
       overrides: [],
+      payments: [],
       holidays: ["2026-10-13", "2026-10-23"],
       days: [
         otDay("2026-09-30", ["18:00-20:15"]),
@@ -268,11 +289,19 @@ describe("pay period totals", () => {
       otMinutes: 900,
       otPay: 2250,
       total: 22250,
+      paid: 0,
+      balance: 22250,
     });
   });
 
   test("a holiday with no OT leaves the salary unchanged", () => {
-    const facts = { rates: [firstRate], overrides: [], holidays: ["2026-10-13"], days: [] };
+    const facts = {
+      rates: [firstRate],
+      overrides: [],
+      payments: [],
+      holidays: ["2026-10-13"],
+      days: [],
+    };
     expect(summarize(octPay, facts).total).toBe(20000);
   });
 
@@ -280,6 +309,7 @@ describe("pay period totals", () => {
     const facts = {
       rates: [firstRate],
       overrides: [],
+      payments: [],
       holidays: [],
       days: [{ date: "2026-10-19", ot: ["18:00-19:00"], leave: true, note: null }],
     };
@@ -290,6 +320,7 @@ describe("pay period totals", () => {
     const facts = {
       rates: [firstRate],
       overrides: [],
+      payments: [],
       holidays: [],
       days: [otDay("2026-10-28", ["18:00-19:00"])],
     };
@@ -314,5 +345,36 @@ describe("why a day's OT counts", () => {
 
   test("OT on a holiday that falls on a Saturday says Saturday", () => {
     expect(reasonOn("2026-12-05", ["10:00-12:00"])).toBe("Saturday");
+  });
+});
+
+describe("paid and balance", () => {
+  const noFacts = { rates: [firstRate], overrides: [], holidays: [], days: [], payments: [] };
+
+  test("a payment counts in the pay period it was recorded for, not the one its date paid falls in", () => {
+    const paidLate = payment("2026-10-27", "2026-10-28", 20000);
+    expect(summarize(octPay, { ...noFacts, payments: [paidLate] }).paid).toBe(20000);
+  });
+
+  test("the balance is the total minus what was paid", () => {
+    const part = payment("2026-10-27", "2026-10-16", 15000);
+    expect(summarize(octPay, { ...noFacts, payments: [part] }).balance).toBe(5000);
+  });
+
+  test("the first pay period, 11,000 paid in full on 28 Sep, has balance 0", () => {
+    const sepPay = { start: "2026-09-14", end: "2026-09-27" };
+    const facts = {
+      ...noFacts,
+      overrides: [{ period_end: "2026-09-27", salary: 11000, note: null }],
+      payments: [payment("2026-09-27", "2026-09-28", 11000)],
+    };
+    expect(summarize(sepPay, facts).balance).toBe(0);
+  });
+
+  test("a pay period lists its own payments by date paid", () => {
+    const second = payment("2026-10-27", "2026-10-28", 5000);
+    const first = payment("2026-10-27", "2026-10-16", 15000);
+    const novPayment = payment("2026-11-27", "2026-10-20", 1000);
+    expect(paymentsIn(octPay, [second, novPayment, first])).toEqual([first, second]);
   });
 });

@@ -1,5 +1,13 @@
-import { useEffect, useState } from "react";
-import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type PayFacts } from "../pay";
+import { useCallback, useEffect, useState } from "react";
+import { PaymentSheet } from "./PaymentSheet";
+import {
+  currentPeriod,
+  nextPeriod,
+  payDayOf,
+  prevPeriod,
+  type PayFacts,
+  type Payment,
+} from "../pay";
 import { payFacts, type Person } from "../supabase";
 import {
   Bear,
@@ -7,7 +15,9 @@ import {
   dayMonth,
   ErrorAlert,
   OtLeaveList,
+  Payments,
   periodTitle,
+  Plus,
   todayInBangkok,
   Totals,
   weekdayName,
@@ -17,16 +27,20 @@ const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(
 
 /** The main screen for admin and nanny: one pay period at a time, ‹ › to move. */
 export function PeriodView({ person }: { person: Person }) {
+  const isAdmin = person.role === "admin";
   const [today] = useState(todayInBangkok);
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The payment in the sheet: a new one, one to edit, or no sheet.
+  const [sheet, setSheet] = useState<{ payment: Payment | null } | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     payFacts().then(setFacts, () => {
       setError("Couldn’t load the pay data. Check your connection and reload.");
     });
   }, []);
+  useEffect(load, [load]);
 
   const prev = prevPeriod(period);
   const payDay = payDayOf(period);
@@ -34,7 +48,7 @@ export function PeriodView({ person }: { person: Person }) {
 
   return (
     <div className="screen">
-      {person.role === "admin" ? (
+      {isAdmin ? (
         <div className="top">
           <div className="hi">
             <h1>
@@ -103,11 +117,48 @@ export function PeriodView({ person }: { person: Person }) {
         {facts !== null && (
           <>
             <Totals period={period} facts={facts} />
+            {isAdmin && (
+              <button
+                className="btn pri"
+                type="button"
+                onClick={() => {
+                  setSheet({ payment: null });
+                }}
+              >
+                <Plus />
+                Add payment
+              </button>
+            )}
             <Calendar period={period} facts={facts} today={today} />
             <OtLeaveList period={period} facts={facts} />
+            <Payments
+              period={period}
+              facts={facts}
+              onEdit={
+                isAdmin
+                  ? (payment) => {
+                      setSheet({ payment });
+                    }
+                  : null
+              }
+            />
           </>
         )}
       </section>
+      {sheet !== null && facts !== null && (
+        <PaymentSheet
+          payment={sheet.payment}
+          today={today}
+          facts={facts}
+          onClose={() => {
+            setSheet(null);
+          }}
+          onSaved={() => {
+            setSheet(null);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
