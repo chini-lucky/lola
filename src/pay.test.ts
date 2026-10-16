@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { periodOf } from "./pay";
+import { periodOf, prevPeriod } from "./pay";
 
 describe("pay period", () => {
   test("27 Oct is the last day of Oct pay (28 Sep – 27 Oct)", () => {
@@ -32,5 +32,18 @@ describe("pay period", () => {
 
   test("29 Feb in leap year 2028 is in Mar pay (28 Feb – 27 Mar)", () => {
     expect(periodOf("2028-02-29")).toEqual({ start: "2028-02-28", end: "2028-03-27" });
+  });
+});
+
+describe("moving between pay periods", () => {
+  test("before Oct pay comes the first pay period", () => {
+    expect(prevPeriod({ start: "2026-09-28", end: "2026-10-27" })).toEqual({
+      start: "2026-09-14",
+      end: "2026-09-27",
+    });
+  });
+
+  test("nothing comes before the first pay period", () => {
+    expect(prevPeriod({ start: "2026-09-14", end: "2026-09-27" })).toBeNull();
   });
 });

@@ -26,3 +26,13 @@ export function periodOf(date: string): Period | null {
   const start = iso(year, endMonth - 1, 28);
   return { start: start < START_DATE ? START_DATE : start, end: iso(year, endMonth, 27) };
 }
+
+function addDays(date: string, days: number): string {
+  const [year, month, day] = parts(date);
+  return iso(year, month, day + days);
+}
+
+/** The pay period before this one, or null for the first pay period. */
+export function prevPeriod(period: Period): Period | null {
+  return periodOf(addDays(period.start, -1));
+}
