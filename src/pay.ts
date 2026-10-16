@@ -129,11 +129,12 @@ export function payDayOf(period: Period): string {
   return addDays(period.end, 1);
 }
 
-/** A pay period's money: total owed and paid. */
+/** A pay period's money: total owed, paid, and balance (total − paid). */
 export interface Totals {
   salary: number;
   total: number;
   paid: number;
+  balance: number;
 }
 
 /** What the totals are worked out from. */
@@ -149,5 +150,5 @@ export function totalsOf(period: Period, facts: TotalsFacts): Totals {
   const paid = facts.payments
     .filter((p) => p.period_end === period.end)
     .reduce((sum, p) => sum + p.amount, 0);
-  return { salary, total, paid };
+  return { salary, total, paid, balance: total - paid };
 }

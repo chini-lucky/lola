@@ -153,4 +153,21 @@ describe("paid and balance", () => {
       20000,
     );
   });
+
+  test("the balance is the total minus what was paid", () => {
+    const part = payment("2026-10-27", "2026-10-16", 15000);
+    expect(totalsOf(octPay, { rates: [firstRate], overrides: [], payments: [part] }).balance).toBe(
+      5000,
+    );
+  });
+
+  test("the first pay period, 11,000 paid in full on 28 Sep, has balance 0", () => {
+    const sepPay = { start: "2026-09-14", end: "2026-09-27" };
+    const facts = {
+      rates: [firstRate],
+      overrides: [{ period_end: "2026-09-27", salary: 11000, note: null }],
+      payments: [payment("2026-09-27", "2026-09-28", 11000)],
+    };
+    expect(totalsOf(sepPay, facts).balance).toBe(0);
+  });
 });
