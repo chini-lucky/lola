@@ -13,7 +13,10 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/no-misused-promises": "error",
-      "@typescript-eslint/switch-exhaustiveness-check": "error",
+      "@typescript-eslint/switch-exhaustiveness-check": [
+        "error",
+        { considerDefaultExhaustiveForUnions: true, requireDefaultForNonUnion: true },
+      ],
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/strict-boolean-expressions": "error",
       eqeqeq: "error",

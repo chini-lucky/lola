@@ -4,3 +4,4 @@ logs/
 test-results/
 playwright-report/
 *.tsbuildinfo
+.slot
