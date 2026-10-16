@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { Home } from "./screens/Home";
 import { Login } from "./screens/Login";
 import { People } from "./screens/People";
+import { PeriodView } from "./screens/Period";
 import { SignUp } from "./screens/SignUp";
 import { Waiting } from "./screens/Waiting";
 import type { Session } from "@supabase/supabase-js";
@@ -58,9 +58,9 @@ export function App() {
     case "waiting":
       return <Waiting person={person} onCheckAgain={reload} />;
     case "admin":
-      return hash === "#/people" ? <People /> : <Home person={person} />;
+      return hash === "#/people" ? <People /> : <PeriodView person={person} />;
     case "nanny":
-      return <Home person={person} />;
+      return <PeriodView person={person} />;
     default: {
       const unreachable: never = person.role;
       return unreachable;
