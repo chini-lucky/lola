@@ -3,6 +3,7 @@ import {
   currentPeriod,
   datesIn,
   dayKind,
+  dayOt,
   nextPeriod,
   payDayOf,
   periodOf,
@@ -136,5 +137,13 @@ describe("day kind", () => {
 
   test("a holiday on a weekend shows as a holiday", () => {
     expect(dayKind("2026-12-05", ["2026-12-05"])).toBe("holiday");
+  });
+});
+
+describe("OT", () => {
+  const otOn = (date: string, ot: string[]) => dayOt({ date, ot, leave: false, note: null });
+
+  test("a day's OT is rounded up to the next 30 minutes: 18:00–18:01 is 30 min", () => {
+    expect(otOn("2026-10-05", ["18:00-18:01"]).minutes).toBe(30);
   });
 });

@@ -119,3 +119,31 @@ export function dayKind(date: string, holidays: string[]): DayKind {
 export function payDayOf(period: Period): string {
   return addDays(period.end, 1);
 }
+
+/** An exception day the admin recorded: OT ranges ("18:00-20:30"), leave, a note. */
+export interface Day {
+  date: string;
+  ot: string[];
+  leave: boolean;
+  note: string | null;
+}
+
+/** A day's OT: the minutes paid (the day's total rounded up to the next 30 minutes). */
+export interface DayOt {
+  minutes: number;
+}
+
+const toMinutes = (time: string) => {
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+function rangeMinutes(range: string): number {
+  const [from = "", to = ""] = range.split("-");
+  return toMinutes(to) - toMinutes(from);
+}
+
+export function dayOt(day: Day): DayOt {
+  const counted = day.ot.reduce((sum, range) => sum + rangeMinutes(range), 0);
+  return { minutes: Math.ceil(counted / 30) * 30 };
+}
