@@ -24,6 +24,7 @@ const authMessages: Partial<Record<string, string>> = {
   weak_password: "Password must be at least 10 characters.",
   user_already_exists: "That username is taken. Pick another one.",
   invalid_credentials: "Wrong username or password.",
+  same_password: "The new password must be different from the current one.",
 };
 
 function authMessage(error: AuthError): string {
@@ -39,6 +40,24 @@ export async function logIn(username: string, password: string): Promise<string 
 /** Returns an error message, or null when signed up (and logged in as waiting). */
 export async function signUp(username: string, password: string): Promise<string | null> {
   const { error } = await supabase.auth.signUp({ email: emailOf(username), password });
+  return error === null ? null : authMessage(error);
+}
+
+/** Checks the current password, then sets the new one. Returns an error message, or null. */
+export async function changePassword(
+  username: string,
+  current: string,
+  next: string,
+): Promise<string | null> {
+  const check = await supabase.auth.signInWithPassword({
+    email: emailOf(username),
+    password: current,
+  });
+  if (check.error !== null)
+    return check.error.code === "invalid_credentials"
+      ? "Current password is wrong."
+      : authMessage(check.error);
+  const { error } = await supabase.auth.updateUser({ password: next });
   return error === null ? null : authMessage(error);
 }
 

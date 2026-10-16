@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Account } from "./screens/Account";
 import { Home } from "./screens/Home";
 import { Login } from "./screens/Login";
 import { People } from "./screens/People";
@@ -58,9 +59,10 @@ export function App() {
     case "waiting":
       return <Waiting person={person} onCheckAgain={reload} />;
     case "admin":
-      return hash === "#/people" ? <People me={person} /> : <Home person={person} />;
+      if (hash === "#/people") return <People me={person} />;
+      return hash === "#/account" ? <Account person={person} /> : <Home person={person} />;
     case "nanny":
-      return <Home person={person} />;
+      return hash === "#/account" ? <Account person={person} /> : <Home person={person} />;
     default: {
       const unreachable: never = person.role;
       return unreachable;

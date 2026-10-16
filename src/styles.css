@@ -14,6 +14,8 @@
   --lv: #fce3c9;
   --lv-ink: #b8692a;
   --hol-ink: #8a6a00;
+  --ok: #e0f2e4;
+  --ok-ink: #2f6b3f;
   --danger: #c2554a;
   --danger-soft: #fbe4e1;
   --bear: #a8744a;
@@ -379,6 +381,16 @@ a:focus-visible {
 .inp:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 1px;
+}
+.ok {
+  margin: 0;
+  color: var(--ok-ink);
+  background: var(--ok);
+  border-radius: var(--r-item);
+  padding: 9px 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: left;
 }
 .err {
   margin: 0;
