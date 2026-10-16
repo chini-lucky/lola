@@ -22,7 +22,14 @@ const firstRate: Rate = { effective_from: "2026-09-14", salary: 20000, ot_rate: 
 const octPay = { start: "2026-09-28", end: "2026-10-27" };
 
 function payment(period_end: string, paid_on: string, amount: number): Payment {
-  return { id: `${paid_on}-${amount.toString()}`, period_end, paid_on, amount, note: null };
+  return {
+    id: `${paid_on}-${amount.toString()}`,
+    period_end,
+    paid_on,
+    amount,
+    note: null,
+    receipts: [],
+  };
 }
 
 describe("pay period", () => {

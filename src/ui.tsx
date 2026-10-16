@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   currentPeriod,
   datesIn,
@@ -24,6 +24,7 @@ import {
   type Snapshot,
   type Summary,
 } from "./pay";
+import { isPdf, receiptName } from "./receipts";
 import type { Confirmation, Holiday, Role } from "./supabase";
 
 /** The original brown baby bear mascot with a bow tie. */
@@ -177,8 +178,10 @@ const confirmedOn = (confirmation: Confirmation) =>
 const checked = ({ total, paid }: Snapshot) => `total ${money(total)} · paid ${money(paid)}`;
 /** Whole baht with thousands separators: "20,000". */
 export const money = (amount: number) => amount.toLocaleString("en-US");
+/** "Tue 20 Oct" */
+export const dayLabel = (date: string) => `${weekdayName(date)} ${dayMonth(date)}`;
 /** OT minutes as hours: "2.5 h". */
-const hours = (minutes: number) => `${(minutes / 60).toString()} h`;
+export const hours = (minutes: number) => `${(minutes / 60).toString()} h`;
 /** OT minutes as hours in a calendar cell: "2.5h". */
 const hoursShort = (minutes: number) => `${(minutes / 60).toString()}h`;
 /** Minutes as "1h 10m". */
@@ -230,10 +233,85 @@ export function Pen() {
   );
 }
 
-/** The pay period's payments by date paid, each with an edit pen for the admin. */
+function Download() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+      <path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** A receipt tile's corner button that takes it off the payment. */
+export function RemoveReceipt(props: { name: string; onClick: () => void }) {
+  return (
+    <button className="x" type="button" aria-label={`Remove ${props.name}`} onClick={props.onClick}>
+      <Cross />
+    </button>
+  );
+}
+
+/**
+ * A receipt as a small tile with its name under it: the image itself when there is a link to
+ * it (a PDF, or an image the browser can't show, is drawn as a sheet of paper), and the tile's
+ * corner button.
+ */
+export function Receipt(props: { name: string; link: string | null; children?: ReactNode }) {
+  const { name, link } = props;
+  const [undrawable, setUndrawable] = useState(false); // e.g. HEIC outside Safari
+  const face =
+    link === null || isPdf(name) || undrawable ? (
+      <>
+        <i />
+        <i />
+        <i />
+        <i />
+        {isPdf(name) && <span className="tag">PDF</span>}
+      </>
+    ) : (
+      <img
+        src={link}
+        alt=""
+        onError={() => {
+          setUndrawable(true);
+        }}
+      />
+    );
+  return (
+    <div className="rcw">
+      <div className="rc">
+        {link === null ? (
+          face
+        ) : (
+          <a
+            className="face"
+            href={link}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Open ${name}`}
+          >
+            {face}
+          </a>
+        )}
+        {props.children}
+      </div>
+      <span>{name}</span>
+    </div>
+  );
+}
+
+const receiptCount = (count: number) =>
+  `${count.toString()} ${count === 1 ? "receipt" : "receipts"}`;
+
+/**
+ * The pay period's payments by date paid, each with its receipts to open and download, and an
+ * edit pen for the admin.
+ */
 export function Payments(props: {
   period: Period;
   facts: PayFacts;
+  /** Links to view the period's receipts, by path. */
+  links: Map<string, string>;
+  onDownload: (path: string) => void;
   onEdit: ((payment: Payment) => void) | null;
 }) {
   const { period, facts, onEdit } = props;
@@ -251,30 +329,56 @@ export function Payments(props: {
       ) : (
         <ul className="items" aria-label="Payments">
           {payments.map((payment) => (
-            <li className="item" key={payment.id}>
-              <div className="chip pay">
-                <small>{weekdayName(payment.paid_on)}</small>
-                <b>{dayOfMonth(payment.paid_on)}</b>
+            <li className="payment" key={payment.id}>
+              <div className="item">
+                <div className="chip pay">
+                  <small>{weekdayName(payment.paid_on)}</small>
+                  <b>{dayOfMonth(payment.paid_on)}</b>
+                </div>
+                <div className="what">
+                  <b>{payment.note ?? "Payment"}</b>
+                  <small>
+                    Paid {dayMonth(payment.paid_on)}
+                    {payment.receipts.length > 0 && ` · ${receiptCount(payment.receipts.length)}`}
+                  </small>
+                </div>
+                <div className="amt">
+                  {money(payment.amount)}
+                  <small>THB</small>
+                </div>
+                {onEdit !== null && (
+                  <button
+                    className="pen"
+                    type="button"
+                    aria-label={`Edit payment ${money(payment.amount)} paid ${dayMonth(payment.paid_on)}`}
+                    onClick={() => {
+                      onEdit(payment);
+                    }}
+                  >
+                    <Pen />
+                  </button>
+                )}
               </div>
-              <div className="what">
-                <b>{payment.note ?? "Payment"}</b>
-                <small>Paid {dayMonth(payment.paid_on)}</small>
-              </div>
-              <div className="amt">
-                {money(payment.amount)}
-                <small>THB</small>
-              </div>
-              {onEdit !== null && (
-                <button
-                  className="pen"
-                  type="button"
-                  aria-label={`Edit payment ${money(payment.amount)} paid ${dayMonth(payment.paid_on)}`}
-                  onClick={() => {
-                    onEdit(payment);
-                  }}
-                >
-                  <Pen />
-                </button>
+              {payment.receipts.length > 0 && (
+                <div className="rcs">
+                  {payment.receipts.map((path) => {
+                    const name = receiptName(path);
+                    return (
+                      <Receipt key={path} name={name} link={props.links.get(path) ?? null}>
+                        <button
+                          className="dl"
+                          type="button"
+                          aria-label={`Download ${name}`}
+                          onClick={() => {
+                            props.onDownload(path);
+                          }}
+                        >
+                          <Download />
+                        </button>
+                      </Receipt>
+                    );
+                  })}
+                </div>
               )}
             </li>
           ))}
@@ -305,7 +409,13 @@ function cellText(kind: DayKind, day: Day | undefined, facts: PayFacts): string 
 const daysByDate = (days: Day[]) => new Map(days.map((day) => [day.date, day]));
 
 /** The pay period's days in Monday-first weeks, coloured by kind. */
-export function Calendar(props: { period: Period; facts: PayFacts; today: string }) {
+export function Calendar(props: {
+  period: Period;
+  facts: PayFacts;
+  today: string;
+  onEditDay: OnEditDay;
+}) {
+  const { onEditDay } = props;
   const dates = datesIn(props.period);
   const days = daysByDate(props.facts.days);
   const blanksBeforeFirstDay = (weekdayOf(props.period.start) + 6) % 7;
@@ -324,7 +434,7 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
           const day = days.get(date);
           const kind = dayKind(date, props.facts.holidays, day);
           const { className, name } = KINDS[kind];
-          const label = `${weekdayName(date)} ${dayMonth(date)}`;
+          const label = dayLabel(date);
           const text = cellText(kind, day, props.facts);
           return (
             <li
@@ -335,6 +445,16 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
               {(i === 0 || dayOfMonth(date) === 1) && <span className="m">{monthName(date)}</span>}
               <span className="n">{dayOfMonth(date)}</span>
               {text !== null && <span className="t">{text}</span>}
+              {onEditDay !== null && (
+                <button
+                  className="tap"
+                  type="button"
+                  aria-label={`Edit ${label}`}
+                  onClick={() => {
+                    onEditDay(date);
+                  }}
+                />
+              )}
             </li>
           );
         })}
@@ -361,7 +481,30 @@ export function Calendar(props: { period: Period; facts: PayFacts; today: string
           Weekend
         </span>
       </div>
+      {onEditDay !== null && (
+        <div className="hint">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <circle cx="12" cy="12" r="8" opacity=".5" />
+          </svg>
+          Tap any day to add overtime or leave
+        </div>
+      )}
     </div>
+  );
+}
+
+export function Cross() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -375,7 +518,26 @@ export function DateChip({ date, className }: { date: string; className: string 
   );
 }
 
-function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
+type OnEditDay = ((date: string) => void) | null;
+
+/** The admin's edit pen on a list row; nothing for the nanny. */
+function EditDay({ date, onEditDay }: { date: string; onEditDay: OnEditDay }) {
+  if (onEditDay === null) return null;
+  return (
+    <button
+      className="pen"
+      type="button"
+      aria-label={`Edit ${dayLabel(date)}`}
+      onClick={() => {
+        onEditDay(date);
+      }}
+    >
+      <Pen />
+    </button>
+  );
+}
+
+function OtItem({ day, facts, onEditDay }: { day: Day; facts: PayFacts; onEditDay: OnEditDay }) {
   const ot = dayOt(day, facts.rates, facts.holidays);
   const details = [
     otReason(day, facts.holidays),
@@ -396,11 +558,12 @@ function OtItem({ day, facts }: { day: Day; facts: PayFacts }) {
         {money(ot.pay)}
         <small>{hours(ot.paidMinutes)}</small>
       </div>
+      <EditDay date={day.date} onEditDay={onEditDay} />
     </li>
   );
 }
 
-function LeaveItem({ day }: { day: Day }) {
+function LeaveItem({ day, onEditDay }: { day: Day; onEditDay: OnEditDay }) {
   return (
     <li className="item">
       <DateChip date={day.date} className="lv" />
@@ -411,12 +574,14 @@ function LeaveItem({ day }: { day: Day }) {
       <div className="amt">
         0<small>no change</small>
       </div>
+      <EditDay date={day.date} onEditDay={onEditDay} />
     </li>
   );
 }
 
 /** The pay period's OT and leave days, one per row, below the calendar. */
-export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts }) {
+export function OtLeaveList(props: { period: Period; facts: PayFacts; onEditDay: OnEditDay }) {
+  const { period, facts, onEditDay } = props;
   const days = daysIn(period, facts.days).filter((day) => day.ot.length > 0 || day.leave);
   const leaveDays = days.filter((day) => day.leave).length;
   const { otMinutes } = summarize(period, facts);
@@ -438,9 +603,9 @@ export function OtLeaveList({ period, facts }: { period: Period; facts: PayFacts
         <ul aria-label="Overtime & leave">
           {days.map((day) =>
             day.ot.length > 0 ? (
-              <OtItem key={day.date} day={day} facts={facts} />
+              <OtItem key={day.date} day={day} facts={facts} onEditDay={onEditDay} />
             ) : (
-              <LeaveItem key={day.date} day={day} />
+              <LeaveItem key={day.date} day={day} onEditDay={onEditDay} />
             ),
           )}
         </ul>
