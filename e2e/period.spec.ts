@@ -24,7 +24,7 @@ test("‹ from Oct pay goes to the first pay period, 14 Sep – 27 Sep, salary 1
   await logInOn(page, "2026-10-16");
   await page.getByRole("button", { name: "Previous pay period" }).click();
   await expect(page.getByRole("region", { name: "Sep pay · 14 Sep – 27 Sep" })).toContainText(
-    "11,000",
+    "Salary (first part-month, agreed)11,000",
   );
 });
 

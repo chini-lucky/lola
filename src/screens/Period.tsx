@@ -1,157 +1,18 @@
 import { useEffect, useState } from "react";
-import {
-  currentPeriod,
-  datesIn,
-  dayKind,
-  nextPeriod,
-  payDayOf,
-  prevPeriod,
-  salaryOf,
-  weekdayOf,
-  type DayKind,
-  type Period,
-} from "../pay";
+import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Period } from "../pay";
 import { logOut, payFacts, type PayFacts, type Person } from "../supabase";
-import { Bear, ErrorAlert } from "../ui";
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-const month = (date: string) => MONTHS[Number(date.slice(5, 7)) - 1] ?? "";
-const day = (date: string) => Number(date.slice(8, 10));
-const dayMonth = (date: string) => `${day(date).toString()} ${month(date)}`;
-const money = (amount: number) => amount.toLocaleString("en-US");
+import { Bear, Calendar, dayMonth, ErrorAlert, monthName, Totals, weekdayName } from "../ui";
 
 /** "Oct pay · 28 Sep – 27 Oct" */
 function periodTitle(period: Period): string {
-  return `${month(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
+  return `${monthName(period.end)} pay · ${dayMonth(period.start)} – ${dayMonth(period.end)}`;
 }
 
 function todayInBangkok(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
 }
 
-function kindClass(kind: DayKind): string {
-  switch (kind) {
-    case "holiday":
-      return " hol";
-    case "weekend":
-      return " wkd";
-    case "normal":
-      return "";
-    default: {
-      const unreachable: never = kind;
-      return unreachable;
-    }
-  }
-}
-
-function Header({ person }: { person: Person }) {
-  if (person.role === "admin") {
-    return (
-      <div className="top">
-        <div className="hi">
-          <h1>
-            <b>Lola’s pay</b>
-          </h1>
-          <small>Signed in as {person.username}</small>
-        </div>
-        <span className="pill">Admin</span>
-      </div>
-    );
-  }
-  return (
-    <div className="top">
-      <Bear className="bearsm" />
-      <div className="hi">
-        <h1>
-          <b>Hi {person.username} 👋</b>
-        </h1>
-        <small>Pooh’s pay period so far</small>
-      </div>
-    </div>
-  );
-}
-
-function Totals({ period, facts }: { period: Period; facts: PayFacts }) {
-  const salary = salaryOf(period, facts.rates, facts.overrides);
-  const agreed = facts.overrides.find((o) => o.period_end === period.end)?.note ?? null;
-  return (
-    <div className="totals">
-      <Bear className="peek" />
-      <div>
-        <div className="lbl">{month(period.end)} pay total</div>
-        <div className="big">
-          {money(salary)}
-          <small>THB</small>
-        </div>
-      </div>
-      <dl className="rows">
-        <dt>{agreed === null ? "Salary" : `Salary (${agreed})`}</dt>
-        <dd>{money(salary)}</dd>
-        <div className="sep" />
-        <dt>Total</dt>
-        <dd>{money(salary)}</dd>
-      </dl>
-    </div>
-  );
-}
-
-function Calendar({
-  period,
-  holidays,
-  today,
-}: {
-  period: Period;
-  holidays: string[];
-  today: string;
-}) {
-  const dates = datesIn(period);
-  const lead = (weekdayOf(period.start) + 6) % 7; // weeks start on Monday
-  return (
-    <div className="card">
-      <div className="dow" aria-hidden="true">
-        {["M", "T", "W", "T", "F", "S", "S"].map((letter, i) => (
-          <span key={i}>{letter}</span>
-        ))}
-      </div>
-      <ol className="cal" aria-label="Days">
-        {Array.from({ length: lead }, (_, i) => (
-          <li className="d e" key={`lead-${i.toString()}`} aria-hidden="true" />
-        ))}
-        {dates.map((date, i) => {
-          const kind = dayKind(date, holidays);
-          const label = `${WEEKDAYS[weekdayOf(date)] ?? ""} ${dayMonth(date)}`;
-          return (
-            <li
-              key={date}
-              className={`d${kindClass(kind)}${date === today ? " today" : ""}`}
-              aria-label={kind === "normal" ? label : `${label}, ${kind}`}
-            >
-              {(i === 0 || day(date) === 1) && <span className="m">{month(date)}</span>}
-              <span className="n">{day(date)}</span>
-              {kind === "holiday" && <span className="t">holiday</span>}
-            </li>
-          );
-        })}
-      </ol>
-      <div className="legend">
-        <span>
-          <i style={{ background: "var(--day)", boxShadow: "inset 0 0 0 1px var(--line)" }} />
-          Normal
-        </span>
-        <span>
-          <i style={{ background: "var(--hol)" }} />
-          Holiday
-        </span>
-        <span>
-          <i style={{ background: "var(--wkd)" }} />
-          Weekend
-        </span>
-      </div>
-    </div>
-  );
-}
+const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
 
 /** The main screen for admin and nanny: one pay period at a time, ‹ › to move. */
 export function PeriodView({ person }: { person: Person }) {
@@ -172,7 +33,27 @@ export function PeriodView({ person }: { person: Person }) {
 
   return (
     <div className="screen">
-      <Header person={person} />
+      {person.role === "admin" ? (
+        <div className="top">
+          <div className="hi">
+            <h1>
+              <b>Lola’s pay</b>
+            </h1>
+            <small>Signed in as {person.username}</small>
+          </div>
+          <span className="pill">Admin</span>
+        </div>
+      ) : (
+        <div className="top">
+          <Bear className="bearsm" />
+          <div className="hi">
+            <h1>
+              <b>Hi {capitalised(person.username)} 👋</b>
+            </h1>
+            <small>Pooh’s pay period so far</small>
+          </div>
+        </div>
+      )}
       <section className="periodview" aria-label={periodTitle(period)}>
         <div className="period">
           <button
@@ -188,7 +69,7 @@ export function PeriodView({ person }: { person: Person }) {
           <div>
             <b>{periodTitle(period)}</b>
             <small>
-              Pay day {WEEKDAYS[weekdayOf(payDay)]} {dayMonth(payDay)}
+              Pay day {weekdayName(payDay)} {dayMonth(payDay)}
               {payDayYear}
             </small>
           </div>
