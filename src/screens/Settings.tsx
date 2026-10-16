@@ -9,7 +9,7 @@ import {
   waitingPeople,
   type Holiday,
 } from "../supabase";
-import { BackBar, ErrorAlert, Holidays, PayRates, todayInBangkok } from "../ui";
+import { BackBar, ErrorAlert, ExportCsv, Holidays, PayRates, todayInBangkok } from "../ui";
 
 const personIcon = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -25,7 +25,7 @@ const logIcon = (
   </svg>
 );
 
-// Admin only: People, pay rates, holidays, the change log, Account.
+// Admin only: People, pay rates, holidays, CSV export, the change log, Account.
 export function Settings() {
   const [today] = useState(todayInBangkok);
   const [facts, setFacts] = useState<PayFacts | null>(null);
@@ -80,6 +80,7 @@ export function Settings() {
               load();
             }}
           />
+          <ExportCsv facts={facts} today={today} />
         </>
       )}
       <a className="navrow" href="#/changes">
