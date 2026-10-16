@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { PaymentSheet } from "./PaymentSheet";
 import { currentPeriod, nextPeriod, payDayOf, prevPeriod, type Period } from "../pay";
 import { logOut, payFacts, type PayFacts, type Person } from "../supabase";
 import {
@@ -8,6 +9,7 @@ import {
   ErrorAlert,
   monthName,
   Payments,
+  Plus,
   Totals,
   weekdayName,
 } from "../ui";
@@ -29,12 +31,14 @@ export function PeriodView({ person }: { person: Person }) {
   const [period, setPeriod] = useState(() => currentPeriod(today));
   const [facts, setFacts] = useState<PayFacts | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     payFacts().then(setFacts, () => {
       setError("Couldn’t load the pay data. Check your connection and reload.");
     });
   }, []);
+  useEffect(load, [load]);
 
   const prev = prevPeriod(period);
   const payDay = payDayOf(period);
@@ -96,11 +100,36 @@ export function PeriodView({ person }: { person: Person }) {
         {facts !== null && (
           <>
             <Totals period={period} facts={facts} />
+            {person.role === "admin" && (
+              <button
+                className="btn pri"
+                type="button"
+                onClick={() => {
+                  setAdding(true);
+                }}
+              >
+                <Plus />
+                Add payment
+              </button>
+            )}
             <Calendar period={period} holidays={facts.holidays} today={today} />
             <Payments period={period} facts={facts} />
           </>
         )}
       </section>
+      {adding && facts !== null && (
+        <PaymentSheet
+          today={today}
+          facts={facts}
+          onClose={() => {
+            setAdding(false);
+          }}
+          onSaved={() => {
+            setAdding(false);
+            load();
+          }}
+        />
+      )}
       {person.role === "admin" && (
         <a className="navrow" href="#/people">
           <span>People</span>

@@ -107,3 +107,12 @@ export async function payFacts(): Promise<PayFacts> {
     payments: payments.data,
   };
 }
+
+/** A payment as the admin enters it; the DB gives it its id. */
+export type PaymentFields = Omit<Payment, "id">;
+
+/** Admin only (RLS). */
+export async function addPayment(fields: PaymentFields): Promise<void> {
+  const { error } = await supabase.from("payments").insert(fields);
+  if (error !== null) throw error;
+}
