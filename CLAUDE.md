@@ -29,3 +29,4 @@ Nanny hours and pay app: an admin records exceptions (OT, leave), payments and r
 - Permissions are enforced in the DB (RLS) and tested with pgTAP.
 - Keep it simple and minimal: no new dependency without a written reason in the PR.
 - Small PRs, one per ticket.
+- Never run Supabase commands against production (`link`, `db push`, `config push`, `functions deploy`) from a machine: production changes only through GitHub Actions on merge to main.

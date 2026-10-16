@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)",
-      "Bash(supabase *)",
+      "Bash(supabase start*)",
+      "Bash(supabase status*)",
+      "Bash(supabase db reset*)",
+      "Bash(supabase test db*)",
+      "Bash(supabase gen types*)",
+      "Bash(supabase migration new*)",
+      "Bash(supabase functions serve*)",
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
