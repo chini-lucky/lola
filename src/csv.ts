@@ -53,7 +53,7 @@ function rowOn(date: string, facts: PayFacts): string[] {
     day?.ot.join("; ") ?? "",
     ot === null ? "" : (ot.paidMinutes / 60).toString(),
     ot === null ? "" : ot.pay.toString(),
-    "",
+    day?.note ?? "",
     "",
     "",
   ];

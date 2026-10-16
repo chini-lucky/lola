@@ -38,4 +38,11 @@ describe("CSV export", () => {
       "2026-10-20,Tue,OT,07:30-09:00; 18:00-19:10,3,450,,,",
     );
   });
+
+  test("a leave day shows its type and note", () => {
+    const day = { date: "2026-10-19", ot: [], leave: true, note: "Doctor visit" };
+    expect(rowOn("2026-10-19", { ...noFacts, days: [day] })).toBe(
+      "2026-10-19,Mon,Leave,,,,Doctor visit,,",
+    );
+  });
 });
