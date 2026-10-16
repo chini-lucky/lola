@@ -23,13 +23,130 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            [_ in never]: never
+            "audit_log": {
+                  Row: {
+                    "actor": string | null,"at": string,"id": number,"new": Json | null,"old": Json | null,"op": string,"tbl": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"op": string,"tbl": string
+                  }
+                  Update: {
+                    "actor"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"op"?: string,"tbl"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"confirmations": {
+                  Row: {
+                    "confirmed_at": string,"confirmed_by": string,"id": string,"period_end": string,"snapshot": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "confirmed_at"?: string,"confirmed_by"?: string,"id"?: string,"period_end": string,"snapshot": NonNullable<Json>
+                  }
+                  Update: {
+                    "confirmed_at"?: string,"confirmed_by"?: string,"id"?: string,"period_end"?: string,"snapshot"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"days": {
+                  Row: {
+                    "date": string,"leave": boolean,"note": string | null,"ot": (string)[],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "date": string,"leave"?: boolean,"note"?: string | null,"ot"?: (string)[],"updated_at"?: string
+                  }
+                  Update: {
+                    "date"?: string,"leave"?: boolean,"note"?: string | null,"ot"?: (string)[],"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"holidays": {
+                  Row: {
+                    "date": string,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "date": string,"name": string
+                  }
+                  Update: {
+                    "date"?: string,"name"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"payments": {
+                  Row: {
+                    "amount": number,"created_at": string,"id": string,"note": string | null,"paid_on": string,"period_end": string,"receipts": (string)[]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"id"?: string,"note"?: string | null,"paid_on": string,"period_end": string,"receipts"?: (string)[]
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"id"?: string,"note"?: string | null,"paid_on"?: string,"period_end"?: string,"receipts"?: (string)[]
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"people": {
+                  Row: {
+                    "created_at": string,"id": string,"role": string,"username": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id": string,"role"?: string,"username": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"role"?: string,"username"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"period_overrides": {
+                  Row: {
+                    "note": string | null,"period_end": string,"salary": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "note"?: string | null,"period_end": string,"salary": number
+                  }
+                  Update: {
+                    "note"?: string | null,"period_end"?: string,"salary"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"rates": {
+                  Row: {
+                    "effective_from": string,"ot_rate": number,"salary": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "effective_from": string,"ot_rate": number,"salary": number
+                  }
+                  Update: {
+                    "effective_from"?: string,"ot_rate"?: number,"salary"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "my_role":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"set_role":
+{ Args: { "new_role": string,"target": string }; Returns: undefined
+                           }
           }
           Enums: {
             [_ in never]: never
