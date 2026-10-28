@@ -24,7 +24,8 @@ test("Lola downloads the Oct pay payslip with every payslip field", async ({ pag
     expect.arrayContaining([
       "Payslip · Oct pay (28 Sep – 27 Oct 2026)",
       "EMPLOYEE EMPLOYER",
-      "Lola Chini Lucky",
+      "Mrs. Lennie Cartagena Deborja Lakindu Boteju",
+      "Sachini Attanayake",
       "Monthly salary (Mon–Fri 09:00–18:00) 20,000",
       "Wed 30 Sep 18:00–20:15 2.5 h 375",
       "Tue 20 Oct 07:00–08:00, 18:00–20:00 3 h 450",

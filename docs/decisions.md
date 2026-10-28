@@ -69,7 +69,7 @@ Source of truth for agreed decisions. Update when the user decides something new
 - Schema changes only via migrations in repo, applied by GitHub Actions on merge to main.
 - Receipts: images (JPG/PNG/HEIC) + PDF, several per payment, shrunk in browser, private storage bucket (admin + Lola only). Lola views/downloads under the period's Payments.
 - CSV: pick a range of pay periods → ONE CSV, one row per day: date, weekday, type, OT times, OT hours, OT pay, note, payment amount (on day paid), receipt file names.
-- Payslip PDF (per period, admin + Lola): bear logo, "Payslip · Oct pay (28 Sep – 27 Oct 2026)", Employee: Lola, Employer: Chini Lucky; salary; OT table per day + total; leave/holidays listed (no deduction); total due, payments (date+amount), balance; confirmation status. Downloadable anytime; "DRAFT" stamp if period not over or not fully paid. Generated client-side, styled like Option A.
+- Payslip PDF (per period, admin + Lola): bear logo, "Payslip · Oct pay (28 Sep – 27 Oct 2026)", Employee: Mrs. Lennie Cartagena Deborja, Employer: Lakindu Boteju on the first line and Sachini Attanayake on the second; salary; OT table per day + total; leave/holidays listed (no deduction); total due, payments (date+amount), balance; confirmation status. Downloadable anytime; "DRAFT" stamp if period not over or not fully paid. Generated client-side, styled like Option A.
 
 ## Round 6 (user)
 

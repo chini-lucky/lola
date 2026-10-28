@@ -203,23 +203,30 @@ function drawHeader(sheet: Sheet, slip: Slip, bear: Uint8Array) {
   doc.line(MARGIN, sheet.y, RIGHT, sheet.y);
 }
 
+const EMPLOYEE_NAME = "Mrs. Lennie Cartagena Deborja";
+const EMPLOYER_NAMES = ["Lakindu Boteju", "Sachini Attanayake"] as const;
+const NAME_LINE = 16;
+
 function drawWho(sheet: Sheet) {
   const { doc } = sheet;
   const top = sheet.y + 12;
   const half = (WIDTH - 8) / 2;
-  const people = [
-    { label: "Employee", name: "Lola", x: MARGIN },
-    { label: "Employer", name: "Chini Lucky", x: MARGIN + half + 8 },
+  const cardHeight = 40 + NAME_LINE;
+  const cards = [
+    { label: "Employee", lines: [EMPLOYEE_NAME], x: MARGIN },
+    { label: "Employer", lines: EMPLOYER_NAMES, x: MARGIN + half + 8 },
   ];
-  for (const person of people) {
+  for (const card of cards) {
     doc.setFillColor(CARD);
-    doc.roundedRect(person.x, top, half, 40, 8, 8, "F");
+    doc.roundedRect(card.x, top, half, cardHeight, 8, 8, "F");
     sheet.font("Nunito", "bold", 7.5, MUTED);
-    doc.text(person.label.toUpperCase(), person.x + 10, top + 15);
+    doc.text(card.label.toUpperCase(), card.x + 10, top + 15);
     sheet.font("Nunito", "bold", 12, INK);
-    doc.text(person.name, person.x + 10, top + 31);
+    for (const [i, line] of card.lines.entries()) {
+      doc.text(line, card.x + 10, top + 31 + i * NAME_LINE);
+    }
   }
-  sheet.y = top + 40;
+  sheet.y = top + cardHeight;
 }
 
 function drawSalary(sheet: Sheet, slip: Slip) {
