@@ -205,13 +205,13 @@ function drawHeader(sheet: Sheet, slip: Slip, bear: Uint8Array) {
 
 const EMPLOYEE_NAME = "Mrs. Lennie Cartagena Deborja";
 const EMPLOYER_NAMES = ["Lakindu Boteju", "Sachini Attanayake"] as const;
-const WHO_LINE = 16;
+const NAME_LINE = 16;
 
 function drawWho(sheet: Sheet) {
   const { doc } = sheet;
   const top = sheet.y + 12;
   const half = (WIDTH - 8) / 2;
-  const cardHeight = 40 + WHO_LINE;
+  const cardHeight = 40 + NAME_LINE;
   const cards = [
     { label: "Employee", lines: [EMPLOYEE_NAME], x: MARGIN },
     { label: "Employer", lines: EMPLOYER_NAMES, x: MARGIN + half + 8 },
@@ -223,7 +223,7 @@ function drawWho(sheet: Sheet) {
     doc.text(card.label.toUpperCase(), card.x + 10, top + 15);
     sheet.font("Nunito", "bold", 12, INK);
     for (const [i, line] of card.lines.entries()) {
-      doc.text(line, card.x + 10, top + 31 + i * WHO_LINE);
+      doc.text(line, card.x + 10, top + 31 + i * NAME_LINE);
     }
   }
   sheet.y = top + cardHeight;
