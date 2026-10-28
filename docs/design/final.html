@@ -1584,7 +1584,7 @@
     }
     .a4 .ft {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 10px;
       color: var(--muted);
       font-size: 0.85em;
@@ -1608,21 +1608,6 @@
       pointer-events: none;
       line-height: 1.2;
     }
-    .a4 .conf {
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-      font-weight: 800;
-      border-radius: 999px;
-      padding: 2px 10px;
-      background: var(--lv);
-      color: #7a4214;
-    }
-    .a4 .conf.ok {
-      background: var(--ok);
-      color: var(--ok-ink);
-    }
-
     @media (max-width: 480px) {
       .phone {
         border-width: 5px;
@@ -2482,11 +2467,7 @@
           '</b><span class="big">Balance</span><b class="big">' +
           fmt(t - pd) +
           " THB</b></div>" +
-          '<div class="ft"><span>' +
-          (oct
-            ? '<span class="conf">Changed since Lola confirmed (20,975 on 9 Oct)</span>'
-            : '<span class="conf ok">Confirmed by Lola on 28 Sep 2026</span>') +
-          "</span><span>Generated 16 Oct 2026 · chini-lucky.github.io/lola</span></div>" +
+          '<div class="ft"><span>Generated 16 Oct 2026 · chini-lucky.github.io/lola</span></div>' +
           "</article>"
         );
       }

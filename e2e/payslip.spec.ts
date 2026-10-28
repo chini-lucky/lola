@@ -36,9 +36,10 @@ test("Lola downloads the Oct pay payslip with every payslip field", async ({ pag
       "Total due 22,250",
       "Paid 0",
       "Balance 22,250 THB",
-      expect.stringMatching(/^Not yet confirmed by Lola Generated 16 Oct 2026 · /),
+      expect.stringMatching(/^Generated 16 Oct 2026 · /),
     ]),
   );
+  expect(lines.filter((line) => line.toLowerCase().includes("confirmed"))).toEqual([]);
 });
 
 test("the Oct pay payslip is stamped DRAFT while the pay period is not over", async ({ page }) => {

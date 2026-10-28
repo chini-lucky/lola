@@ -13,25 +13,14 @@ import {
   type Period,
   type Summary,
 } from "./pay";
-import type { Confirmation, Holiday } from "./supabase";
-import {
-  bangkokDate,
-  confirmationState,
-  dayLabel,
-  dayMonth,
-  fullDate,
-  hours,
-  money,
-  otTimes,
-  periodName,
-} from "./ui";
+import type { Holiday } from "./supabase";
+import { dayLabel, dayMonth, fullDate, hours, money, otTimes, periodName } from "./ui";
 
-/** What a payslip shows: the pay period, its facts, the holiday names, the confirmation. */
+/** What a payslip shows: the pay period, its facts, and the holiday names. */
 export interface Payslip {
   period: Period;
   facts: PayFacts;
   holidays: Holiday[];
-  confirmation: Confirmation | null;
   today: string;
   /** Where the app lives, for the footer: "chini-lucky.github.io/lola". */
   site: string;
@@ -47,10 +36,6 @@ const LINE = "#dce6ee";
 const CARD = "#fffbf3";
 const TOTALS = "#cfe6f7";
 const TOTALS_INK = "#1f3b52";
-const LEAVE = "#fce3c9";
-const LEAVE_INK = "#7a4214";
-const OK = "#e0f2e4";
-const OK_INK = "#2f6b3f";
 const DANGER = "#c2554a";
 
 // A4 portrait in points.
@@ -92,34 +77,6 @@ const span = (period: Period) =>
 
 /** The payslip's title: "Payslip · Oct pay (28 Sep – 27 Oct 2026)". */
 const titleOf = (period: Period) => `Payslip · ${periodName(period)} ${span(period)}`;
-
-/** The confirmation line in the footer, with its pill colours. */
-function confirmationLine(slip: Slip): { text: string; fill: string; ink: string } {
-  const state = confirmationState(slip.confirmation, slip.summary);
-  switch (state.kind) {
-    case "waiting":
-      return { text: "Not yet confirmed by Lola", fill: LEAVE, ink: LEAVE_INK };
-    case "confirmed":
-      return {
-        text: `Confirmed by Lola on ${fullDate(bangkokDate(new Date(state.confirmation.confirmed_at)))}`,
-        fill: OK,
-        ink: OK_INK,
-      };
-    case "stale": {
-      const { total, paid } = state.confirmation.snapshot;
-      const on = dayMonth(bangkokDate(new Date(state.confirmation.confirmed_at)));
-      return {
-        text: `Changed since Lola confirmed (total ${money(total)} · paid ${money(paid)} on ${on})`,
-        fill: LEAVE,
-        ink: LEAVE_INK,
-      };
-    }
-    default: {
-      const unreachable: never = state;
-      return unreachable;
-    }
-  }
-}
 
 /** A table cell: its text and where it starts, or ends when right-aligned. */
 interface Cell {
@@ -342,12 +299,6 @@ function drawTotalsAndFooter(sheet: Sheet, slip: Slip) {
   doc.setDrawColor(LINE);
   doc.setLineWidth(0.7);
   doc.line(MARGIN, BOTTOM - footerHeight + 6, RIGHT, BOTTOM - footerHeight + 6);
-  const confirmation = confirmationLine(slip);
-  sheet.font("Nunito", "bold", 8.5, confirmation.ink);
-  const pillWidth = doc.getTextWidth(confirmation.text) + 16;
-  doc.setFillColor(confirmation.fill);
-  doc.roundedRect(MARGIN, footerY - 10, pillWidth, 14, 7, 7, "F");
-  doc.text(confirmation.text, MARGIN + 8, footerY);
   sheet.font("Nunito", "normal", 8.5, MUTED);
   doc.text(`Generated ${fullDate(slip.today)} · ${slip.site}`, RIGHT, footerY, { align: "right" });
 }

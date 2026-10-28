@@ -155,7 +155,6 @@ export function PeriodView({ person }: { person: Person }) {
           period,
           facts,
           holidays: loadedHolidays,
-          confirmation,
           today,
           site,
         }),
