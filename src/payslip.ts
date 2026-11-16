@@ -160,7 +160,7 @@ function drawHeader(sheet: Sheet, slip: Slip, bear: Uint8Array) {
   doc.line(MARGIN, sheet.y, RIGHT, sheet.y);
 }
 
-const EMPLOYEE_NAME = "Mrs. Lennie Cartagena Deborja";
+const EMPLOYEE_NAME = "Mrs. Lennie Cartagena De Borja";
 const EMPLOYER_NAME = "Lakindu Boteju & Sachini Attanayake";
 
 function drawWho(sheet: Sheet) {
